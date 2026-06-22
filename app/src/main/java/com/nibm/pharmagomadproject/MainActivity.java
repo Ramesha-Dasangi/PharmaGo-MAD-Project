@@ -37,6 +37,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
 
-        }, 1800); // 1.5 second splash delay
+        }, 1800); // 1.8second splash delay
     }
 }

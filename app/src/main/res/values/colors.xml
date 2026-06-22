@@ -7,5 +7,34 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="pg_primary_dark">#0B7A5F</color>
+
+    <!-- Primary green -->
     <color name="pg_primary">#00B87C</color>
+
+    <!-- Text colors -->
+    <color name="pg_text">#1A1A2E</color>
+    <color name="pg_sub">#6B7280</color>
+
+    <!-- Background -->
+    <color name="pg_bg">#F4F7FA</color>
+    <color name="pg_card">#FFFFFF</color>
+    <color name="pg_border">#E5EAF0</color>
+
+    <!-- Accent orange (Proceed to payment button) -->
+    <color name="pg_accent">#FF6B35</color>
+
+    <!-- Tags -->
+    <color name="tag_green_bg">#D1FAE5</color>
+    <color name="tag_green_text">#065F46</color>
+    <color name="tag_amber_bg">#FEF3C7</color>
+    <color name="tag_amber_text">#92400E</color>
+    <color name="tag_blue_bg">#DBEAFE</color>
+    <color name="tag_blue_text">#1E40AF</color>
+    <color name="tag_red_bg">#FEE2E2</color>
+    <color name="tag_red_text">#991B1B</color>
+
+    <!-- Pharmacy color coding (cart screen) -->
+    <color name="pharmacy_medicare">#00B87C</color>  <!-- green -->
+    <color name="pharmacy_citypharma">#FF6B35</color> <!-- orange -->
 </resources>
