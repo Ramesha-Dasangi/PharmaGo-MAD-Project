@@ -98,7 +98,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:layout_marginBottom="4dp" />
 
-                <!-- Email field (hint-only) -->
+                <!-- Email field -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/emailLayout"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -136,7 +136,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:layout_marginBottom="4dp" />
 
-                <!-- Password field (hint-only + eye toggle) -->
+                <!-- Password field -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/passwordLayout"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -236,7 +236,7 @@
                     app:strokeColor="@color/pg_primary"
                     android:textColor="@color/pg_primary" />
 
-                <!-- Admin login link (touch target >= 48dp) -->
+                <!-- Admin login link -->
                 <TextView
                     android:id="@+id/tvAdminLogin"
                     android:layout_width="match_parent"
