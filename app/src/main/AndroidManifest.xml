@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PharmaGoMADProject">
         <activity
+            android:name=".customer.RegisterActivity"
+            android:exported="false" />
+        <activity
             android:name=".customer.HomeActivity"
             android:exported="false" />
         <activity
