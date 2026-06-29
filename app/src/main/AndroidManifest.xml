@@ -28,13 +28,62 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:exported="false">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity>
+        <activity
+            android:name=".Admin.AdminLoginActivity"
+            android:exported="true">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
+        <activity
+            android:name=".Admin.AdminDashboardActivity"
+            android:exported="true" >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
+        <activity
+            android:name=".Admin.PendingApprovalsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ReviewApplicationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.RejectApplicationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ReviewRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.RejectRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ManageUsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.GenerateReportsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.AssignRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.UnassignedOrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ComplaintsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
