@@ -38,4 +38,17 @@
     <!-- Pharmacy color coding (cart screen) -->
     <color name="pharmacy_medicare">#00B87C</color>  <!-- green -->
     <color name="pharmacy_citypharma">#FF6B35</color> <!-- orange -->
+
+
+    <color name="colorPrimary">#1A1C29</color>
+    <color name="colorBackground">#F4F6F9</color>
+    <color name="colorAccent">#25C08E</color>
+    <color name="colorTextSecondary">#7A869A</color>
+    <color name="colorCardBackground">#FFFFFF</color>
+    <color name="colorOrange">#FF5722</color>
+    <color name="colorRed">#E53935</color>
+    <color name="colorBlue">#1E88E5</color>
+    <color name="colorStroke">#E0E0E0</color>
+    <color name="colorGreen">#00C853</color>
+    <color name="colorPurple">#9C27B0</color>
 </resources>
