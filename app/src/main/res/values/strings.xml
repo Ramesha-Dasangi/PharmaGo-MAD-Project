@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PharmaGo MAD Project</string>
+    <string name="back_button">Back</string>
 </resources>
