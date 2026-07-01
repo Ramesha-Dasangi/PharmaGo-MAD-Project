@@ -35,55 +35,41 @@
 <!--                <category android:name="android.intent.category.LAUNCHER" />-->
 <!--            </intent-filter>-->
         </activity>
+
+        
         <activity
-            android:name=".Admin.AdminLoginActivity"
+            android:name=".pharmacyowner.inventory.AddMedicineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.inventory.EditMedicineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.profile.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.reports.SalesReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.InventoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.VerifyPrescriptionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.OrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.DashboardActivity"
             android:exported="true">
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity
-            android:name=".Admin.AdminDashboardActivity"
-            android:exported="true" >
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-        </activity>
-        <activity
-            android:name=".Admin.PendingApprovalsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.ReviewApplicationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.RejectApplicationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.ReviewRiderActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.RejectRiderActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.ManageUsersActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.GenerateReportsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.SettingsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.AssignRiderActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.UnassignedOrdersActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.ComplaintsActivity"
-            android:exported="false" />
     </application>
 
 </manifest>
