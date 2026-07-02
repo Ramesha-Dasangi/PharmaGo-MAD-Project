@@ -63,13 +63,53 @@
             android:exported="false" />
         <activity
             android:name=".pharmacyowner.DashboardActivity"
+            android:exported="false">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
+        <activity
+            android:name=".deliveryrider.RiderDashboardActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".deliveryrider.AssignmentDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.DeliveryProgressActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.RiderMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.ConfirmDeliveryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.PickupNavigationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.LiveMapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.DeliveryHistoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.RiderProfileActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
