@@ -17,46 +17,53 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Search bar
+        // Search bar → MedicineListActivity (search mode)
         findViewById(R.id.searchBar).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("search", "Search medicines", ""));
 
-        // Categories — for loop remove karala individually set karanna
+        // Categories
         findViewById(R.id.catRx).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "Prescription medicines", "rx"));
         findViewById(R.id.catFirstAid).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "First Aid", "firstaid"));
         findViewById(R.id.catVitamins).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "Vitamins & Supplements", "vitamins"));
         findViewById(R.id.catChronic).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "Chronic medicines", "chronic"));
         findViewById(R.id.catBaby).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "Baby Care", "baby"));
         findViewById(R.id.catEyeCare).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "Eye Care", "eyecare"));
         findViewById(R.id.catDental).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "Dental", "dental"));
         findViewById(R.id.catOtc).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("category", "OTC medicines", "otc"));
 
-        // Nearby pharmacies
+        // Nearby pharmacies → MedicineListActivity (pharmacy mode)
         findViewById(R.id.pharmacyMediCare).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("pharmacy", "MediCare Pharmacy", "MediCare Pharmacy"));
         findViewById(R.id.pharmacyCityPharma).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("pharmacy", "City Pharma", "City Pharma"));
 
-        // Notification bell
+        // Notification bell → NotificationsActivity
         findViewById(R.id.btnNotification).setOnClickListener(v ->
-                android.widget.Toast.makeText(this, "No new notifications",
-                        android.widget.Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, NotificationsActivity.class)));
 
         setupBottomNav();
+    }
+
+    private void openMedicineList(String mode, String title, String query) {
+        Intent intent = new Intent(this, MedicineListActivity.class);
+        intent.putExtra(MedicineListActivity.EXTRA_MODE,  mode);
+        intent.putExtra(MedicineListActivity.EXTRA_TITLE, title);
+        intent.putExtra(MedicineListActivity.EXTRA_QUERY, query);
+        startActivity(intent);
     }
 
     private void setupBottomNav() {
         findViewById(R.id.navHome).setOnClickListener(v -> { });
         findViewById(R.id.navSearch).setOnClickListener(v ->
-                startActivity(new Intent(this, MedicineDetailsActivity.class)));
+                openMedicineList("search", "Search medicines", ""));
         findViewById(R.id.navCart).setOnClickListener(v ->
                 startActivity(new Intent(this, CartActivity.class)));
         findViewById(R.id.navOrders).setOnClickListener(v ->

@@ -11,78 +11,39 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PharmaGoMADProject">
-        <activity
-            android:name=".MainActivity"
-            android:exported="false">
-            <!--            <intent-filter>-->
-            <!--                <action android:name="android.intent.action.MAIN" />-->
-
-            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
-            <!--            </intent-filter>-->
+        <!--         <activity -->
+        <!--             android:name=".customer.dialog_logout" -->
+        <!--             android:exported="false" /> -->
+        <activity android:name=".customer.ChangePasswordActivity" android:exported="false"/>
+        <activity android:name=".customer.DeliveryAddressActivity" android:exported="false"/>
+        <activity android:name=".customer.ProfileActivity" android:exported="false"/>
+        <activity android:name=".customer.AdminLoginActivity" android:exported="false"/>
+        <activity android:name=".customer.AccountStatusActivity" android:exported="false"/>
+        <activity android:name=".customer.RegisterRiderActivity" android:exported="false"/>
+        <activity android:name=".customer.RegisterPharmacyActivity" android:exported="false"/>
+        <activity android:name=".customer.ComplaintRiderActivity" android:exported="false"/>
+        <activity android:name=".customer.ComplaintPharmacyActivity" android:exported="false"/>
+        <activity android:name=".customer.ReportIssueActivity" android:exported="false"/>
+        <activity android:name=".customer.OrderHistoryActivity" android:exported="false"/>
+        <activity android:name=".customer.OrderTrackingActivity" android:exported="false"/>
+        <activity android:name=".customer.PrescriptionUploadActivity" android:exported="false"/>
+        <activity android:name=".customer.CartActivity" android:exported="false"/>
+        <activity android:name=".customer.MedicineDetailsActivity" android:exported="false"/>
+        <activity android:name=".customer.RegisterActivity" android:exported="false"/>
+        <activity android:name=".customer.MedicineListActivity" android:exported="false"/>
+        <activity android:name=".customer.HomeActivity" android:exported="false">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN"/>-->
+<!--                <category android:name="android.intent.category.LAUNCHER"/>-->
+<!--            </intent-filter>-->
         </activity>
-<!--        <activity-->
-<!--            android:name=".customer.dialog_logout"-->
-<!--            android:exported="false" />-->
-        <activity
-            android:name=".customer.ChangePasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.DeliveryAddressActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.CustomerProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.AdminLoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.AccountStatusActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.RegisterRiderActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.RegisterPharmacyActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.ComplaintRiderActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.ComplaintPharmacyActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.ReportIssueActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.OrderHistoryActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.OrderTrackingActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.PrescriptionUploadActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.CartActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.MedicineDetailsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.RegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.HomeActivity"
-            android:exported="true" >
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+        <activity android:name=".customer.LoginActivity" android:exported="false"/>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity
-            android:name=".customer.LoginActivity"
-            android:exported="false" />
 
         
         <activity

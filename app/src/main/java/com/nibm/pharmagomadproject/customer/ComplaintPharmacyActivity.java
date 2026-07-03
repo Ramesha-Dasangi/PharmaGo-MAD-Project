@@ -4,10 +4,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.nibm.pharmagomadproject.R;
@@ -22,80 +20,69 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_complaint_pharmacy);
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        getSupportActionBar().hide();
-
-        // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Pharmacy selection
-        android.view.View optMediCare  = findViewById(R.id.optMediCare);
-        android.view.View optCityPharma = findViewById(R.id.optCityPharma);
+        // Pharmacy selection options
+        TextView optMediCare   = (TextView) ((android.view.View) findViewById(R.id.optMediCare));
+        TextView optCityPharma = (TextView) ((android.view.View) findViewById(R.id.optCityPharma));
 
-        optMediCare.setOnClickListener(v -> {
+        findViewById(R.id.optMediCare).setOnClickListener(v -> {
             selectedPharmacy = "MediCare Pharmacy";
             optMediCare.setBackgroundResource(R.drawable.bg_selected_option);
             optCityPharma.setBackgroundResource(R.drawable.bg_unselected_option);
         });
-        optCityPharma.setOnClickListener(v -> {
+        findViewById(R.id.optCityPharma).setOnClickListener(v -> {
             selectedPharmacy = "City Pharma";
             optCityPharma.setBackgroundResource(R.drawable.bg_selected_option);
             optMediCare.setBackgroundResource(R.drawable.bg_unselected_option);
         });
 
         // Issue chips
-        TextView[] chips = {
-                findViewById(R.id.chipWrongMedicine),
-                findViewById(R.id.chipFake),
-                findViewById(R.id.chipIncorrectPrice),
-                findViewById(R.id.chipExpired),
-                findViewById(R.id.chipRxNotVerified),
-                findViewById(R.id.chipOther)
-        };
-        String[] labels = {
-                "Wrong medicine", "Fake / unavailable listing",
-                "Incorrect price", "Expired medicine",
-                "Prescription not verified", "Other"
-        };
-        for (int i = 0; i < chips.length; i++) {
-            final String label = labels[i];
-            chips[i].setOnClickListener(v -> selectChip(label, chips, labels));
-        }
+        int[] chipIds   = { R.id.chipWrongMedicine, R.id.chipFake, R.id.chipIncorrectPrice,
+                             R.id.chipExpired, R.id.chipRxNotVerified, R.id.chipOther };
+        String[] labels = { "Wrong medicine", "Fake / unavailable listing",
+                             "Incorrect price", "Expired medicine",
+                             "Prescription not verified", "Other" };
+        setupChips(chipIds, labels);
 
         // Submit
         MaterialButton btnSubmit = findViewById(R.id.btnSubmitComplaint);
         btnSubmit.setOnClickListener(v -> submitComplaint());
     }
 
-    private void selectChip(String label, TextView[] chips, String[] labels) {
-        selectedChip = label;
-        int primary = getResources().getColor(R.color.pg_primary, null);
-        int sub     = getResources().getColor(R.color.pg_sub, null);
-        for (int i = 0; i < chips.length; i++) {
-            boolean sel = labels[i].equals(label);
-            chips[i].setBackgroundResource(
-                    sel ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
-            chips[i].setTextColor(sel ? primary : sub);
+    private void setupChips(int[] ids, String[] labels) {
+        TextView[] chips = new TextView[ids.length];
+        for (int i = 0; i < ids.length; i++) chips[i] = findViewById(ids[i]);
+
+        for (int i = 0; i < ids.length; i++) {
+            final String label = labels[i];
+            chips[i].setOnClickListener(v -> {
+                selectedChip = label;
+                int primary = getResources().getColor(R.color.pg_primary, null);
+                int sub     = getResources().getColor(R.color.pg_sub, null);
+                for (int j = 0; j < chips.length; j++) {
+                    boolean sel = labels[j].equals(label);
+                    chips[j].setBackgroundResource(sel ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
+                    chips[j].setTextColor(sel ? primary : sub);
+                }
+            });
         }
+        // Default select first
+        chips[0].performClick();
     }
 
     private void submitComplaint() {
         TextInputEditText etDesc = findViewById(R.id.etDescribeIssue);
-        String desc = etDesc.getText() != null
-                ? etDesc.getText().toString().trim() : "";
-
+        String desc = etDesc.getText() != null ? etDesc.getText().toString().trim() : "";
         if (TextUtils.isEmpty(desc)) {
             etDesc.setError("Please describe the issue");
             etDesc.requestFocus();
             return;
         }
-
         // TODO: save complaint to Firebase
-        // complaint: { targetType: "pharmacy", targetId: selectedPharmacy,
-        //              reason: selectedChip, description: desc }
-        Toast.makeText(this,
-                "Complaint submitted. We'll review it shortly.",
-                Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Complaint submitted successfully!", Toast.LENGTH_LONG).show();
         finish();
     }
 }

@@ -9,7 +9,7 @@ import androidx.activity.EdgeToEdge;
 
 import com.nibm.pharmagomadproject.R;
 
-public class CustomerProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
