@@ -1,0 +1,36 @@
+package com.example.testinterfacejava;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
+
+public class RejectApplicationActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_reject_application);
+
+        ImageView ivBack = findViewById(R.id.ivBack);
+        ivBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+        MaterialButton btnConfirmReject = findViewById(R.id.btnConfirmReject);
+        btnConfirmReject.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(RejectApplicationActivity.this, "Application rejected successfully", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+    }
+}
