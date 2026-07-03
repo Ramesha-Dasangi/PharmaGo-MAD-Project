@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- ================= HEADER ================= -->
+    <!-- HEADER -->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,7 +38,7 @@
 
     </LinearLayout>
 
-    <!-- ================= SEARCH ================= -->
+    <!-- SEARCH -->
 
 
             <EditText
@@ -53,9 +53,9 @@
                 android:paddingEnd="15dp"/>
 
 
-    <!-- ================= FILTER BUTTONS ================= -->
+    <!-- FILTER BUTTONS -->
 
-    <!-- ================= MEDICINE LIST ================= -->
+    <!-- MEDICINE LIST -->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -84,7 +84,7 @@
 
         <Button
             android:id="@+id/btnOutStock"
-            android:layout_width="110dp"
+            android:layout_width="124dp"
             android:layout_height="40dp"
             android:layout_marginStart="10dp"
             android:background="@drawable/filter_button"
@@ -103,7 +103,7 @@
         android:paddingEnd="10dp"
         android:clipToPadding="false"/>
 
-    <!-- ================= BOTTOM NAVIGATION ================= -->
+    <!-- BOTTOM NAVIGATION -->
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
