@@ -127,7 +127,7 @@ public class SalesReportActivity extends AppCompatActivity {
         });
     }
 
-    // ---------------- Today ----------------
+    //  Today
 
     private void loadTodayData() {
 
@@ -143,7 +143,7 @@ public class SalesReportActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-    // ---------------- Week ----------------
+    //  Week
 
     private void loadWeekData() {
 
@@ -160,7 +160,7 @@ public class SalesReportActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-    // ---------------- Month ----------------
+    //  Month
 
     private void loadMonthData() {
 
@@ -174,7 +174,7 @@ public class SalesReportActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-    // ---------------- Highlight ----------------
+    //  Highlight
 
     private void highlightButton(Button selectedButton) {
 
@@ -195,7 +195,7 @@ public class SalesReportActivity extends AppCompatActivity {
         selectedButton.setTextColor(Color.WHITE);
     }
 
-    // ---------------- Export PDF ----------------
+    //  Export PDF
 
     private void exportPDF() {
 
