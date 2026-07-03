@@ -37,7 +37,7 @@
         android:background="@drawable/circle_bg"
         android:padding="18dp"
         android:src="@android:drawable/ic_menu_myplaces"
-        android:tint="@color/green"/>
+        app:tint="@color/green" />
 
     <TextView
         android:id="@+id/txtName"
@@ -102,7 +102,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_menu_mylocation"
-                    android:tint="@color/green"/>
+                    app:tint="@color/green" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -146,7 +146,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_lock_idle_alarm"
-                    android:tint="@color/green"/>
+                    app:tint="@color/green" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -190,7 +190,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_dialog_email"
-                    android:tint="@color/green"/>
+                    app:tint="@color/green" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -225,7 +225,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_lock_lock"
-                    android:tint="@color/green"/>
+                    app:tint="@color/green" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -296,7 +296,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_lock_power_off"
-                    android:tint="#F44336"/>
+                    app:tint="#F44336" />
 
                 <TextView
                     android:layout_width="wrap_content"
