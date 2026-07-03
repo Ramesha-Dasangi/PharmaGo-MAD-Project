@@ -1,5 +1,6 @@
 package com.nibm.pharmagomadproject.pharmacyowner.inventory;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,7 +26,7 @@ public class EditMedicineActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_medicine);
 
-        // EditTexts
+        // Initialize Views
         edtName = findViewById(R.id.edtName);
         edtGeneric = findViewById(R.id.edtGeneric);
         edtCategory = findViewById(R.id.edtCategory);
@@ -33,52 +34,45 @@ public class EditMedicineActivity extends AppCompatActivity {
         edtStock = findViewById(R.id.edtStock);
         edtDate = findViewById(R.id.edtDate);
 
-        // Radio Buttons
         radioType = findViewById(R.id.radioType);
         rbOTC = findViewById(R.id.rbOTC);
         rbPrescription = findViewById(R.id.rbPrescription);
 
-        // Default Selection
-        rbOTC.setChecked(true);
-
-        // Buttons
         btnSave = findViewById(R.id.btnSave);
         btnDelete = findViewById(R.id.btnDelete);
+
+        // Default Selection
+        rbOTC.setChecked(true);
 
         // Save Button
         btnSave.setOnClickListener(v -> {
 
-            String medicineName = edtName.getText().toString().trim();
-            String genericName = edtGeneric.getText().toString().trim();
-            String category = edtCategory.getText().toString().trim();
-            String price = edtPrice.getText().toString().trim();
-            String stock = edtStock.getText().toString().trim();
-            String expiryDate = edtDate.getText().toString().trim();
-
-            String type;
-
-            if (rbOTC.isChecked()) {
-                type = "OTC";
-            } else {
-                type = "Prescription";
-            }
+            String type = rbOTC.isChecked() ? "OTC" : "Prescription";
 
             Toast.makeText(
                     EditMedicineActivity.this,
-                    "Medicine Saved\nType : " + type,
+                    "Medicine Saved Successfully!\nType : " + type,
                     Toast.LENGTH_SHORT
             ).show();
+
+            // TODO: Update medicine in database
 
         });
 
         // Delete Button
         btnDelete.setOnClickListener(v -> {
 
-            Toast.makeText(
+            Intent intent = new Intent(
                     EditMedicineActivity.this,
-                    "Medicine Deleted",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    DeleteMedicineActivity.class
+            );
+
+            intent.putExtra(
+                    "medicineName",
+                    edtName.getText().toString().trim()
+            );
+
+            startActivity(intent);
 
         });
 

@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.nibm.pharmagomadproject.R;
-
 import com.nibm.pharmagomadproject.pharmacyowner.DashboardActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.InventoryActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.OrdersActivity;
@@ -23,6 +22,7 @@ public class ProfileActivity extends AppCompatActivity {
     private Switch switchNotification;
 
     private LinearLayout txtChangePassword;
+    private LinearLayout txtForgotPassword;
     private LinearLayout txtLogout;
 
     @Override
@@ -30,20 +30,17 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // ===========================
         // Initialize Views
-        // ===========================
 
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
         switchNotification = findViewById(R.id.switchNotification);
 
         txtChangePassword = findViewById(R.id.txtChangePassword);
+        txtForgotPassword = findViewById(R.id.txtForgotPassword);
         txtLogout = findViewById(R.id.txtLogout);
 
-        // ===========================
         // Notification Switch
-        // ===========================
 
         switchNotification.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
@@ -67,23 +64,33 @@ public class ProfileActivity extends AppCompatActivity {
 
         });
 
-        // ===========================
         // Change Password
-        // ===========================
 
-        txtChangePassword.setOnClickListener(v ->
+        txtChangePassword.setOnClickListener(v -> {
 
-                Toast.makeText(
-                        ProfileActivity.this,
-                        "Change Password Clicked",
-                        Toast.LENGTH_SHORT
-                ).show()
+            Intent intent = new Intent(
+                    ProfileActivity.this,
+                    ChangePasswordActivity.class
+            );
 
-        );
+            startActivity(intent);
 
-        // ===========================
+        });
+
+        // Forgot Password
+
+        txtForgotPassword.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    ProfileActivity.this,
+                    ForgotPasswordActivity.class
+            );
+
+            startActivity(intent);
+
+        });
+
         // Logout
-        // ===========================
 
         txtLogout.setOnClickListener(v -> {
 
@@ -97,9 +104,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         });
 
-        // ===========================
         // Bottom Navigation
-        // ===========================
 
         bottomNavigation.setSelectedItemId(R.id.nav_profile);
 
@@ -162,4 +167,5 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
     }
+
 }

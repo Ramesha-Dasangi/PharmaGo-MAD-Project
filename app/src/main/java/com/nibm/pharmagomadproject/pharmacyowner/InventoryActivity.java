@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +19,7 @@ import com.nibm.pharmagomadproject.R;
 import java.util.ArrayList;
 
 import com.nibm.pharmagomadproject.pharmacyowner.inventory.AddMedicineActivity;
+import com.nibm.pharmagomadproject.pharmacyowner.inventory.LowStockActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.profile.ProfileActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.reports.SalesReportActivity;
 
@@ -55,17 +57,20 @@ public class InventoryActivity extends AppCompatActivity {
         inventoryList = new ArrayList<>();
         filteredList = new ArrayList<>();
 
-        // sample data
+        // SAMPLE DATA
         inventoryList.add(new InventoryModel("Panadol 500mg", "Painkiller · OTC", "Rs.40", 8, 100));
         inventoryList.add(new InventoryModel("Amoxicillin 500mg", "Antibiotic · Rx", "Rs.85", 52, 100));
         inventoryList.add(new InventoryModel("Vitamin C", "Supplement · OTC", "Rs.37", 120, 150));
+        inventoryList.add(new InventoryModel("Insulin", "Injection · Rx", "Rs.2500", 5, 100));
+        inventoryList.add(new InventoryModel("Paracetamol Syrup", "Children · OTC", "Rs.320", 0, 100));
+        inventoryList.add(new InventoryModel("Omeprazole", "Capsule · Rx", "Rs.110", 35, 100));
 
         filteredList.addAll(inventoryList);
 
         adapter = new InventoryAdapter(this, filteredList);
         recyclerInventory.setAdapter(adapter);
 
-        // ================= SEARCH =================
+        // SEARCH
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -77,7 +82,7 @@ public class InventoryActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // ================= FILTER =================
+        // FILTERS
         btnAll.setOnClickListener(v -> {
             filteredList.clear();
             filteredList.addAll(inventoryList);
@@ -85,13 +90,14 @@ public class InventoryActivity extends AppCompatActivity {
         });
 
         btnLowStock.setOnClickListener(v -> {
-            ArrayList<InventoryModel> temp = new ArrayList<>();
-            for (InventoryModel item : inventoryList) {
-                if (item.getStock() > 0 && item.getStock() < 20) {
-                    temp.add(item);
-                }
-            }
-            adapter.updateList(temp);
+
+            Intent intent = new Intent(
+                    InventoryActivity.this,
+                    LowStockActivity.class
+            );
+
+            startActivity(intent);
+
         });
 
         btnOutStock.setOnClickListener(v -> {
@@ -104,16 +110,16 @@ public class InventoryActivity extends AppCompatActivity {
             adapter.updateList(temp);
         });
 
-        // ================= ADD BUTTON FIXED =================
+        // ADD BUTTON
         imgAdd.setOnClickListener(v -> {
             Intent intent = new Intent(
                     InventoryActivity.this,
-                    AddMedicineActivity.class   // 👉 THIS SCREEN
+                    AddMedicineActivity.class
             );
             startActivity(intent);
         });
 
-        // ================= BOTTOM NAV =================
+        // BOTTOM NAV
         bottomNavigation.setSelectedItemId(R.id.nav_inventory);
 
         bottomNavigation.setOnItemSelectedListener(item -> {
@@ -148,6 +154,7 @@ public class InventoryActivity extends AppCompatActivity {
         });
     }
 
+    // SEARCH
     private void searchMedicine(String keyword) {
 
         ArrayList<InventoryModel> temp = new ArrayList<>();
