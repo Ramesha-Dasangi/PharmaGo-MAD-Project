@@ -1,4 +1,4 @@
-package com.example.testinterfacejava;
+package com.nibm.pharmagomadproject.Admin;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.button.MaterialButton;
+import com.nibm.pharmagomadproject.R;
 
 public class ManageUsersActivity extends AppCompatActivity {
 

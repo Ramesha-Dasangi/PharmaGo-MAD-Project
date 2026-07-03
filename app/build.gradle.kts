@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.auth)
     implementation(libs.material)
     testImplementation(libs.junit)
     implementation("org.osmdroid:osmdroid-android:6.1.18")

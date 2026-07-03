@@ -1,4 +1,4 @@
-package com.example.testinterfacejava;
+package com.nibm.pharmagomadproject.Admin;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.nibm.pharmagomadproject.R;
 
 public class ComplaintsActivity extends AppCompatActivity {
 

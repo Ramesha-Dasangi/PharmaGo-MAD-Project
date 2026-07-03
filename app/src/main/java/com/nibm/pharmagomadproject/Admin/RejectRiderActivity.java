@@ -1,4 +1,4 @@
-package com.example.testinterfacejava;
+package com.nibm.pharmagomadproject.Admin;
 
 import android.os.Bundle;
 import android.view.View;
@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
+import com.nibm.pharmagomadproject.R;
 
 public class RejectRiderActivity extends AppCompatActivity {
 

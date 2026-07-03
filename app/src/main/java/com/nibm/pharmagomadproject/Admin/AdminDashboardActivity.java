@@ -1,4 +1,4 @@
-package com.example.testinterfacejava;
+package com.nibm.pharmagomadproject.Admin;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.card.MaterialCardView;
+import com.nibm.pharmagomadproject.R;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
