@@ -1,99 +1,305 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/pg_bg" tools:context=".customer.ProfileActivity">
-    <!--  Top bar  -->
-    <LinearLayout android:id="@+id/topBar" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:background="@color/pg_primary" android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingTop="40dp" android:paddingBottom="14dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Profile" android:textColor="@android:color/white" android:textSize="18sp" android:fontFamily="sans-serif-medium"/>
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- Header -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:background="@color/green"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Profile"
+            android:textColor="@android:color/white"
+            android:textSize="28dp"
+            android:textStyle="bold"/>
+
     </LinearLayout>
-    <!--  Scrollable content  -->
-    <ScrollView android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/topBar" app:layout_constraintBottom_toTopOf="@id/bottomNav" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-            <!--  Profile card  -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:cardCornerRadius="16dp" app:cardElevation="2dp" app:cardBackgroundColor="@color/pg_card">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal" android:padding="20dp">
-                    <!--  Avatar  -->
-                    <FrameLayout android:layout_width="64dp" android:layout_height="64dp" android:background="@drawable/bg_avatar_circle" android:layout_marginBottom="10dp">
-                        <ImageView android:layout_width="34dp" android:layout_height="34dp" android:layout_gravity="center" android:src="@drawable/ic_person" android:contentDescription="@null" app:tint="@color/pg_primary"/>
-                    </FrameLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Buddhini Perera" android:textColor="@color/pg_text" android:textSize="16sp" android:fontFamily="sans-serif-medium" android:layout_marginBottom="2dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="buddhini@gmail.com" android:textColor="@color/pg_sub" android:textSize="12sp" android:layout_marginBottom="4dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="077 123 4567" android:textColor="@color/pg_sub" android:textSize="12sp"/>
+
+    <!-- Profile -->
+
+    <ImageView
+        android:id="@+id/imgProfile"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="25dp"
+        android:background="@drawable/circle_bg"
+        android:padding="18dp"
+        android:src="@android:drawable/ic_menu_myplaces"
+        app:tint="@color/green" />
+
+    <TextView
+        android:id="@+id/txtName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:text="MediCare Pharmacy"
+        android:textColor="#222222"
+        android:textSize="22sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/txtLicense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="License : PHM-2024-00891"
+        android:textColor="#777777"
+        android:textSize="14sp"/>
+
+    <!-- Verified -->
+
+    <TextView
+        android:id="@+id/txtVerified"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/verified_bg"
+        android:paddingStart="20dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="6dp"
+        android:text="Verified ✓"
+        android:textColor="@android:color/holo_orange_dark"
+        android:textStyle="bold"/>
+
+    <!-- Settings Card -->
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="18dp"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Pharmacy Address -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="15dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    app:tint="@color/green" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pharmacy Address"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/txtAddress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No. 12, Galle Road, Colombo 3"
+                        android:textColor="#777777"/>
+
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
-            <!--  Settings section  -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" app:cardCornerRadius="16dp" app:cardElevation="2dp" app:cardBackgroundColor="@color/pg_card">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="4dp">
-                    <!--  Delivery address  -->
-                    <LinearLayout android:id="@+id/rowAddress" android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackground">
-                        <FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_row_icon" android:layout_marginEnd="12dp">
-                            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:src="@drawable/ic_location" android:contentDescription="@null" app:tint="@color/pg_primary"/>
-                        </FrameLayout>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Delivery address" android:textColor="@color/pg_text" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No. 15, Galle Road, Colombo 3" android:textColor="@color/pg_sub" android:textSize="11sp" android:layout_marginTop="1dp"/>
-                        </LinearLayout>
-                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_arrow_back" android:contentDescription="@null" android:rotation="180" app:tint="@color/pg_sub"/>
-                    </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="0.5dp" android:layout_marginStart="58dp" android:background="@color/pg_border"/>
-                    <!--  Order history  -->
-                    <LinearLayout android:id="@+id/rowOrderHistory" android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackground">
-                        <FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_row_icon" android:layout_marginEnd="12dp">
-                            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:src="@drawable/ic_orders" android:contentDescription="@null" app:tint="@color/pg_primary"/>
-                        </FrameLayout>
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Order history" android:textColor="@color/pg_text" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_arrow_back" android:contentDescription="@null" android:rotation="180" app:tint="@color/pg_sub"/>
-                    </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="0.5dp" android:layout_marginStart="58dp" android:background="@color/pg_border"/>
-                    <!--  Notifications  -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp">
-                        <FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_row_icon" android:layout_marginEnd="12dp">
-                            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:src="@drawable/ic_bell" android:contentDescription="@null" app:tint="@color/pg_primary"/>
-                        </FrameLayout>
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Notifications" android:textColor="@color/pg_text" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-                        <!--  Toggle switch  -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchNotifications" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" app:thumbTint="@android:color/white" app:trackTint="@color/pg_primary"/>
-                    </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="0.5dp" android:layout_marginStart="58dp" android:background="@color/pg_border"/>
-                    <!--  Change password  -->
-                    <LinearLayout android:id="@+id/rowChangePassword" android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackground">
-                        <FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_row_icon" android:layout_marginEnd="12dp">
-                            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:src="@drawable/ic_lock" android:contentDescription="@null" app:tint="@color/pg_primary"/>
-                        </FrameLayout>
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Change password" android:textColor="@color/pg_text" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_arrow_back" android:contentDescription="@null" android:rotation="180" app:tint="@color/pg_sub"/>
-                    </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_media_next"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#DDDDDD"/>
+
+            <!-- Operating Hours -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="15dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_lock_idle_alarm"
+                    app:tint="@color/green" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Operating Hours"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/txtHours"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="8:00 AM - 10:00 PM"
+                        android:textColor="#777777"/>
+
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
-            <!--  Logout button  -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" app:cardCornerRadius="16dp" app:cardElevation="2dp" app:cardBackgroundColor="@color/pg_card">
-                <LinearLayout android:id="@+id/rowLogout" android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackground">
-                    <FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_row_icon_red" android:layout_marginEnd="12dp">
-                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_gravity="center" android:src="@drawable/ic_logout" android:contentDescription="@null" app:tint="#EF4444"/>
-                    </FrameLayout>
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Log out" android:textColor="#EF4444" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_media_next"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#DDDDDD"/>
+
+            <!-- Notifications -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="15dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_dialog_email"
+                    app:tint="@color/green" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="Notifications"
+                    android:textStyle="bold"/>
+
+                <Switch
+                    android:id="@+id/switchNotification"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#DDDDDD"/>
+
+            <!-- Change Password -->
+
+            <LinearLayout
+                android:id="@+id/txtChangePassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="15dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_lock_lock"
+                    app:tint="@color/green" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="Change Password"
+                    android:textStyle="bold"/>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_media_next"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#DDDDDD"/>
+
+            <!-- Logout -->
+
+            <LinearLayout
+                android:id="@+id/txtLogout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="15dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_lock_power_off"
+                    app:tint="#F44336" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Log out"
+                    android:textColor="#F44336"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
         </LinearLayout>
-    </ScrollView>
-    <!--  Bottom navigation  -->
-    <LinearLayout android:id="@+id/bottomNav" android:layout_width="0dp" android:layout_height="56dp" android:orientation="horizontal" android:background="@color/pg_card" android:elevation="8dp" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
-        <LinearLayout android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackgroundBorderless">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_home" app:tint="@color/pg_sub" android:contentDescription="@null"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textSize="10sp" android:textColor="@color/pg_sub" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-        <LinearLayout android:id="@+id/navSearch" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackgroundBorderless">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_search" app:tint="@color/pg_sub" android:contentDescription="@null"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Search" android:textSize="10sp" android:textColor="@color/pg_sub" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-        <LinearLayout android:id="@+id/navCart" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackgroundBorderless">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_cart" app:tint="@color/pg_sub" android:contentDescription="@null"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cart" android:textSize="10sp" android:textColor="@color/pg_sub" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-        <LinearLayout android:id="@+id/navOrders" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackgroundBorderless">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_orders" app:tint="@color/pg_sub" android:contentDescription="@null"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Orders" android:textSize="10sp" android:textColor="@color/pg_sub" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-        <LinearLayout android:id="@+id/navProfile" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackgroundBorderless">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_person" app:tint="@color/pg_primary" android:contentDescription="@null"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Profile" android:textSize="10sp" android:textColor="@color/pg_primary" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <!-- Bottom Navigation -->
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/white"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/gray"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_menu"/>
+
+</LinearLayout>

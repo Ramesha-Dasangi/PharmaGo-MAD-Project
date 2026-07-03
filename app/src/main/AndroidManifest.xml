@@ -11,6 +11,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PharmaGoMADProject">
+        <activity
+            android:name=".MainActivity"
+            android:exported="false">
+            <!--            <intent-filter>-->
+            <!--                <action android:name="android.intent.action.MAIN" />-->
+
+            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
+            <!--            </intent-filter>-->
+        </activity>
 <!--        <activity-->
 <!--            android:name=".customer.dialog_logout"-->
 <!--            android:exported="false" />-->
@@ -21,7 +30,7 @@
             android:name=".customer.DeliveryAddressActivity"
             android:exported="false" />
         <activity
-            android:name=".customer.ProfileActivity"
+            android:name=".customer.CustomerProfileActivity"
             android:exported="false" />
         <activity
             android:name=".customer.AdminLoginActivity"
@@ -74,8 +83,34 @@
         <activity
             android:name=".customer.LoginActivity"
             android:exported="false" />
+
+        
         <activity
-            android:name=".MainActivity"
+            android:name=".pharmacyowner.inventory.AddMedicineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.inventory.EditMedicineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.profile.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.reports.SalesReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.InventoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.VerifyPrescriptionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.OrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.DashboardActivity"
             android:exported="false">
 <!--            <intent-filter>-->
 <!--                <action android:name="android.intent.action.MAIN" />-->
@@ -83,6 +118,46 @@
 <!--                <category android:name="android.intent.category.LAUNCHER" />-->
 <!--            </intent-filter>-->
         </activity>
+        <activity
+            android:name=".deliveryrider.RiderDashboardActivity"
+            android:exported="false">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
+
+        <activity
+            android:name=".deliveryrider.AssignmentDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.DeliveryProgressActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.RiderMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.ConfirmDeliveryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.PickupNavigationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.LiveMapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.DeliveryHistoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".deliveryrider.RiderProfileActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
