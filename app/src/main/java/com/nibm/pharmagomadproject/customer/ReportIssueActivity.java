@@ -5,72 +5,49 @@ import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.nibm.pharmagomadproject.R;
 
 public class ReportIssueActivity extends AppCompatActivity {
 
-    private CardView optionPharmacy, optionRider;
-    private String selectedTarget = "pharmacy"; // default
+    private String selectedTarget = "pharmacy";
+    private MaterialCardView optionPharmacy, optionRider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_report_issue);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        MaterialCardView optionPharmacy = findViewById(R.id.optionPharmacy);
-        MaterialCardView optionRider    = findViewById(R.id.optionRider);
+        // ✅ MaterialCardView import fix — crash resolved
+        optionPharmacy = findViewById(R.id.optionPharmacy);
+        optionRider    = findViewById(R.id.optionRider);
 
-        // Back button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Select pharmacy
-        optionPharmacy.setOnClickListener(v -> {
-            selectedTarget = "pharmacy";
-            optionPharmacy.setCardBackgroundColor(
-                    getResources().getColor(R.color.pg_primary_light, null));
-            optionPharmacy.setStrokeColor(
-                    getResources().getColorStateList(R.color.pg_primary, null));
-            optionPharmacy.setStrokeWidth(4);
+        selectTarget("pharmacy");
 
-            optionRider.setCardBackgroundColor(
-                    getResources().getColor(R.color.pg_card, null));
-            optionRider.setStrokeColor(
-                    getResources().getColorStateList(R.color.pg_border, null));
-            optionRider.setStrokeWidth(2);
-        });
+        optionPharmacy.setOnClickListener(v -> selectTarget("pharmacy"));
+        optionRider.setOnClickListener(v    -> selectTarget("rider"));
 
-        // Select rider
-        optionRider.setOnClickListener(v -> {
-            selectedTarget = "rider";
-            optionRider.setCardBackgroundColor(
-                    getResources().getColor(R.color.pg_primary_light, null));
-            optionRider.setStrokeColor(
-                    getResources().getColorStateList(R.color.pg_primary, null));
-            optionRider.setStrokeWidth(4);
-
-            optionPharmacy.setCardBackgroundColor(
-                    getResources().getColor(R.color.pg_card, null));
-            optionPharmacy.setStrokeColor(
-                    getResources().getColorStateList(R.color.pg_border, null));
-            optionPharmacy.setStrokeWidth(2);
-        });
-
-        // Continue button
         MaterialButton btnContinue = findViewById(R.id.btnContinue);
         btnContinue.setOnClickListener(v -> {
-            Intent intent;
-            if (selectedTarget.equals("pharmacy")) {
-                intent = new Intent(this, ComplaintPharmacyActivity.class);
+            if ("pharmacy".equals(selectedTarget)) {
+                startActivity(new Intent(this, ComplaintPharmacyActivity.class));
             } else {
-                intent = new Intent(this, ComplaintRiderActivity.class);
+                startActivity(new Intent(this, ComplaintRiderActivity.class));
             }
-            intent.putExtra("target", selectedTarget);
-            startActivity(intent);
         });
+    }
+
+    private void selectTarget(String target) {
+        selectedTarget = target;
+        int selectedBg = getResources().getColor(R.color.pg_primary_light, null);
+        int normalBg   = getResources().getColor(R.color.pg_card, null);
+        optionPharmacy.setCardBackgroundColor("pharmacy".equals(target) ? selectedBg : normalBg);
+        optionRider.setCardBackgroundColor("rider".equals(target) ? selectedBg : normalBg);
     }
 }

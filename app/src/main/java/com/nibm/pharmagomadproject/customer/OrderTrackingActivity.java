@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
@@ -11,7 +12,6 @@ import com.nibm.pharmagomadproject.R;
 
 public class OrderTrackingActivity extends AppCompatActivity {
 
-    // Rider phone number — in real app this comes from Firebase
     private static final String RIDER_PHONE = "0771234567";
 
     @Override
@@ -19,23 +19,21 @@ public class OrderTrackingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_order_tracking);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Back button
+        // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Call rider button
+        // Call rider
         ImageView btnCall = findViewById(R.id.btnCallRider);
         btnCall.setOnClickListener(v -> {
-            Intent call = new Intent(Intent.ACTION_DIAL,
-                    Uri.parse("tel:" + RIDER_PHONE));
+            Intent call = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + RIDER_PHONE));
             startActivity(call);
         });
 
-        // Report issue button → activity_report_issue
+        // Report issue → ReportIssueActivity
         MaterialButton btnReport = findViewById(R.id.btnReportIssue);
-        btnReport.setOnClickListener(v -> {
-            startActivity(new Intent(this, ReportIssueActivity.class));
-        });
+        btnReport.setOnClickListener(v ->
+                startActivity(new Intent(this, ReportIssueActivity.class)));
     }
 }

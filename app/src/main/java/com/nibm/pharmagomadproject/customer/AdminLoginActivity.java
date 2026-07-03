@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
-import com.nibm.pharmagomadproject.Admin.AdminDashboardActivity;
 import com.nibm.pharmagomadproject.R;
 
 public class AdminLoginActivity extends AppCompatActivity {
@@ -58,7 +57,7 @@ public class AdminLoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Admin login successful", Toast.LENGTH_SHORT).show();
                         // Navigate to Admin Dashboard
-                        startActivity(new Intent(this, AdminDashboardActivity.class));
+                        startActivity(new Intent(this, HomeActivity.class));
                         finish();
                     } else {
                         Toast.makeText(this, "Login failed: " + task.getException().getMessage(),

@@ -9,10 +9,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.nibm.pharmagomadproject.R;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private FirebaseAuth mAuth;
     private TextInputEditText etEmail, etPassword;
 
     @Override
@@ -21,6 +23,8 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
+
+        mAuth = FirebaseAuth.getInstance();
 
         etEmail    = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -36,9 +40,22 @@ public class LoginActivity extends AppCompatActivity {
 
         // Forgot password
         TextView tvForgot = findViewById(R.id.tvForgotPassword);
-        tvForgot.setOnClickListener(v ->
-                Toast.makeText(this, "Password reset link sent to your email",
-                        Toast.LENGTH_SHORT).show());
+        tvForgot.setOnClickListener(v -> {
+            String email = etEmail.getText().toString().trim();
+            if (!TextUtils.isEmpty(email)) {
+                mAuth.sendPasswordResetEmail(email)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(this, "Password reset link sent!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Error: " + task.getException().getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            } else {
+                Toast.makeText(this, "Enter your email first", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Admin login
         TextView tvAdmin = findViewById(R.id.tvAdminLogin);
@@ -47,10 +64,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
-        String email = etEmail.getText() != null
-                ? etEmail.getText().toString().trim() : "";
-        String pass  = etPassword.getText() != null
-                ? etPassword.getText().toString().trim() : "";
+        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        String pass  = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
 
         if (TextUtils.isEmpty(email)) {
             etEmail.setError("Enter your email");
@@ -63,10 +78,17 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // TODO: Firebase Auth sign in
-        // FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pass)
-        Intent intent = new Intent(this, HomeActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+        mAuth.signInWithEmailAndPassword(email, pass)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(this, HomeActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Login Failed: " + task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
     }
 }

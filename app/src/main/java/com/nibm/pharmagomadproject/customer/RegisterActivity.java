@@ -10,10 +10,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.nibm.pharmagomadproject.R;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    private FirebaseAuth mAuth;
     private TextInputEditText etName, etEmail, etPhone, etPassword, etConfirmPassword;
     private String selectedRole = "customer";
 
@@ -23,6 +25,8 @@ public class RegisterActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
         getSupportActionBar().hide();
+
+        mAuth = FirebaseAuth.getInstance();
 
         etName            = findViewById(R.id.etName);
         etEmail           = findViewById(R.id.etEmail);
@@ -44,12 +48,10 @@ public class RegisterActivity extends AppCompatActivity {
         });
         rolePharmacy.setOnClickListener(v -> {
             selectedRole = "pharmacy";
-            // Go to pharmacy registration
             startActivity(new Intent(this, RegisterPharmacyActivity.class));
         });
         roleRider.setOnClickListener(v -> {
             selectedRole = "rider";
-            // Go to rider registration
             startActivity(new Intent(this, RegisterRiderActivity.class));
         });
 
@@ -91,11 +93,20 @@ public class RegisterActivity extends AppCompatActivity {
         if (!pass.equals(confirm))    { etConfirmPassword.setError("Passwords do not match"); etConfirmPassword.requestFocus(); return; }
         if (!cbTerms.isChecked())     { Toast.makeText(this, "Please agree to the Terms & Privacy Policy", Toast.LENGTH_SHORT).show(); return; }
 
-        // TODO: Firebase Auth createUserWithEmailAndPassword
-        Toast.makeText(this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
+        registerCustomer(email, pass, name, phone);
+    }
+
+    private void registerCustomer(String email, String password, String name, String phone) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Customer Registered!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(this, LoginActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Error: " + task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

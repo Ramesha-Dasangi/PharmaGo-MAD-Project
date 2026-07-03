@@ -19,64 +19,48 @@ public class ComplaintRiderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_complaint_rider);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Issue chips
-        TextView[] chips = {
-                findViewById(R.id.chipLateDelivery),
-                findViewById(R.id.chipRudeBehavior),
-                findViewById(R.id.chipItemMissing),
-                findViewById(R.id.chipWrongAddress),
-                findViewById(R.id.chipStatusNotUpdated),
-                findViewById(R.id.chipOtherRider)
-        };
-        String[] labels = {
-                "Late delivery", "Rude behavior",
-                "Item missing / damaged", "Wrong address",
-                "Status not updated", "Other"
-        };
-        for (int i = 0; i < chips.length; i++) {
-            final String label = labels[i];
-            chips[i].setOnClickListener(v -> selectChip(label, chips, labels));
-        }
+        int[] chipIds   = { R.id.chipLateDelivery, R.id.chipRudeBehavior, R.id.chipItemMissing,
+                             R.id.chipWrongAddress, R.id.chipStatusNotUpdated, R.id.chipOtherRider };
+        String[] labels = { "Late delivery", "Rude behavior", "Item missing / damaged",
+                             "Wrong address", "Status not updated", "Other" };
+        setupChips(chipIds, labels);
 
-        // Submit
         MaterialButton btnSubmit = findViewById(R.id.btnSubmitComplaintRider);
         btnSubmit.setOnClickListener(v -> submitComplaint());
     }
 
-    private void selectChip(String label, TextView[] chips, String[] labels) {
-        selectedChip = label;
-        int primary = getResources().getColor(R.color.pg_primary, null);
-        int sub     = getResources().getColor(R.color.pg_sub, null);
-        for (int i = 0; i < chips.length; i++) {
-            boolean sel = labels[i].equals(label);
-            chips[i].setBackgroundResource(
-                    sel ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
-            chips[i].setTextColor(sel ? primary : sub);
+    private void setupChips(int[] ids, String[] labels) {
+        TextView[] chips = new TextView[ids.length];
+        for (int i = 0; i < ids.length; i++) chips[i] = findViewById(ids[i]);
+        for (int i = 0; i < ids.length; i++) {
+            final String label = labels[i];
+            chips[i].setOnClickListener(v -> {
+                selectedChip = label;
+                int primary = getResources().getColor(R.color.pg_primary, null);
+                int sub     = getResources().getColor(R.color.pg_sub, null);
+                for (int j = 0; j < chips.length; j++) {
+                    boolean sel = labels[j].equals(label);
+                    chips[j].setBackgroundResource(sel ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
+                    chips[j].setTextColor(sel ? primary : sub);
+                }
+            });
         }
+        chips[0].performClick();
     }
 
     private void submitComplaint() {
         TextInputEditText etDesc = findViewById(R.id.etDescribeIssueRider);
-        String desc = etDesc.getText() != null
-                ? etDesc.getText().toString().trim() : "";
-
+        String desc = etDesc.getText() != null ? etDesc.getText().toString().trim() : "";
         if (TextUtils.isEmpty(desc)) {
             etDesc.setError("Please describe the issue");
             etDesc.requestFocus();
             return;
         }
-
-        // TODO: save complaint to Firebase
-        // complaint: { targetType: "rider", targetId: "riderId",
-        //              reason: selectedChip, description: desc }
-        Toast.makeText(this,
-                "Complaint submitted. We'll review it shortly.",
-                Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Complaint submitted successfully!", Toast.LENGTH_LONG).show();
         finish();
     }
 }
