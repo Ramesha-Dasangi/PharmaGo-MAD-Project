@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_gray"
+    tools:context=".deliveryrider.DeliveryProgressActivity">
+
+    <!-- Top Orange Header -->
+    <View
+        android:id="@+id/header_bg"
+        android:layout_width="0dp"
+        android:layout_height="180dp"
+        android:background="@drawable/bg_header_orange"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivBack"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_menu_revert"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="56dp"
+        app:tint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvProgressTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delivery progress"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toEndOf="@id/ivBack"
+        app:layout_constraintTop_toTopOf="@id/ivBack"
+        app:layout_constraintBottom_toBottomOf="@id/ivBack" />
+
+    <!-- Progress Card -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardProgress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_rounded_white"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="24dp"
+        android:padding="20dp"
+        android:elevation="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvProgressTitle">
+
+        <TextView
+            android:id="@+id/tvOrderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Order #PG-00234"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvCustomerInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Buddhini Perera · Galle Road, Colombo 3"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvOrderTitle" />
+
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="@color/divider_color"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tvCustomerInfo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Timeline Step 1 -->
+        <ImageView
+            android:id="@+id/iconStep1"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/checkbox_on_background"
+            app:tint="@color/green_accept"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider1" />
+
+        <TextView
+            android:id="@+id/tvStep1Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assigned to you"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/iconStep1"
+            app:layout_constraintTop_toTopOf="@id/iconStep1" />
+
+        <TextView
+            android:id="@+id/tvStep1Time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10:30 AM"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@id/tvStep1Title"
+            app:layout_constraintTop_toBottomOf="@id/tvStep1Title" />
+            
+        <View
+            android:layout_width="2dp"
+            android:layout_height="24dp"
+            android:background="@color/green_accept"
+            app:layout_constraintTop_toBottomOf="@id/iconStep1"
+            app:layout_constraintBottom_toTopOf="@id/iconStep2"
+            app:layout_constraintStart_toStartOf="@id/iconStep1"
+            app:layout_constraintEnd_toEndOf="@id/iconStep1" />
+
+        <!-- Timeline Step 2 -->
+        <ImageView
+            android:id="@+id/iconStep2"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/checkbox_on_background"
+            app:tint="@color/green_accept"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iconStep1" />
+
+        <TextView
+            android:id="@+id/tvStep2Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Picked up — MediCare"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/iconStep2"
+            app:layout_constraintTop_toTopOf="@id/iconStep2" />
+
+        <TextView
+            android:id="@+id/tvStep2Time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10:42 AM"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@id/tvStep2Title"
+            app:layout_constraintTop_toBottomOf="@id/tvStep2Title" />
+            
+        <View
+            android:layout_width="2dp"
+            android:layout_height="24dp"
+            android:background="@color/divider_color"
+            app:layout_constraintTop_toBottomOf="@id/iconStep2"
+            app:layout_constraintBottom_toTopOf="@id/iconStep3"
+            app:layout_constraintStart_toStartOf="@id/iconStep2"
+            app:layout_constraintEnd_toEndOf="@id/iconStep2" />
+
+        <!-- Timeline Step 3 (Current) -->
+        <ImageView
+            android:id="@+id/iconStep3"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_myplaces"
+            app:tint="@color/primary_orange"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iconStep2" />
+
+        <TextView
+            android:id="@+id/tvStep3Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Heading to City Pharma"
+            android:textColor="@color/primary_orange"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/iconStep3"
+            app:layout_constraintTop_toTopOf="@id/iconStep3" />
+
+        <TextView
+            android:id="@+id/tvStep3Time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="In progress..."
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@id/tvStep3Title"
+            app:layout_constraintTop_toBottomOf="@id/tvStep3Title" />
+            
+        <View
+            android:layout_width="2dp"
+            android:layout_height="24dp"
+            android:background="@color/divider_color"
+            app:layout_constraintTop_toBottomOf="@id/iconStep3"
+            app:layout_constraintBottom_toTopOf="@id/iconStep4"
+            app:layout_constraintStart_toStartOf="@id/iconStep3"
+            app:layout_constraintEnd_toEndOf="@id/iconStep3" />
+
+        <!-- Timeline Step 4 -->
+        <ImageView
+            android:id="@+id/iconStep4"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_directions"
+            app:tint="@color/divider_color"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iconStep3" />
+
+        <TextView
+            android:id="@+id/tvStep4Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Out for delivery"
+            android:textColor="@color/divider_color"
+            android:textSize="16sp"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/iconStep4"
+            app:layout_constraintTop_toTopOf="@id/iconStep4"
+            app:layout_constraintBottom_toBottomOf="@id/iconStep4" />
+            
+        <View
+            android:layout_width="2dp"
+            android:layout_height="24dp"
+            android:background="@color/divider_color"
+            app:layout_constraintTop_toBottomOf="@id/iconStep4"
+            app:layout_constraintBottom_toTopOf="@id/iconStep5"
+            app:layout_constraintStart_toStartOf="@id/iconStep4"
+            app:layout_constraintEnd_toEndOf="@id/iconStep4" />
+
+        <!-- Timeline Step 5 -->
+        <ImageView
+            android:id="@+id/iconStep5"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_view"
+            app:tint="@color/divider_color"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iconStep4" />
+
+        <TextView
+            android:id="@+id/tvStep5Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delivered"
+            android:textColor="@color/divider_color"
+            android:textSize="16sp"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/iconStep5"
+            app:layout_constraintTop_toTopOf="@id/iconStep5"
+            app:layout_constraintBottom_toBottomOf="@id/iconStep5" />
+
+        <Button
+            android:id="@+id/btnMarkComplete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Mark stop as complete"
+            android:textColor="@color/white"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:background="@drawable/bg_rounded_orange"
+            app:backgroundTint="@null"
+            android:layout_marginTop="32dp"
+            android:paddingVertical="12dp"
+            app:layout_constraintTop_toBottomOf="@id/iconStep5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
