@@ -30,7 +30,9 @@ public class CartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cart);
-        if (getSupportActionBar() != null) getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         tvQtyMedicare = findViewById(R.id.tvQtyMedicare);
         tvQtyCity     = findViewById(R.id.tvQtyCity);

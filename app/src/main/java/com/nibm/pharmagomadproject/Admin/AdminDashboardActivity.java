@@ -17,6 +17,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         ImageView ivSettings = findViewById(R.id.ivSettings);
         ivSettings.setOnClickListener(new View.OnClickListener() {
@@ -70,6 +73,24 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 return true;
             }
             return false;
+        });
+
+        ImageView ivLogout = findViewById(R.id.ivLogout);
+        ivLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new androidx.appcompat.app.AlertDialog.Builder(AdminDashboardActivity.this)
+                        .setTitle("Log out")
+                        .setMessage("Are you sure you want to log out?")
+                        .setPositiveButton("Log out", (dialog, which) -> {
+                            Intent intent = new Intent(AdminDashboardActivity.this,
+                                    com.nibm.pharmagomadproject.customer.LoginActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
         });
     }
 }

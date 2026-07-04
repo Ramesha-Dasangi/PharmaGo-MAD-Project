@@ -2,6 +2,7 @@ package com.nibm.pharmagomadproject.customer;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -25,8 +26,8 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // Pharmacy selection options
-        TextView optMediCare   = (TextView) ((android.view.View) findViewById(R.id.optMediCare));
-        TextView optCityPharma = (TextView) ((android.view.View) findViewById(R.id.optCityPharma));
+        LinearLayout optMediCare   = (LinearLayout) ((android.view.View) findViewById(R.id.optMediCare));
+        LinearLayout optCityPharma = (LinearLayout) ((android.view.View) findViewById(R.id.optCityPharma));
 
         findViewById(R.id.optMediCare).setOnClickListener(v -> {
             selectedPharmacy = "MediCare Pharmacy";

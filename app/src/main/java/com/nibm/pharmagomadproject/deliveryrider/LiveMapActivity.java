@@ -61,7 +61,9 @@ public class LiveMapActivity extends AppCompatActivity {
         Configuration.getInstance().load(getApplicationContext(),
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
         setContentView(R.layout.activity_live_map);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         setupMap();

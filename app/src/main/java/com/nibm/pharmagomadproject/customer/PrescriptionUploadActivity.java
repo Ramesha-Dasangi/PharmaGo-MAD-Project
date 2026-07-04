@@ -36,7 +36,9 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_prescription_upload);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());

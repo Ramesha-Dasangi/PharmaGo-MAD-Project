@@ -19,7 +19,9 @@ public class DeliveryAddressActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_delivery_address);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         etAddress = findViewById(R.id.etAddress);
         etCity    = findViewById(R.id.etCity);

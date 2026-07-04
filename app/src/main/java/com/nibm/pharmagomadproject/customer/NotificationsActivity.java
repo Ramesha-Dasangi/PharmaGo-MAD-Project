@@ -14,7 +14,7 @@ public class NotificationsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_notifications);
+        setContentView(R.layout.activity_notifications_customer);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         ImageView btnBack = findViewById(R.id.btnBack);

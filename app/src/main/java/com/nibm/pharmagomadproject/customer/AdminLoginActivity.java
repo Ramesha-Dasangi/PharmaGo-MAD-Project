@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.nibm.pharmagomadproject.Admin.AdminDashboardActivity;
 import com.nibm.pharmagomadproject.R;
 
 public class AdminLoginActivity extends AppCompatActivity {
@@ -25,7 +26,9 @@ public class AdminLoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_admin_login);
 
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -33,7 +36,8 @@ public class AdminLoginActivity extends AppCompatActivity {
         etAdminPassword = findViewById(R.id.etAdminPassword);
         btnLoginAsAdmin = findViewById(R.id.btnLoginAsAdmin);
 
-        btnLoginAsAdmin.setOnClickListener(v -> attemptAdminLogin());
+        btnLoginAsAdmin.setOnClickListener(v ->
+                attemptAdminLogin());
     }
 
     private void attemptAdminLogin() {
@@ -57,7 +61,7 @@ public class AdminLoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Admin login successful", Toast.LENGTH_SHORT).show();
                         // Navigate to Admin Dashboard
-                        startActivity(new Intent(this, HomeActivity.class));
+                        startActivity(new Intent(this, AdminDashboardActivity.class));
                         finish();
                     } else {
                         Toast.makeText(this, "Login failed: " + task.getException().getMessage(),

@@ -34,6 +34,9 @@ public class OrdersActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_orders);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         // INIT VIEWS
         recyclerView = findViewById(R.id.recyclerOrders);
