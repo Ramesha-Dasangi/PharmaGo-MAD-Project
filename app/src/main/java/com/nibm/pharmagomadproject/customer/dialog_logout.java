@@ -18,6 +18,8 @@ public class dialog_logout extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_dialog_logout);
 
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
     }
 }

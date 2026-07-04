@@ -63,7 +63,9 @@ public class PickupNavigationActivity extends AppCompatActivity {
         Configuration.getInstance().load(getApplicationContext(),
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
         setContentView(R.layout.activity_pickup_navigation);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         setupMap();

@@ -41,6 +41,9 @@ public class InventoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inventory);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         recyclerInventory = findViewById(R.id.recyclerInventory);
         edtSearch = findViewById(R.id.edtSearch);

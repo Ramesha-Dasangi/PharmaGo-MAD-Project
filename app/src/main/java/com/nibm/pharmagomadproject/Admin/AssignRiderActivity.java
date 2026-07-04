@@ -26,6 +26,9 @@ public class AssignRiderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assign_rider);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         ImageView ivBack = findViewById(R.id.ivBack);
         ivBack.setOnClickListener(new View.OnClickListener() {

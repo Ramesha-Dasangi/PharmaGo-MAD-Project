@@ -15,6 +15,9 @@ public class AdminLogin1Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_login1);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         Button btnLogin = findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(new View.OnClickListener() {

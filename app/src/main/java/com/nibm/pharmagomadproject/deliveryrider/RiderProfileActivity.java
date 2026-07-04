@@ -10,6 +10,8 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.LoginActivity;
+import com.nibm.pharmagomadproject.pharmacyowner.profile.ProfileActivity;
 
 public class RiderProfileActivity extends AppCompatActivity {
 
@@ -17,7 +19,9 @@ public class RiderProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rider_profile);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         setupExpandableItems();
         setupBottomNav();
@@ -49,9 +53,9 @@ public class RiderProfileActivity extends AppCompatActivity {
         View itemLogout = findViewById(R.id.itemLogout);
         if (itemLogout != null) {
             itemLogout.setOnClickListener(v -> {
-                Intent i = new Intent(this, RiderMainActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
                 finish();
             });
         }

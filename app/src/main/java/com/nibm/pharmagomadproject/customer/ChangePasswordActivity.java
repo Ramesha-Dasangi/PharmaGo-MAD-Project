@@ -20,7 +20,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_change_password);
 
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword        = findViewById(R.id.etNewPassword);

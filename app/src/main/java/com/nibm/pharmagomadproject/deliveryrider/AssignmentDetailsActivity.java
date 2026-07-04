@@ -16,7 +16,9 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assignment_details);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         ImageView ivBack = findViewById(R.id.ivBack);
         if (ivBack != null) {

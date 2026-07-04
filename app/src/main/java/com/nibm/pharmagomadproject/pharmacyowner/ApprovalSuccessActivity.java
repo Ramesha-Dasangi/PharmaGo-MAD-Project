@@ -16,6 +16,9 @@ public class ApprovalSuccessActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_approval_success);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         // Initialize Button
         btnDashboard = findViewById(R.id.btnDashboard);

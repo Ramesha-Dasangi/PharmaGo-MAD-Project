@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.LoginActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.DashboardActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.InventoryActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.OrdersActivity;
@@ -100,7 +101,10 @@ public class ProfileActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT
             ).show();
 
-            finishAffinity();
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
 
         });
 

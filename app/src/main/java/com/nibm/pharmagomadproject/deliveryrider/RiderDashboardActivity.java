@@ -16,7 +16,9 @@ public class RiderDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rider_dashboard);
-        getSupportActionBar().hide();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         Button btnAcceptAssignment = findViewById(R.id.btnAcceptAssignment);
         if (btnAcceptAssignment != null) {
