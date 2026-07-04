@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- ================= PERMISSIONS ================= -->
+    <!-- Camera -->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> <!-- Android 12 and below -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" /> <!-- Optional -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,21 +25,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PharmaGoMADProject">
+        android:theme="@style/Theme.PharmaGoMADProject"
+        tools:targetApi="31">
+
+        <!-- Customer -->
         <activity
-            android:name=".customer.CartActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.MedicineDetailsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.RegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.HomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.LoginActivity"
+            android:name=".customer.PharmacyDetailsActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -34,7 +40,193 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity> <!-- <activity -->
+        <!-- android:name=".customer.dialog_logout" -->
+        <!-- android:exported="false" /> -->
+        <activity
+            android:name=".customer.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.DeliveryAddressActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.CustomerProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.AdminLoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.AccountStatusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.RegisterRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.RegisterPharmacyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.ComplaintRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.ComplaintPharmacyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.ReportIssueActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.OrderHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.OrderTrackingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.PrescriptionUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.MedicineListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.CartActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.MedicineDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.HomeActivity"
+            android:exported="false">
         </activity>
+        <activity
+            android:name=".customer.LoginActivity"
+            android:exported="false" />
+
+        <!-- Pharmacy Owner -->
+        <activity
+            android:name=".pharmacyowner.profile.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.InventoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.inventory.EditMedicineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.OrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.OrderDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.VerifyPrescriptionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.ApprovalSuccessActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.reports.SalesReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.profile.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.inventory.AddMedicineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.DashboardActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".pharmacyowner.inventory.LowStockActivity"
+            android:exported="false" />
+        <activity
+            android:name=".pharmacyowner.profile.ForgotPasswordActivity"
+            android:exported="false" />
+
+        <!-- Delivery Rider -->
+        <activity
+            android:name=".deliveryrider.RiderDashboardActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".deliveryrider.AssignmentDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.DeliveryProgressActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.RiderMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.ConfirmDeliveryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.PickupNavigationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.LiveMapActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.DeliveryHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".deliveryrider.RiderProfileActivity"
+            android:exported="false" />
+
+        <!-- Admin -->
+        <activity
+            android:name=".Admin.AdminLogin1Activity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".Admin.AdminDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.PendingApprovalsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ReviewApplicationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.RejectApplicationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ReviewRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.RejectRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ManageUsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.GenerateReportsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.AssignRiderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.UnassignedOrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.ComplaintsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.MainActivity1"
+            android:exported="false" />
     </application>
 
 </manifest>

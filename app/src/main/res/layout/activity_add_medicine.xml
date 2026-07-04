@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6FA"
+    >
+
+    <!-- TOP BAR -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:background="#00C389"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/imgBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:tint="@android:color/white"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Add New Medicine"
+            android:textColor="@android:color/white"
+            android:textSize="28dp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <!-- FORM -->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="80dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:paddingTop="10dp">
+
+            <!-- Medicine Name -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MEDICINE NAME "
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <EditText
+                android:id="@+id/edtName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter medicine name"
+                android:textSize="15dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"/>
+
+            <!-- Category -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="CATEGORY"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <EditText
+                android:id="@+id/edtCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter category"
+                android:textSize="15dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"/>
+
+            <!-- Type -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="TYPE"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <RadioGroup
+                android:id="@+id/radioType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbOTC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OTC"
+                    android:buttonTint="@color/green"/>
+
+                <RadioButton
+                    android:id="@+id/rbRx"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:text="Prescription"
+                    android:buttonTint="@color/green"/>
+
+            </RadioGroup>
+
+            <!-- Price -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="PRICE"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <EditText
+                android:id="@+id/edtPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter price"
+                android:inputType="numberDecimal"
+                android:textSize="15dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"/>
+
+            <!-- Stock -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="STOCK"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtStock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter stock"
+                android:inputType="number"
+                android:textSize="15dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"/>
+
+            <!-- Expiry Date -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="EXPIRY DATE"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select date"
+                android:focusable="false"
+                android:clickable="true"
+                android:textSize="15dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"/>
+
+            <!-- Upload Image -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="UPLOAD PRESCRIPTION"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <LinearLayout
+                android:id="@+id/layoutImage"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="15dp"
+                android:background="#EEEEEE"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/imgMedicine"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_upload"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload"
+                    android:textSize="15dp"
+                    android:textColor="@android:color/black"/>
+
+            </LinearLayout>
+
+            <!-- Save -->
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:backgroundTint="#00C389"
+                android:text="SAVE MEDICINE"
+                android:textSize="15dp"
+                android:textColor="@android:color/white"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

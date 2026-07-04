@@ -119,6 +119,7 @@
 
                     <!-- Manufacturer -->
                     <TextView
+                        android:id="@+id/tvManufacturer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="GSK Pharmaceuticals · 10 tablets"
@@ -203,6 +204,7 @@
                         android:layout_marginBottom="6dp">
 
                         <TextView
+                            android:id="@+id/tvPharmacy1Name"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -212,6 +214,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tvPharmacy1Price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rs. 42"
@@ -275,6 +278,7 @@
                         android:layout_marginBottom="6dp">
 
                         <TextView
+                            android:id="@+id/tvPharmacy2Name"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -284,6 +288,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tvPharmacy2Price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rs. 45"
@@ -336,6 +341,7 @@
                         android:layout_marginBottom="6dp">
 
                         <TextView
+                            android:id="@+id/tvPharmacy3Name"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -345,6 +351,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tvPharmacy3Price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rs. 50"

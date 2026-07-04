@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <FrameLayout
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="@drawable/bg_dialog_icon_red"
+        android:layout_marginBottom="16dp">
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_close"
+            android:contentDescription="@null"
+            app:tint="#EF4444"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancel order?"
+        android:textColor="@color/pg_text"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Are you sure you want to cancel this order? This action cannot be undone."
+        android:textColor="@color/pg_sub"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.4"
+        android:layout_marginBottom="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnKeepOrder"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Keep order"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            app:cornerRadius="10dp"
+            app:strokeColor="@color/pg_primary"
+            android:textColor="@color/pg_primary"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirmCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Yes, cancel"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:backgroundTint="#EF4444"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
+    </LinearLayout>
+
+</LinearLayout>
