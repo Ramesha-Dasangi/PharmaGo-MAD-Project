@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,7 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.nibm.pharmagomadproject.R;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MedicineListActivity extends AppCompatActivity {
 
@@ -34,9 +37,12 @@ public class MedicineListActivity extends AppCompatActivity {
     private ImageView btnClearSearch;
     private TextView tvScreenTitle;
 
-    private String mode        = "search";
-    private String query       = "";
+    private String mode         = "search";
+    private String query        = "";
     private String activeFilter = "All";
+
+    // Set of hidden pharmacies — customer dislike pharmacies
+    private final Set<String> hiddenPharmacies = new HashSet<>();
 
     final List<Medicine> allMedicines = new ArrayList<>();
 
@@ -98,73 +104,156 @@ public class MedicineListActivity extends AppCompatActivity {
     }
 
     private void buildFilterChips() {
-        String[] filters = {"All", "OTC", "Prescription", "Price: Low→High", "Price: High→Low"};
         filterChipsContainer.removeAllViews();
 
-        for (String filter : filters) {
+        // --- Row 1: Type + Price filters ---
+        String[] typeFilters = {"All", "OTC", "Prescription", "Price: Low→High", "Price: High→Low"};
+        addScrollableChipRow(typeFilters, activeFilter, filter -> {
+            activeFilter = filter;
+            buildFilterChips();
+            filterAndRender("search".equals(mode) ? etSearch.getText().toString() : query);
+        });
+
+        // --- Label ---
+        TextView label = new TextView(this);
+        label.setText("Hide pharmacy:");
+        label.setTextSize(11);
+        label.setTextColor(getResources().getColor(R.color.pg_sub, null));
+        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        llp.topMargin  = dp(8);
+        llp.bottomMargin = dp(4);
+        label.setLayoutParams(llp);
+        filterChipsContainer.addView(label);
+
+        // --- Row 2: Pharmacy hide/show toggles ---
+        List<String> pharmacies = new ArrayList<>();
+        for (Medicine m : allMedicines) {
+            if (!pharmacies.contains(m.pharmacy)) pharmacies.add(m.pharmacy);
+        }
+
+        HorizontalScrollView hsv = new HorizontalScrollView(this);
+        hsv.setHorizontalScrollBarEnabled(false);
+        hsv.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout inner = new LinearLayout(this);
+        inner.setOrientation(LinearLayout.HORIZONTAL);
+
+        for (String pharmacy : pharmacies) {
+            boolean isHidden = hiddenPharmacies.contains(pharmacy);
+
             TextView chip = new TextView(this);
-            chip.setText(filter);
+            // Show eye icon + pharmacy name
+            chip.setText((isHidden ? "🚫 " : "✅ ") + pharmacy);
+            chip.setTextSize(11);
+            chip.setPadding(dp(12), dp(6), dp(12), dp(6));
+
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.setMarginEnd(dp(6));
+            chip.setLayoutParams(lp);
+            chip.setClickable(true);
+            chip.setFocusable(true);
+
+            // Hidden = red chip, Visible = green chip
+            if (isHidden) {
+                chip.setBackgroundResource(R.drawable.bg_tag_red);
+                chip.setTextColor(0xFF991B1B);
+            } else {
+                chip.setBackgroundResource(R.drawable.bg_tag_green);
+                chip.setTextColor(0xFF065F46);
+            }
+
+            chip.setOnClickListener(v -> {
+                if (hiddenPharmacies.contains(pharmacy)) {
+                    // Unhide — customer wants to see again
+                    hiddenPharmacies.remove(pharmacy);
+                    Toast.makeText(this, pharmacy + " shown", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Hide — customer doesn't want this pharmacy
+                    hiddenPharmacies.add(pharmacy);
+                    Toast.makeText(this, pharmacy + " hidden", Toast.LENGTH_SHORT).show();
+                }
+                buildFilterChips();
+                filterAndRender("search".equals(mode) ? etSearch.getText().toString() : query);
+            });
+
+            inner.addView(chip);
+        }
+
+        hsv.addView(inner);
+        filterChipsContainer.addView(hsv);
+    }
+
+    private void addScrollableChipRow(String[] labels, String activeValue, ChipClickListener listener) {
+        HorizontalScrollView hsv = new HorizontalScrollView(this);
+        hsv.setHorizontalScrollBarEnabled(false);
+        LinearLayout.LayoutParams hsvLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        hsvLp.bottomMargin = dp(4);
+        hsv.setLayoutParams(hsvLp);
+
+        LinearLayout inner = new LinearLayout(this);
+        inner.setOrientation(LinearLayout.HORIZONTAL);
+
+        for (String label : labels) {
+            TextView chip = new TextView(this);
+            chip.setText(label);
             chip.setTextSize(11);
             chip.setPadding(dp(14), dp(6), dp(14), dp(6));
 
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.bottomMargin = dp(8);
+            lp.setMarginEnd(dp(6));
             chip.setLayoutParams(lp);
             chip.setClickable(true);
             chip.setFocusable(true);
 
-            boolean selected = filter.equals(activeFilter);
-            if (selected) {
-                chip.setBackgroundResource(R.drawable.bg_chip_selected);
-                chip.setTextColor(getResources().getColor(R.color.pg_primary, null));
-                chip.setTypeface(null, Typeface.BOLD);
-            } else {
-                chip.setBackgroundResource(R.drawable.bg_chip_unselected);
-                chip.setTextColor(getResources().getColor(R.color.pg_sub, null));
-                chip.setTypeface(null, Typeface.NORMAL);
-            }
-
-            chip.setOnClickListener(v -> {
-                activeFilter = filter;
-                buildFilterChips();
-                filterAndRender("search".equals(mode) ? etSearch.getText().toString() : query);
-            });
-
-            filterChipsContainer.addView(chip);
+            boolean selected = label.equals(activeValue);
+            chip.setBackgroundResource(selected ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
+            chip.setTextColor(getResources().getColor(
+                    selected ? R.color.pg_primary : R.color.pg_sub, null));
+            chip.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
+            chip.setOnClickListener(v -> listener.onClick(label));
+            inner.addView(chip);
         }
+
+        hsv.addView(inner);
+        filterChipsContainer.addView(hsv);
+    }
+
+    interface ChipClickListener {
+        void onClick(String label);
     }
 
     private void filterAndRender(String searchText) {
         medicineListContainer.removeAllViews();
 
-        String q = searchText.toLowerCase().trim();
+        String q = "search".equals(mode) ? searchText.toLowerCase().trim() : "";
         List<Medicine> filtered = new ArrayList<>();
 
         for (Medicine m : allMedicines) {
+            //  Hidden pharmacy check — skip hidden ones
+            if (hiddenPharmacies.contains(m.pharmacy)) continue;
+
             // Mode filter
             boolean modeMatch = true;
             if ("category".equals(mode)) {
                 modeMatch = m.categoryKey != null &&
-                        m.categoryKey.trim().toLowerCase().equals(query.trim().toLowerCase());
+                        m.categoryKey.trim().equalsIgnoreCase(query.trim());
             } else if ("pharmacy".equals(mode)) {
                 modeMatch = m.pharmacy != null &&
                         m.pharmacy.trim().equalsIgnoreCase(query.trim());
             }
 
             // Search text filter
-            boolean searchMatch;
+            boolean searchMatch = q.isEmpty()
+                    || m.name.toLowerCase().contains(q)
+                    || m.category.toLowerCase().contains(q)
+                    || m.pharmacy.toLowerCase().contains(q);
 
-            if ("category".equals(mode)) {
-                searchMatch = true; // ignore search in category mode
-            } else {
-                searchMatch = q.isEmpty()
-                        || m.name.toLowerCase().contains(q)
-                        || m.category.toLowerCase().contains(q)
-                        || m.pharmacy.toLowerCase().contains(q);
-            }
-
-            // Chip filter
+            // Type chip filter
             boolean chipMatch = true;
             if ("OTC".equals(activeFilter)) {
                 chipMatch = "OTC".equals(m.type);
