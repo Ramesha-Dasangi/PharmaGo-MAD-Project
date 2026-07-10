@@ -247,42 +247,6 @@
                 android:layout_height="1dp"
                 android:background="#DDDDDD"/>
 
-            <!-- Forgot Password -->
-
-            <LinearLayout
-                android:id="@+id/txtForgotPassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:padding="15dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_menu_help"
-                    android:tint="@color/green"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:text="Forgot Password"
-                    android:textStyle="bold"/>
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@android:drawable/ic_media_next"/>
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#DDDDDD"/>
-
-
             <!-- Logout -->
 
             <LinearLayout

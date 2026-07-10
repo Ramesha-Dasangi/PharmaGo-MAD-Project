@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.deliveryrider.RiderDashboardActivity;
 import com.nibm.pharmagomadproject.deliveryrider.RiderMainActivity;
@@ -18,6 +19,7 @@ import com.nibm.pharmagomadproject.pharmacyowner.DashboardActivity;
 public class LoginActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     private TextInputEditText etEmail, etPassword;
 
     @Override
@@ -30,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         mAuth = FirebaseAuth.getInstance();
+        db    = FirebaseFirestore.getInstance();
 
         etEmail    = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -83,26 +86,52 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        //firebase authentication
         mAuth.signInWithEmailAndPassword(email, pass)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, HomeActivity.class));
-                        finish();
-                    } else if (email.equals("tharushi@gmail.com") && pass.equals("1234")) {
-
-                        startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
-                        finish();
-
-                    } else if (email.equals("pawani@gmail.com") && pass.equals("1234")) {
-
-                        startActivity(new Intent(LoginActivity.this, RiderDashboardActivity.class));
-                        finish();
-                    }else {
-                        Toast.makeText(this, "Login Failed: " + task.getException().getMessage(),
+                        // Check the role in firestore
+                        String userId = mAuth.getCurrentUser().getUid();
+                        checkUserRole(userId);
+                    } else {
+                        Toast.makeText(this,
+                                "Login Failed: " + task.getException().getMessage(),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
 
+    // Check the role in firestore and navigate to correct dashboard
+    private void checkUserRole(String userId) {
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String role = doc.exists() && doc.getString("role") != null
+                            ? doc.getString("role") : "customer";
+
+                    Intent intent;
+                    switch (role) {
+                        case "pharmacy_owner":
+                            intent = new Intent(this, DashboardActivity.class);
+                            break;
+                        case "rider":
+                            intent = new Intent(this, RiderDashboardActivity.class);
+                            break;
+                        case "customer":
+                        default:
+                            intent = new Intent(this, HomeActivity.class);
+                            break;
+                    }
+
+                    Toast.makeText(this, "Welcome!", Toast.LENGTH_SHORT).show();
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    // When firestore failed default — customer home
+                    Toast.makeText(this, "Welcome!", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(this, HomeActivity.class));
+                    finish();
+                });
     }
 }
