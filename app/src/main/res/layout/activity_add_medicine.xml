@@ -59,9 +59,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="MEDICINE NAME "
-                android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:textSize="15dp"/>
+                android:textSize="15dp"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/edtName"
@@ -81,13 +81,36 @@
                 android:text="CATEGORY"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:textSize="15dp"/>
+                android:textSize="15sp"/>
 
-            <EditText
+            <AutoCompleteTextView
                 android:id="@+id/edtCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter category"
+                android:hint="Select category"
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"
+                android:dropDownHeight="wrap_content"/>
+
+            <!-- Brand Name -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="BRAND NAME"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <EditText
+                android:id="@+id/edtBrand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter brand name"
                 android:textSize="15dp"
                 android:textColor="@android:color/black"
                 android:textColorHint="#9E9E9E"/>
@@ -190,13 +213,33 @@
                 android:textColor="@android:color/black"
                 android:textColorHint="#9E9E9E"/>
 
+            <!-- Discription -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="DESCRIPTION"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="15dp"/>
+
+            <EditText
+                android:id="@+id/edtDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter description"
+                android:textSize="15dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"/>
+
             <!-- Upload Image -->
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="UPLOAD PRESCRIPTION"
+                android:text="UPLOAD IMAGE"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
                 android:textSize="15dp"/>

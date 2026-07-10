@@ -38,18 +38,24 @@ android {
 }
 
 dependencies {
+
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
+
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-analytics")
+
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.auth)
     implementation(libs.material)
-    testImplementation(libs.junit)
+
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("com.google.firebase:firebase-auth:22.3.0")
-    implementation("com.google.firebase:firebase-database:20.3.0")
-    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    androidTestImplementation(libs.espresso.core)
+
+    testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }

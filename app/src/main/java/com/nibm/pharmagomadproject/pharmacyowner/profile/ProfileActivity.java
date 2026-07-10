@@ -23,7 +23,6 @@ public class ProfileActivity extends AppCompatActivity {
     private Switch switchNotification;
 
     private LinearLayout txtChangePassword;
-    private LinearLayout txtForgotPassword;
     private LinearLayout txtLogout;
 
     @Override
@@ -38,7 +37,7 @@ public class ProfileActivity extends AppCompatActivity {
         switchNotification = findViewById(R.id.switchNotification);
 
         txtChangePassword = findViewById(R.id.txtChangePassword);
-        txtForgotPassword = findViewById(R.id.txtForgotPassword);
+
         txtLogout = findViewById(R.id.txtLogout);
 
         // Notification Switch
@@ -78,18 +77,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         });
 
-        // Forgot Password
-
-        txtForgotPassword.setOnClickListener(v -> {
-
-            Intent intent = new Intent(
-                    ProfileActivity.this,
-                    ForgotPasswordActivity.class
-            );
-
-            startActivity(intent);
-
-        });
 
         // Logout
 
