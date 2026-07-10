@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
 //    alias(libs.plugins.android.application)
     id("com.android.application")
@@ -50,6 +52,27 @@ dependencies {
     implementation("com.google.firebase:firebase-database:20.3.0")
     implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-storage:20.3.1")
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+
+    // Firebase BOM — version okkoma manage karanawa
+    implementation (platform("com.google.firebase:firebase-bom:32.7.0"))
+
+    // Firebase Authentication
+    implementation ("com.google.firebase:firebase-auth")
+
+    // Firebase Firestore — database
+    implementation ("com.google.firebase:firebase-firestore")
+
+    // Firebase Storage — prescription images upload
+    implementation ("com.google.firebase:firebase-storage")
+
+    // existing dependencies
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation ("com.google.android.material:material:1.11.0")
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation ("androidx.cardview:cardview:1.0.0")
+    implementation ("androidx.activity:activity:1.8.0")
+    implementation ("androidx.recyclerview:recyclerview:1.3.2")
 }
