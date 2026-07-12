@@ -56,7 +56,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
 
-    // Firebase BOM — version okkoma manage karanawa
+    // Firebase BOM — manage all versions
     implementation (platform("com.google.firebase:firebase-bom:32.7.0"))
 
     // Firebase Authentication
