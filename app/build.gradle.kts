@@ -1,18 +1,13 @@
 import org.gradle.kotlin.dsl.implementation
 
 plugins {
-//    alias(libs.plugins.android.application)
     id("com.android.application")
     id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.nibm.pharmagomadproject"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nibm.pharmagomadproject"
@@ -40,39 +35,30 @@ android {
 }
 
 dependencies {
+    // Firebase BOM — manage versions centrally
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
+
+    // Firebase core services
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-analytics")
+
+    // AndroidX + Material
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.auth)
     implementation(libs.material)
-    testImplementation(libs.junit)
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // Extra libraries
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("com.google.firebase:firebase-auth:22.3.0")
-    implementation("com.google.firebase:firebase-database:20.3.0")
-    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.google.firebase:firebase-storage:20.3.1")
-    androidTestImplementation(libs.espresso.core)
+
+    // Testing dependencies
+    testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
-
-    // Firebase BOM — manage all versions
-    implementation (platform("com.google.firebase:firebase-bom:32.7.0"))
-
-    // Firebase Authentication
-    implementation ("com.google.firebase:firebase-auth")
-
-    // Firebase Firestore — database
-    implementation ("com.google.firebase:firebase-firestore")
-
-    // Firebase Storage — prescription images upload
-    implementation ("com.google.firebase:firebase-storage")
-
-    // existing dependencies
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation ("com.google.android.material:material:1.11.0")
-    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation ("androidx.cardview:cardview:1.0.0")
-    implementation ("androidx.activity:activity:1.8.0")
-    implementation ("androidx.recyclerview:recyclerview:1.3.2")
+    androidTestImplementation(libs.espresso.core)
 }
