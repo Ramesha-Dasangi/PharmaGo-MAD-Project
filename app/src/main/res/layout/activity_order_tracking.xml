@@ -119,6 +119,18 @@
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginBottom="12dp"/>
 
+            <!-- Current status text -->
+            <TextView
+                android:id="@+id/tvCurrentStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Current status"
+                android:textColor="@color/pg_text"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="12dp"/>
+
+
             <!--  Step 1: Order confirmed  -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -390,6 +402,23 @@
                 app:cornerRadius="10dp"
                 app:strokeColor="#EF4444"
                 android:textColor="#EF4444"/>
+
+            <!-- Leave review button (hidden until delivered) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLeaveReview"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Leave a review"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                app:cornerRadius="10dp"
+                android:textColor="@color/pg_primary"
+                android:visibility="visible" />
+<!--                android:visibility="gone"/>-->
+
+            <!--development testing -->
+
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

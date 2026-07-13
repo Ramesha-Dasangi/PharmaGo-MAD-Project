@@ -19,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Are you sure you want to log out of PharmaGo?"
-        android:textColor="@color/pg_sub"
+        android:textColor="@color/black"
         android:textSize="13sp"
         android:lineSpacingExtra="3dp"
         android:layout_marginBottom="20dp" />
@@ -40,7 +40,7 @@
             android:textSize="13sp"
             app:cornerRadius="10dp"
             app:strokeColor="@color/pg_border"
-            android:textColor="@color/pg_sub"
+            android:textColor="@color/pg_accent"
             android:layout_marginEnd="8dp" />
 
         <com.google.android.material.button.MaterialButton
