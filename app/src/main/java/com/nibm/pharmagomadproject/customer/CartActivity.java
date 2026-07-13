@@ -90,7 +90,12 @@ public class CartActivity extends AppCompatActivity {
                 Toast.makeText(this, "Your cart is empty!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            startActivity(new Intent(this, PrescriptionUploadActivity.class));
+            // Pass totals to PaymentActivity
+            Intent payIntent = new Intent(this, PaymentActivity.class);
+            payIntent.putExtra("subtotal",    (mediCareInCart ? qtyMedicare * PRICE_MEDICARE : 0) + (cityInCart ? qtyCity * PRICE_CITY : 0));
+            payIntent.putExtra("deliveryFee", DELIVERY_FEE);
+            payIntent.putExtra("total",        ((mediCareInCart ? qtyMedicare * PRICE_MEDICARE : 0) + (cityInCart ? qtyCity * PRICE_CITY : 0)) + DELIVERY_FEE);
+            startActivity(payIntent);
         });
     }
 
@@ -105,7 +110,7 @@ public class CartActivity extends AppCompatActivity {
 
         // Calculate totals
         int subtotal = (mediCareInCart ? qtyMedicare * PRICE_MEDICARE : 0)
-                     + (cityInCart     ? qtyCity     * PRICE_CITY     : 0);
+                + (cityInCart     ? qtyCity     * PRICE_CITY     : 0);
         int total    = subtotal > 0 ? subtotal + DELIVERY_FEE : 0;
         tvSubtotal.setText("Rs. " + subtotal);
         tvTotal.setText("Rs. " + total);
