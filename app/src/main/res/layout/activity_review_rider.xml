@@ -16,7 +16,7 @@
         android:id="@+id/ivBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_revert"
+        android:src="@drawable/ic_arrow_back"
         app:tint="@color/white"
         android:layout_marginTop="56dp"
         android:layout_marginStart="24dp"
@@ -74,6 +74,7 @@
                         android:layout_marginBottom="12dp" />
 
                     <TextView
+                        android:id="@+id/tvName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Nuwan Fernando"
@@ -113,6 +114,7 @@
                         android:layout_marginBottom="8dp">
                         
                         <TextView
+                            android:id="@+id/tvNic"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -123,6 +125,28 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="95xxxxxxxV"
+                            android:textColor="@color/black"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:id="@+id/tvEmail"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Email"
+                            android:textColor="@color/colorTextSecondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="rider@gmail.com"
                             android:textColor="@color/black"
                             android:textStyle="bold" />
                     </LinearLayout>
