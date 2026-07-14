@@ -30,6 +30,10 @@ public class NotificationsActivity extends AppCompatActivity {
         recyclerNotifications = findViewById(R.id.recyclerNotifications);
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
+        // Back
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+
+
         recyclerNotifications.setLayoutManager(
                 new LinearLayoutManager(this));
 

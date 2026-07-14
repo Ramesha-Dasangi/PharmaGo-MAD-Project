@@ -119,6 +119,9 @@
             android:name=".pharmacyowner.inventory.EditMedicineActivity"
             android:exported="false" />
         <activity
+            android:name=".pharmacyowner.inventory.DeleteMedicineActivity"
+            android:exported="false" />
+        <activity
             android:name=".pharmacyowner.OrdersActivity"
             android:exported="false" />
         <activity

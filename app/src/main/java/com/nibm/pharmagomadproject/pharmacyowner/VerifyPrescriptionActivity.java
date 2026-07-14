@@ -28,7 +28,6 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_CODE = 100;
 
-    private ImageButton btnBack;
     private ImageView imgPrescription;
     private TextView txtFileName;
 
@@ -94,8 +93,6 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verify_prescription);
 
-        btnBack = findViewById(R.id.btnBack);
-
         imgPrescription = findViewById(R.id.imgPrescription);
         txtFileName = findViewById(R.id.txtFileName);
 
@@ -108,7 +105,8 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
         btnReject = findViewById(R.id.btnReject);
         btnApprove = findViewById(R.id.btnApprove);
 
-        btnBack.setOnClickListener(v -> finish());
+        // Back
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         btnUploadPrescription.setOnClickListener(v -> showImagePickerDialog());
 

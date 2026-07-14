@@ -20,11 +20,16 @@
         android:paddingEnd="16dp">
 
         <ImageView
-            android:id="@+id/imgBack"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_media_previous"
-            android:tint="@android:color/white"/>
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            app:tint="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
         <TextView
             android:layout_width="0dp"
@@ -33,7 +38,7 @@
             android:gravity="center"
             android:text="Add New Medicine"
             android:textColor="@android:color/white"
-            android:textSize="28dp"
+            android:textSize="24dp"
             android:textStyle="bold"/>
 
     </LinearLayout>
@@ -88,8 +93,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Select category"
+                android:textSize="15dp"
                 android:inputType="none"
-                android:focusable="true"
+                android:focusable="false"
                 android:clickable="true"
                 android:textColor="@android:color/black"
                 android:textColorHint="#9E9E9E"
