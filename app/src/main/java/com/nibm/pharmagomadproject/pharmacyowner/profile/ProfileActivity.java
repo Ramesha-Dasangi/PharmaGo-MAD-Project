@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.nibm.pharmagomadproject.R;
-import com.nibm.pharmagomadproject.customer.LoginActivity;
+import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.DashboardActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.InventoryActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.OrdersActivity;

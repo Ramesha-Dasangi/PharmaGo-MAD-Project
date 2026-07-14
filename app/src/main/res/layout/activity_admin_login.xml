@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/pg_card"
-    tools:context=".customer.AdminLoginActivity">
+    tools:context=".customer.activities.auth.AdminLoginActivity">
 
     <LinearLayout
         android:id="@+id/topBar"

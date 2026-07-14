@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/pg_bg"
-    tools:context=".customer.ComplaintRiderActivity">
+    tools:context=".customer.activities.rider.ComplaintRiderActivity">
 
     <LinearLayout
         android:id="@+id/topBar"
