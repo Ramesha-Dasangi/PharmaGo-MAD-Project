@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 public class ChangePasswordActivity extends AppCompatActivity {
 
-    private ImageView btnBack;
-
     private TextInputEditText etCurrentPassword;
     private TextInputEditText etNewPassword;
     private TextInputEditText etConfirmPassword;
@@ -29,17 +27,14 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
         // Initialize Views
 
-        btnBack = findViewById(R.id.btnBack);
-
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
 
         btnUpdatePassword = findViewById(R.id.btnUpdatePassword);
 
-        // Back Button
-
-        btnBack.setOnClickListener(v -> finish());
+        // Back
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // Update Password
 

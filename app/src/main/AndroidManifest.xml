@@ -119,6 +119,9 @@
             android:name=".pharmacyowner.inventory.EditMedicineActivity"
             android:exported="false" />
         <activity
+            android:name=".pharmacyowner.inventory.DeleteMedicineActivity"
+            android:exported="false" />
+        <activity
             android:name=".pharmacyowner.OrdersActivity"
             android:exported="false" />
         <activity
@@ -144,13 +147,9 @@
             android:exported="false" />
         <activity
             android:name=".pharmacyowner.DashboardActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false"/>
         <activity
             android:name=".pharmacyowner.inventory.LowStockActivity"
-            android:exported="false" />
-        <activity
-            android:name=".pharmacyowner.profile.ForgotPasswordActivity"
             android:exported="false" />
 
         <!-- Delivery Rider -->

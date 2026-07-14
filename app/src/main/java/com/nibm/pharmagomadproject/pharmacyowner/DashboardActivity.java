@@ -14,7 +14,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.nibm.pharmagomadproject.R;
 
 import java.util.Calendar;
-
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.pharmacyowner.profile.ProfileActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.reports.SalesReportActivity;
 
@@ -23,6 +23,10 @@ public class DashboardActivity extends AppCompatActivity {
     private TextView txtGreeting;
     private TextView txtPharmacy;
     private ImageView imgNotification;
+
+    private TextView txtStock;
+    private TextView txtLowStockMessage;
+    private FirebaseFirestore db;
     private BottomNavigationView bottomNavigation;
 
     @Override
@@ -38,6 +42,12 @@ public class DashboardActivity extends AppCompatActivity {
         txtPharmacy = findViewById(R.id.txtPharmacy);
         imgNotification = findViewById(R.id.imgNotification);
         bottomNavigation = findViewById(R.id.bottomNavigation);
+        txtStock = findViewById(R.id.txtStock);
+        txtLowStockMessage = findViewById(R.id.txtLowStockMessage);
+
+        db = FirebaseFirestore.getInstance();
+
+        loadLowStockCount();
 
         // Pharmacy Name
         txtPharmacy.setText("City Pharma Express");
@@ -58,6 +68,7 @@ public class DashboardActivity extends AppCompatActivity {
 
             startActivity(intent);
         });
+
 
         // Home Selected
         bottomNavigation.setSelectedItemId(R.id.nav_home);
@@ -109,6 +120,13 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        loadLowStockCount();
+    }
+
     // Greeting according to time
     private void setGreeting() {
 
@@ -125,4 +143,41 @@ public class DashboardActivity extends AppCompatActivity {
             txtGreeting.setText("Good Night");
         }
     }
+
+    private void loadLowStockCount() {
+
+        db.collection("medicines")
+                .whereLessThanOrEqualTo("stock", 10)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                    int count = queryDocumentSnapshots.size();
+
+                    txtStock.setText(String.valueOf(count));
+
+                    if (count == 0) {
+
+                        txtLowStockMessage.setText(
+                                "All medicines are sufficiently stocked"
+                        );
+
+                    } else {
+
+                        txtLowStockMessage.setText(
+                                count + " medicines need restocking"
+                        );
+
+                    }
+
+                })
+                .addOnFailureListener(e -> {
+
+                    txtStock.setText("0");
+
+                    txtLowStockMessage.setText("");
+
+                });
+
+    }
+
 }

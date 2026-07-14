@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.firestore)
     implementation(libs.material)
 
     implementation("org.osmdroid:osmdroid-android:6.1.18")

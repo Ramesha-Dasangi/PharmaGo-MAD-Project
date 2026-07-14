@@ -162,7 +162,6 @@ public class InventoryAdapter
         holder.imgEdit.setOnClickListener(v->{
 
 
-
             Intent intent =
                     new Intent(
                             context,
@@ -172,9 +171,10 @@ public class InventoryAdapter
 
 
             intent.putExtra(
-                    "medicineName",
-                    item.getMedicineName()
+                    "medicineId",
+                    item.getMedicineId()
             );
+
 
 
             context.startActivity(intent);
