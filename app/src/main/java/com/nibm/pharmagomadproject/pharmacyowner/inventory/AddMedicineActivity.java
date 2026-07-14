@@ -45,7 +45,7 @@ public class AddMedicineActivity extends AppCompatActivity {
 
     private Button btnSave;
 
-    private ImageView imgMedicine, imgBack;
+    private ImageView imgMedicine;
     private LinearLayout layoutImage;
 
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -62,8 +62,6 @@ public class AddMedicineActivity extends AppCompatActivity {
         //========================
         // Initialize Views
         //========================
-
-        imgBack = findViewById(R.id.imgBack);
 
         edtName = findViewById(R.id.edtName);
         edtCategory = findViewById(R.id.edtCategory);
@@ -84,11 +82,8 @@ public class AddMedicineActivity extends AppCompatActivity {
 
         btnSave = findViewById(R.id.btnSave);
 
-        //========================
-        // Back Button
-        //========================
-
-        imgBack.setOnClickListener(v -> finish());
+        // Back
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         //========================
         // Category Dropdown

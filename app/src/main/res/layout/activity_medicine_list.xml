@@ -182,25 +182,22 @@
             app:layout_constraintEnd_toEndOf="parent"/>
 
         <!-- Medicine list -->
-        <ScrollView
+        <!-- Medicine RecyclerView -->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/medicineRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="24dp"
+            android:clipToPadding="false"
+
             app:layout_constraintTop_toBottomOf="@id/tvScreenTitle"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <LinearLayout
-                android:id="@+id/medicineListContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="24dp"/>
-        </ScrollView>
-
+            app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- SIDEBAR FILTER DRAWER (right side) -->

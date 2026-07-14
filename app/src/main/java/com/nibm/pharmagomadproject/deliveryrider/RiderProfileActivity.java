@@ -10,8 +10,7 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.nibm.pharmagomadproject.R;
-import com.nibm.pharmagomadproject.customer.LoginActivity;
-import com.nibm.pharmagomadproject.pharmacyowner.profile.ProfileActivity;
+import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 
 public class RiderProfileActivity extends AppCompatActivity {
 

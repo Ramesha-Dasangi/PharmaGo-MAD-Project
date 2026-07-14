@@ -38,8 +38,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private ImageView imgPrescription;
 
     private TextView txtFileName;
-    private ImageView btnBack;
-
     private Button btnUploadPrescription;
     private Button btnReject;
     private Button btnApprove;
@@ -106,8 +104,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
         // Initialize Views
         // ==========================
 
-        btnBack = findViewById(R.id.btnBack);
-
         txtOrderId = findViewById(R.id.txtOrderId);
         txtDate = findViewById(R.id.txtDate);
         txtCustomer = findViewById(R.id.txtCustomer);
@@ -123,11 +119,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
         btnReject = findViewById(R.id.btnReject);
         btnApprove = findViewById(R.id.btnApprove);
 
-        // ==========================
-        // Back Button
-        // ==========================
-
-        btnBack.setOnClickListener(v -> finish());
+        // Back
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // ==========================
         // Receive Data

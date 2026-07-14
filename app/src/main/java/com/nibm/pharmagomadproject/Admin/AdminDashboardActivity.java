@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.card.MaterialCardView;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
@@ -84,7 +85,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         .setMessage("Are you sure you want to log out?")
                         .setPositiveButton("Log out", (dialog, which) -> {
                             Intent intent = new Intent(AdminDashboardActivity.this,
-                                    com.nibm.pharmagomadproject.customer.LoginActivity.class);
+                                    LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                         })

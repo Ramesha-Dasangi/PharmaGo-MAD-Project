@@ -9,8 +9,8 @@ import android.os.Looper;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.nibm.pharmagomadproject.customer.HomeActivity;
-import com.nibm.pharmagomadproject.customer.LoginActivity;
+import com.nibm.pharmagomadproject.customer.activities.home.HomeActivity;
+import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 
 public class MainActivity extends AppCompatActivity {
 

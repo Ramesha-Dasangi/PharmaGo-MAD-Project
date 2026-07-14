@@ -25,13 +25,13 @@
 
                 <ImageView
                     android:id="@+id/imgNotification"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:layout_gravity="end"
                     android:clickable="true"
                     android:focusable="true"
                     android:src="@drawable/ic_notification"
-                    android:tint="@color/white" />
+                    app:tint="@color/white" />
 
                 <TextView
                     android:id="@+id/txtGreeting"
@@ -222,11 +222,14 @@
                             android:textSize="28dp"/>
 
                         <TextView
+                            android:id="@+id/txtLowStockMessage"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Low Stock"
+                            android:layout_marginTop="4dp"
+                            android:text=""
+                            android:textColor="#E53935"
                             android:textStyle="bold"
-                            android:textSize="16dp"/>
+                            android:textSize="11sp"/>
 
                     </LinearLayout>
 
