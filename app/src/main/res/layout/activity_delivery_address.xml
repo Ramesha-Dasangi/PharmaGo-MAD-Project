@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/pg_bg"
-    tools:context=".customer.DeliveryAddressActivity">
+    tools:context=".customer.activities.profile.DeliveryAddressActivity">
 
     <LinearLayout
         android:id="@+id/topBar"
