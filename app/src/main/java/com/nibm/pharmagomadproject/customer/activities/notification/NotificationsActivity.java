@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.nibm.pharmagomadproject.R;
@@ -25,6 +26,7 @@ public class NotificationsActivity extends AppCompatActivity {
     private RecyclerView          rvNotifications;
     private NotificationAdapter   adapter;
     private final List<Notification> notifications = new ArrayList<>();
+    private ListenerRegistration  listenerRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,32 +57,33 @@ public class NotificationsActivity extends AppCompatActivity {
             rvNotifications.setAdapter(adapter);
         }
 
-        loadNotifications();
+        subscribeNotifications();
     }
 
-    private void loadNotifications() {
+    private void subscribeNotifications() {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
         if (uid == null) return;
 
-        FirebaseFirestore.getInstance()
+        // ✅ Real-time listener — auto-updates when status changes write new notifications
+        listenerRegistration = FirebaseFirestore.getInstance()
                 .collection("notifications")
                 .whereEqualTo("userId", uid)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(query -> {
+                .addSnapshotListener((query, error) -> {
+                    if (error != null) {
+                        Toast.makeText(this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (query == null) return;
+
                     notifications.clear();
                     for (QueryDocumentSnapshot doc : query) {
-                        Notification n = new Notification();
-                        n.setNotificationId(doc.getId());
-                        // set fields manually
                         String title   = doc.getString("title");
                         String message = doc.getString("message");
                         Boolean isRead = doc.getBoolean("isRead");
 
-                        // Build a notification object via reflection-safe setter
-                        // (Notification has a multi-arg ctor)
                         Notification notif = new Notification(
                                 uid,
                                 title   != null ? title   : "",
@@ -93,8 +96,13 @@ public class NotificationsActivity extends AppCompatActivity {
                         notifications.add(notif);
                     }
                     if (adapter != null) adapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load notifications", Toast.LENGTH_SHORT).show());
+                });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove listener to prevent memory leaks
+        if (listenerRegistration != null) listenerRegistration.remove();
     }
 }

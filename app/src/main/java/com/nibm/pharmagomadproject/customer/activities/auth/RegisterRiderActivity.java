@@ -378,6 +378,9 @@ public class RegisterRiderActivity extends AppCompatActivity {
 
 
 
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+        if (btnSubmit != null) btnSubmit.setEnabled(false);
+
         createAccount(
                 email,
                 password,
@@ -387,18 +390,7 @@ public class RegisterRiderActivity extends AppCompatActivity {
                 vehicleType,
                 vehicleReg
         );
-
-
-
     }
-
-
-
-
-
-
-
-
 
     private void createAccount(
             String email,
@@ -409,25 +401,14 @@ public class RegisterRiderActivity extends AppCompatActivity {
             String vehicleType,
             String vehicleReg
     ){
-
-
-
         mAuth.createUserWithEmailAndPassword(
                         email,
                         password
                 )
-
-
                 .addOnSuccessListener(authResult -> {
-
-
-
                     String uid =
                             mAuth.getCurrentUser()
                                     .getUid();
-
-
-
 
                     uploadLicense(
                             uid,
@@ -438,36 +419,17 @@ public class RegisterRiderActivity extends AppCompatActivity {
                             vehicleType,
                             vehicleReg
                     );
-
-
-
                 })
-
-
-
                 .addOnFailureListener(e -> {
-
-
+                    MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
                     Toast.makeText(
                             this,
                             e.getMessage(),
                             Toast.LENGTH_SHORT
                     ).show();
-
-
                 });
-
-
-
     }
-
-
-
-
-
-
-
-
 
     private void uploadLicense(
             String uid,
@@ -478,29 +440,16 @@ public class RegisterRiderActivity extends AppCompatActivity {
             String vehicleType,
             String vehicleReg
     ){
-
-
-
         String path =
                 "riders/"+uid+"/license.jpg";
-
-
-
-
 
         storageHelper.uploadFile(
                 SupabaseStorageHelper.BUCKET_LICENSES,
                 path,
                 licenseUri,
-
                 new SupabaseStorageHelper.UploadCallback() {
-
-
                     @Override
                     public void onSuccess(String url) {
-
-
-
                         saveFirestore(
                                 uid,
                                 name,
@@ -511,40 +460,21 @@ public class RegisterRiderActivity extends AppCompatActivity {
                                 vehicleReg,
                                 url
                         );
-
-
                     }
-
-
 
                     @Override
                     public void onFailure(String error) {
-
-
+                        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                        if (btnSubmit != null) btnSubmit.setEnabled(true);
                         Toast.makeText(
                                 RegisterRiderActivity.this,
-                                error,
+                                "License upload failed: " + error,
                                 Toast.LENGTH_SHORT
                         ).show();
-
-
                     }
-
-
                 }
         );
-
-
-
     }
-
-
-
-
-
-
-
-
 
     private void saveFirestore(
             String uid,
@@ -556,12 +486,8 @@ public class RegisterRiderActivity extends AppCompatActivity {
             String vehicleReg,
             String licenseUrl
     ){
-
-
-
         Map<String,Object> user =
                 new HashMap<>();
-
 
         user.put("name",name);
         user.put("email",email);
@@ -571,14 +497,8 @@ public class RegisterRiderActivity extends AppCompatActivity {
         user.put("status","pending");
         user.put("createdAt", Timestamp.now());
 
-
-
-
-
-
         Map<String,Object> rider =
                 new HashMap<>();
-
 
         rider.put("userId",uid);
         rider.put("name",name);
@@ -593,53 +513,60 @@ public class RegisterRiderActivity extends AppCompatActivity {
         rider.put("rating",0);
         rider.put("createdAt",Timestamp.now());
 
-
-
-
-
-
-
         db.collection("users")
                 .document(uid)
-                .set(user);
+                .set(user)
+                .addOnSuccessListener(aVoid -> {
+                    db.collection("riders")
+                            .add(rider)
+                            .addOnSuccessListener(ref -> {
+                                mAuth.signOut();
+                                Toast.makeText(
+                                        this,
+                                        "Registration submitted. Wait for approval",
+                                        Toast.LENGTH_LONG
+                                ).show();
 
-
-
-        db.collection("riders")
-                .add(rider)
-
-                .addOnSuccessListener(ref -> {
-
-
-                    mAuth.signOut();
-
-
-
-                    Toast.makeText(
-                            this,
-                            "Registration submitted. Wait for approval",
-                            Toast.LENGTH_LONG
-                    ).show();
-
-
-
-
-                    startActivity(
-                            new Intent(
-                                    this,
-                                    AccountStatusActivity.class
-                            )
-                    );
-
-
-                    finish();
-
-
-
+                                startActivity(
+                                        new Intent(
+                                                this,
+                                                AccountStatusActivity.class
+                                        )
+                                );
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                                if (btnSubmit != null) btnSubmit.setEnabled(true);
+                                Toast.makeText(
+                                        this,
+                                        "Failed to save rider: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    if (mAuth.getCurrentUser() != null) {
+                        mAuth.getCurrentUser().delete()
+                                .addOnCompleteListener(task -> {
+                                    MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                                    Toast.makeText(
+                                            this,
+                                            "Failed to save user data: " + e.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                });
+                    } else {
+                        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                        if (btnSubmit != null) btnSubmit.setEnabled(true);
+                        Toast.makeText(
+                                this,
+                                "Failed to save user data: " + e.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
                 });
-
-
-
     }
 
 

@@ -11,6 +11,7 @@ public class Medicine {
     private int stock;
     private String pharmacy;     // pharmacy display name
     private String pharmacyId;   // pharmacy owner's uid (matches "pharmacyId" field in medicines docs)
+    private String imageUrl;
 
     public Medicine() {
         // Required for Firebase
@@ -36,6 +37,14 @@ public class Medicine {
         this.pharmacy = pharmacy;
     }
 
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
     public String getId() {
         return id;

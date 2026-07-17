@@ -1,6 +1,8 @@
 package com.nibm.pharmagomadproject.customer.adapter;
 
 
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,13 +104,27 @@ public class PharmacyAdapter
         }
 
 
-
         holder.itemView.setOnClickListener(v -> {
 
             listener.onClick(pharmacy);
 
         });
 
+        if (holder.btnCall != null) {
+            holder.btnCall.setOnClickListener(v -> {
+                try {
+                    String phoneNum = pharmacy.getPhone();
+                    if (phoneNum != null && !phoneNum.trim().isEmpty()) {
+                        Intent intent = new Intent(Intent.ACTION_DIAL);
+                        intent.setData(Uri.parse("tel:" + phoneNum.trim()));
+                        holder.itemView.getContext().startActivity(intent);
+                    } else {
+                        android.widget.Toast.makeText(holder.itemView.getContext(),
+                                "Phone number not available", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception ignored) {}
+            });
+        }
 
     }
 
@@ -133,6 +149,7 @@ public class PharmacyAdapter
 
 
         TextView name,rating,address,phone;
+        View btnCall;
 
 
 
@@ -155,6 +172,8 @@ public class PharmacyAdapter
             address=
                     itemView.findViewById(R.id.tvAddress);
 
+            btnCall =
+                    itemView.findViewById(R.id.btnCallPharmacy);
 
         }
 

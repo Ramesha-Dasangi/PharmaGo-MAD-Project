@@ -194,6 +194,18 @@ public class OrderDetailsActivity extends AppCompatActivity {
             db.collection("orders").document(currentOrderId)
                     .update("status", "processing")
                     .addOnSuccessListener(unused -> {
+                        // Notify customer
+                        if (customerId != null && !customerId.isEmpty()) {
+                            java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                            notif.put("userId",      customerId);
+                            notif.put("title",       "Pharmacy preparing your order 💊");
+                            notif.put("message",     "Order " + currentOrderId + " has been approved and is being prepared.");
+                            notif.put("type",        "order_processing");
+                            notif.put("referenceId", currentOrderId);
+                            notif.put("isRead",      false);
+                            notif.put("createdAt",   System.currentTimeMillis());
+                            db.collection("notifications").add(notif);
+                        }
                         Toast.makeText(OrderDetailsActivity.this,
                                 "Order approved — now processing!", Toast.LENGTH_SHORT).show();
                         finish();
@@ -212,6 +224,18 @@ public class OrderDetailsActivity extends AppCompatActivity {
             db.collection("orders").document(currentOrderId)
                     .update("status", "rejected")
                     .addOnSuccessListener(unused -> {
+                        // Notify customer
+                        if (customerId != null && !customerId.isEmpty()) {
+                            java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                            notif.put("userId",      customerId);
+                            notif.put("title",       "Order update ⚠️");
+                            notif.put("message",     "Order " + currentOrderId + " was rejected by the pharmacy. Please contact support.");
+                            notif.put("type",        "order_rejected");
+                            notif.put("referenceId", currentOrderId);
+                            notif.put("isRead",      false);
+                            notif.put("createdAt",   System.currentTimeMillis());
+                            db.collection("notifications").add(notif);
+                        }
                         Toast.makeText(OrderDetailsActivity.this,
                                 "Order rejected.", Toast.LENGTH_SHORT).show();
                         finish();

@@ -3,6 +3,8 @@ package com.nibm.pharmagomadproject.customer.activities.home;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
+import java.util.Calendar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -82,6 +84,8 @@ public class HomeActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        loadGreetingAndName();
 
 
 
@@ -525,6 +529,42 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadGreetingAndName();
+    }
 
+    private void loadGreetingAndName() {
+        // Time-aware greeting
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        String greeting;
+        if (hour >= 5 && hour < 12)  greeting = "Good morning \u2600\ufe0f";
+        else if (hour < 17)          greeting = "Good afternoon \uD83C\uDF1E";
+        else if (hour < 21)          greeting = "Good evening \uD83C\uDF07";
+        else                         greeting = "Good night \uD83C\uDF19";
+
+        TextView tvGreeting = findViewById(R.id.tvGreeting);
+        if (tvGreeting != null) tvGreeting.setText(greeting);
+
+        // Load user name from Firestore
+        com.google.firebase.auth.FirebaseAuth auth =
+                com.google.firebase.auth.FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            String uid = auth.getCurrentUser().getUid();
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("users").document(uid).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            String name = doc.getString("name");
+                            TextView tvName = findViewById(R.id.tvUserName);
+                            if (tvName != null && name != null) {
+                                String first = name.contains(" ") ? name.split(" ")[0] : name;
+                                tvName.setText(first);
+                            }
+                        }
+                    });
+        }
+    }
 
 }

@@ -23,6 +23,7 @@ public class CustomerProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView tvProfileName, tvProfileEmail, tvProfilePhone, tvProfileAddress;
+    private com.google.android.material.switchmaterial.SwitchMaterial switchNotifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +41,17 @@ public class CustomerProfileActivity extends AppCompatActivity {
         tvProfileEmail = findViewById(R.id.tvProfileEmail);
         tvProfilePhone = findViewById(R.id.tvProfilePhone);
         tvProfileAddress = findViewById(R.id.tvProfileAddress);
+        switchNotifications = findViewById(R.id.switchNotifications);
+
+        if (switchNotifications != null) {
+            switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (mAuth.getCurrentUser() != null) {
+                    String uid = mAuth.getCurrentUser().getUid();
+                    db.collection("users").document(uid)
+                            .update("notificationsEnabled", isChecked);
+                }
+            });
+        }
 
         // Row: Delivery address
         LinearLayout rowAddress = findViewById(R.id.rowAddress);
@@ -83,6 +95,7 @@ public class CustomerProfileActivity extends AppCompatActivity {
                         String email = document.getString("email");
                         String phone = document.getString("phone");
                         String address = document.getString("address");
+                        Boolean notifEnabled = document.getBoolean("notificationsEnabled");
 
                         if (tvProfileName != null && name != null) tvProfileName.setText(name);
                         if (tvProfileEmail != null && email != null) tvProfileEmail.setText(email);
@@ -91,6 +104,9 @@ public class CustomerProfileActivity extends AppCompatActivity {
                             tvProfileAddress.setText(address);
                         } else if (tvProfileAddress != null) {
                             tvProfileAddress.setText("No address saved");
+                        }
+                        if (switchNotifications != null) {
+                            switchNotifications.setChecked(notifEnabled == null || notifEnabled);
                         }
                     }
                 });

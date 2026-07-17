@@ -91,15 +91,29 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void selectCOD() {
         selectedMethod = "cod";
-        radioCOD.setImageResource(R.drawable.ic_radio_filled);
-        radioCard.setImageResource(R.drawable.ic_radio_empty);
+        optionCOD.setBackgroundResource(R.drawable.bg_selected_option);
+        optionCard.setBackgroundResource(R.drawable.bg_unselected_option);
+
+        radioCOD.setImageResource(R.drawable.ic_check_circle);
+        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
+
+        radioCard.setImageResource(R.drawable.ic_circle_dashed);
+        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_sub, null)));
+
         cardDetailsSection.setVisibility(View.GONE);
     }
 
     private void selectCard() {
         selectedMethod = "card";
-        radioCard.setImageResource(R.drawable.ic_radio_filled);
-        radioCOD.setImageResource(R.drawable.ic_radio_empty);
+        optionCard.setBackgroundResource(R.drawable.bg_selected_option);
+        optionCOD.setBackgroundResource(R.drawable.bg_unselected_option);
+
+        radioCard.setImageResource(R.drawable.ic_check_circle);
+        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
+
+        radioCOD.setImageResource(R.drawable.ic_circle_dashed);
+        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_sub, null)));
+
         cardDetailsSection.setVisibility(View.VISIBLE);
     }
 
@@ -180,6 +194,20 @@ public class PaymentActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     // Clear the cart after successful order
                     CartActivity.clearCart();
+
+                    // Write confirmation notification
+                    String notifUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+                    if (!notifUid.isEmpty()) {
+                        java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                        notif.put("userId",      notifUid);
+                        notif.put("title",       "Order confirmed \uD83C\uDF89");
+                        notif.put("message",     "Your order " + orderId + " has been placed! We'll notify you when it's ready.");
+                        notif.put("type",        "order_placed");
+                        notif.put("referenceId", orderId);
+                        notif.put("isRead",      false);
+                        notif.put("createdAt",   System.currentTimeMillis());
+                        db.collection("notifications").add(notif);
+                    }
 
                     Toast.makeText(this,
                             "✅ Order placed successfully!",
