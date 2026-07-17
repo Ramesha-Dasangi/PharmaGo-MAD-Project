@@ -109,7 +109,16 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
                                 ((TextView) findViewById(R.id.tvAddress)).setText(addr);
                             }
                             if (phone != null) {
-                                ((TextView) findViewById(R.id.tvPhone)).setText(phone);
+                                TextView tvPh = findViewById(R.id.tvPhone);
+                                if (tvPh != null) {
+                                    tvPh.setText(phone);
+                                    tvPh.setOnClickListener(v -> {
+                                        try {
+                                            Intent dial = new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + phone.trim()));
+                                            startActivity(dial);
+                                        } catch (Exception ignored) {}
+                                    });
+                                }
                             }
                             if (ratingVal != null) {
                                 ((TextView) findViewById(R.id.tvRating)).setText("⭐ " + String.format("%.1f", ratingVal));
@@ -146,6 +155,7 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
                                 pharmacyName
                         );
                         m.setPharmacyId(doc.getString("pharmacyId"));
+                        m.setImageUrl(doc.getString("imageUrl"));
                         allMedicines.add(m);
                     }
                     renderMedicines();
@@ -281,7 +291,7 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
         for(Medicine m:allMedicines){
 
 
-            if(activeFilter.equals("All")){
+            if(activeFilter.equals("All") || activeFilter.startsWith("Price")){
 
                 list.add(m);
 
@@ -290,7 +300,7 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
             else if(activeFilter.equals("OTC")
                     &&
-                    m.getType().equals("OTC")){
+                    "OTC".equalsIgnoreCase(m.getType())){
 
 
                 list.add(m);
@@ -300,15 +310,7 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
             else if(activeFilter.equals("Prescription")
                     &&
-                    m.getType().equals("Prescription")){
-
-
-                list.add(m);
-
-            }
-
-
-            else{
+                    "Prescription".equalsIgnoreCase(m.getType())){
 
 
                 list.add(m);
@@ -408,30 +410,21 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
                 intent.putExtra("medicine_type",     m.getType());
                 intent.putExtra("medicine_category", m.getCategory());
                 intent.putExtra("medicine_pharmacy", pharmacyName);
+                intent.putExtra("medicine_image",    m.getImageUrl());
                 startActivity(intent);
             });
 
             card.findViewById(R.id.btnAddToCartCard)
                     .setOnClickListener(v -> {
-                        boolean found = false;
-                        for (Cart item : CartActivity.CART_STORE) {
-                            if (item.getMedicineId() != null && item.getMedicineId().equals(m.getMedicineId())) {
-                                item.setQuantity(item.getQuantity() + 1);
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            CartActivity.CART_STORE.add(new Cart(
-                                    m.getMedicineId(),
-                                    m.getMedicineName(),
-                                    m.getBrandName(),
-                                    m.getPharmacyId(),
-                                    m.getPharmacy(),
-                                    m.getPrice(),
-                                    1
-                            ));
-                        }
+                        CartActivity.addToCart(new Cart(
+                                m.getMedicineId(),
+                                m.getMedicineName(),
+                                m.getBrandName(),
+                                m.getPharmacyId(),
+                                m.getPharmacy(),
+                                m.getPrice(),
+                                1
+                        ));
                         Toast.makeText(
                                 this,
                                 m.getMedicineName() + " added to cart",

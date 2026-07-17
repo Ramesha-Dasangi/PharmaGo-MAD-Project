@@ -7,6 +7,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +30,9 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         }
     }
 
+    private String id, name, brand, phId, pharmacy, type, category;
+    private int price;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,24 +40,35 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_medicine_details);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Read intent extras
-        String id       = getIntent().getStringExtra("medicine_id");
-        String brand    = getIntent().getStringExtra("brand_name");
-        String phId     = getIntent().getStringExtra("pharmacy_id");
-        String name     = getIntent().getStringExtra("medicine_name");
-        int    price    = getIntent().getIntExtra("medicine_price", 42);
-        String type     = getIntent().getStringExtra("medicine_type");
-        String category = getIntent().getStringExtra("medicine_category");
-        String pharmacy = getIntent().getStringExtra("medicine_pharmacy");
+        id       = getIntent().getStringExtra("medicine_id");
+        name     = getIntent().getStringExtra("medicine_name");
+        brand    = getIntent().getStringExtra("brand_name");
+        phId     = getIntent().getStringExtra("pharmacy_id");
+        pharmacy = getIntent().getStringExtra("medicine_pharmacy");
+        price    = getIntent().getIntExtra("medicine_price", 0);
+        type     = getIntent().getStringExtra("medicine_type");
+        category = getIntent().getStringExtra("medicine_category");
+        pharmacy = getIntent().getStringExtra("medicine_pharmacy");
 
         // Set medicine name
         safeSetText(R.id.tvMedicineName, name != null ? name : "Medicine");
         safeSetText(R.id.tvManufacturer, (category != null ? category : "") +
                 (type != null ? " · " + type : ""));
 
+        // Load image if available
+        ImageView imgMed = findViewById(R.id.imgMedicine);
+        String image    = getIntent().getStringExtra("medicine_image");
+        if (imgMed != null && image != null && !image.trim().isEmpty()) {
+            imgMed.setPadding(0, 0, 0, 0);
+            imgMed.setImageTintList(null); // Clear tint
+            com.bumptech.glide.Glide.with(this)
+                .load(image.trim())
+                .placeholder(R.drawable.ic_pill)
+                .into(imgMed);
+        }
+
         // ── Price comparison bars ──
-        List<PharmacyPrice> prices = getPriceComparisons(name, price, pharmacy);
-        bindPriceComparison(prices);
+        loadPriceComparisons(name, price, pharmacy);
 
         // Back
         safeClick(R.id.btnBack, v -> finish());
@@ -64,25 +79,15 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         // Add to cart
         safeClick(R.id.btnAddToCart, v -> {
             String medName = name != null ? name : "Medicine";
-            boolean found = false;
-            for (Cart item : CartActivity.CART_STORE) {
-                if (item.getMedicineId() != null && item.getMedicineId().equals(id)) {
-                    item.setQuantity(item.getQuantity() + 1);
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                CartActivity.CART_STORE.add(new Cart(
-                        id != null ? id : "temp_id",
-                        medName,
-                        brand != null ? brand : "",
-                        phId != null ? phId : "",
-                        pharmacy != null ? pharmacy : "",
-                        price,
-                        1
-                ));
-            }
+            CartActivity.addToCart(new Cart(
+                    id != null ? id : "temp_id",
+                    medName,
+                    brand != null ? brand : "",
+                    phId != null ? phId : "",
+                    pharmacy != null ? pharmacy : "",
+                    price,
+                    1
+            ));
             Toast.makeText(this, medName + " added to cart!", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, CartActivity.class));
         });
@@ -100,47 +105,76 @@ public class MedicineDetailsActivity extends AppCompatActivity {
                 startActivity(uploadIntent);
             } else {
                 String medName = name != null ? name : "Medicine";
-                boolean found = false;
-                for (Cart item : CartActivity.CART_STORE) {
-                    if (item.getMedicineId() != null && item.getMedicineId().equals(id)) {
-                        item.setQuantity(item.getQuantity() + 1);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    CartActivity.CART_STORE.add(new Cart(
-                            id != null ? id : "temp_id",
-                            medName,
-                            brand != null ? brand : "",
-                            phId != null ? phId : "",
-                            pharmacy != null ? pharmacy : "",
-                            price,
-                            1
-                    ));
-                }
+                CartActivity.addToCart(new Cart(
+                        id != null ? id : "temp_id",
+                        medName,
+                        brand != null ? brand : "",
+                        phId != null ? phId : "",
+                        pharmacy != null ? pharmacy : "",
+                        price,
+                        1
+                ));
                 startActivity(new Intent(this, CartActivity.class));
             }
         });
     }
 
-    private List<PharmacyPrice> getPriceComparisons(String name, int basePrice, String sourcePharmacy) {
-        List<PharmacyPrice> list = new ArrayList<>();
+    private void loadPriceComparisons(String medicineName, int basePrice, String sourcePharmacy) {
+        if (medicineName == null || medicineName.isEmpty()) return;
 
-        // Generate realistic variation — in real app query Firestore
-        int p1 = basePrice;
-        int p2 = (int) (basePrice * 1.07);  // 7% more
-        int p3 = (int) (basePrice * 1.19);  // 19% more
+        com.google.firebase.firestore.FirebaseFirestore.getInstance().collection("medicines")
+                .whereEqualTo("medicineName", medicineName)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<PharmacyPrice> pricesList = new ArrayList<>();
+                    com.google.firebase.firestore.FirebaseFirestore.getInstance().collection("pharmacies")
+                            .whereEqualTo("status", "approved")
+                            .get()
+                            .addOnSuccessListener(pharmacySnaps -> {
+                                java.util.Map<String, String> namesMap = new java.util.HashMap<>();
+                                for (com.google.firebase.firestore.DocumentSnapshot doc : pharmacySnaps) {
+                                    String ownerId = doc.getString("ownerId");
+                                    String nameVal = doc.getString("name");
+                                    if (ownerId != null && nameVal != null) {
+                                        namesMap.put(ownerId, nameVal);
+                                    }
+                                }
 
-        String ph1 = sourcePharmacy != null ? sourcePharmacy : "MediCare Pharmacy";
-        String ph2 = ph1.equals("City Pharma") ? "MediCare Pharmacy" : "City Pharma";
-        String ph3 = "HealthPlus Pharmacy";
+                                int bestPrice = Integer.MAX_VALUE;
+                                for (com.google.firebase.firestore.DocumentSnapshot doc : queryDocumentSnapshots) {
+                                    double p = doc.getDouble("price") != null ? doc.getDouble("price") : 0;
+                                    int priceVal = (int) p;
+                                    if (priceVal < bestPrice) bestPrice = priceVal;
+                                }
 
-        list.add(new PharmacyPrice(ph1, p1, true));   // best price
-        list.add(new PharmacyPrice(ph2, p2, false));
-        list.add(new PharmacyPrice(ph3, p3, false));
+                                for (com.google.firebase.firestore.DocumentSnapshot doc : queryDocumentSnapshots) {
+                                    String phId = doc.getString("pharmacyId");
+                                    String phName = phId != null ? namesMap.get(phId) : null;
+                                    if (phName == null) phName = doc.getString("pharmacy");
+                                    if (phName == null) phName = "Pharmacy";
 
-        return list;
+                                    double p = doc.getDouble("price") != null ? doc.getDouble("price") : 0;
+                                    int priceVal = (int) p;
+                                    pricesList.add(new PharmacyPrice(phName, priceVal, priceVal == bestPrice));
+                                }
+
+                                // Sort: best price first
+                                pricesList.sort((a, b) -> Integer.compare(a.price, b.price));
+
+                                // Bind comparisons
+                                bindPriceComparison(pricesList);
+                            })
+                            .addOnFailureListener(e -> {
+                                List<PharmacyPrice> list = new ArrayList<>();
+                                list.add(new PharmacyPrice(sourcePharmacy != null ? sourcePharmacy : "Pharmacy", basePrice, true));
+                                bindPriceComparison(list);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    List<PharmacyPrice> list = new ArrayList<>();
+                    list.add(new PharmacyPrice(sourcePharmacy != null ? sourcePharmacy : "Pharmacy", basePrice, true));
+                    bindPriceComparison(list);
+                });
     }
 
     private void bindPriceComparison(List<PharmacyPrice> prices) {
@@ -159,47 +193,51 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         int greenLight   = getResources().getColor(R.color.pg_primary_light, null);
         int normalCard   = getResources().getColor(R.color.pg_card, null);
 
-        for (int i = 0; i < Math.min(prices.size(), cardIds.length); i++) {
-            PharmacyPrice pp = prices.get(i);
-
+        for (int i = 0; i < cardIds.length; i++) {
             CardView card = findViewById(cardIds[i]);
-            TextView tvName  = findViewById(nameIds[i]);
-            TextView tvPrice = findViewById(priceIds[i]);
+            if (card == null) continue;
 
-            if (card == null || tvName == null || tvPrice == null) continue;
+            if (i < prices.size()) {
+                card.setVisibility(View.VISIBLE);
+                PharmacyPrice pp = prices.get(i);
 
-            tvName.setText(pp.name);
-            tvPrice.setText("Rs. " + pp.price);
+                TextView tvName  = findViewById(nameIds[i]);
+                TextView tvPrice = findViewById(priceIds[i]);
 
-            // Highlight best price card
-            if (pp.isBest) {
-                card.setCardBackgroundColor(greenLight);
-                tvPrice.setTextColor(primaryColor);
-                tvPrice.setTypeface(null, android.graphics.Typeface.BOLD);
-            } else {
-                card.setCardBackgroundColor(normalCard);
-                tvPrice.setTextColor(grayColor);
-                tvPrice.setTypeface(null, android.graphics.Typeface.NORMAL);
-            }
+                if (tvName != null) tvName.setText(pp.name);
+                if (tvPrice != null) {
+                    tvPrice.setText("Rs. " + pp.price);
 
-            // Price bar — find or build inside the card
-            // The bar is a FrameLayout with 2 layers: background + fill
-            // We look for tvPharmacy1Price's parent and draw below it
-            updatePriceBar(card, pp.price, maxPrice, pp.isBest ? primaryColor : grayColor);
-
-            // Card click = select
-            card.setClickable(true);
-            card.setFocusable(true);
-            card.setOnClickListener(v -> {
-                for (int j = 0; j < cardIds.length; j++) {
-                    CardView c = findViewById(cardIds[j]);
-                    if (c != null) {
-                        c.setCardBackgroundColor(j < prices.size() && prices.get(j).isBest
-                                ? greenLight : normalCard);
+                    // Highlight best price card
+                    if (pp.isBest) {
+                        card.setCardBackgroundColor(greenLight);
+                        tvPrice.setTextColor(primaryColor);
+                        tvPrice.setTypeface(null, android.graphics.Typeface.BOLD);
+                    } else {
+                        card.setCardBackgroundColor(normalCard);
+                        tvPrice.setTextColor(grayColor);
+                        tvPrice.setTypeface(null, android.graphics.Typeface.NORMAL);
                     }
                 }
-                card.setCardBackgroundColor(greenLight);
-            });
+
+                updatePriceBar(card, pp.price, maxPrice, pp.isBest ? primaryColor : grayColor);
+
+                // Card click = select
+                card.setClickable(true);
+                card.setFocusable(true);
+                card.setOnClickListener(v -> {
+                    for (int j = 0; j < cardIds.length; j++) {
+                        CardView c = findViewById(cardIds[j]);
+                        if (c != null) {
+                            c.setCardBackgroundColor(j < prices.size() && prices.get(j).isBest
+                                    ? greenLight : normalCard);
+                        }
+                    }
+                    card.setCardBackgroundColor(greenLight);
+                });
+            } else {
+                card.setVisibility(View.GONE);
+            }
         }
     }
 

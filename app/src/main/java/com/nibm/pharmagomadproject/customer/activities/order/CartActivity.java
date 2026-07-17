@@ -1,5 +1,6 @@
 package com.nibm.pharmagomadproject.customer.activities.order;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.profile.DeliveryAddressActivity;
@@ -91,10 +93,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
     protected void onResume() {
         super.onResume();
         loadUserAddress();
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
-        }
-        updateUI();
+        loadUserCart();
     }
 
     private void loadUserAddress() {
@@ -117,19 +116,68 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
         }
     }
 
+    private void loadUserCart() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId != null) {
+            FirebaseFirestore.getInstance().collection("users")
+                    .document(userId)
+                    .collection("cart")
+                    .get()
+                    .addOnSuccessListener(query -> {
+                        CART_STORE.clear();
+                        for (DocumentSnapshot doc : query) {
+                            Cart c = doc.toObject(Cart.class);
+                            if (c != null) {
+                                CART_STORE.add(c);
+                            }
+                        }
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                        }
+                        updateUI();
+                    });
+        }
+    }
+
     // CartAdapter.CartListener
     @Override
     public void onQuantityChanged(int position, int newQty) {
-        cartItems.get(position).setQuantity(newQty);
+        Cart cart = cartItems.get(position);
+        cart.setQuantity(newQty);
         adapter.notifyItemChanged(position);
         updateUI();
+
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("users")
+                    .document(uid)
+                    .collection("cart")
+                    .document(cart.getMedicineId())
+                    .update("quantity", newQty);
+        }
     }
 
     @Override
     public void onRemoveItem(int position) {
-        cartItems.remove(position);
+        Cart cart = cartItems.remove(position);
         adapter.notifyItemRemoved(position);
         updateUI();
+
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("users")
+                    .document(uid)
+                    .collection("cart")
+                    .document(cart.getMedicineId())
+                    .delete();
+        }
     }
 
     private void updateUI() {
@@ -163,17 +211,56 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
     // Static helper — add item to cart from anywhere
     public static void addToCart(Cart item) {
         // Check if same medicine from same pharmacy already in cart
+        boolean found = false;
         for (Cart c : CART_STORE) {
             if (c.getMedicineId().equals(item.getMedicineId())
                     && c.getPharmacyName().equals(item.getPharmacyName())) {
                 c.setQuantity(c.getQuantity() + item.getQuantity());
-                return;
+                found = true;
+                break;
             }
         }
-        CART_STORE.add(item);
+        if (!found) {
+            CART_STORE.add(item);
+        }
+
+        // Sync with Firestore if user logged in
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (uid != null) {
+            Cart toWrite = null;
+            for (Cart c : CART_STORE) {
+                if (c.getMedicineId().equals(item.getMedicineId())) {
+                    toWrite = c;
+                    break;
+                }
+            }
+            if (toWrite != null) {
+                FirebaseFirestore.getInstance().collection("users")
+                        .document(uid)
+                        .collection("cart")
+                        .document(item.getMedicineId())
+                        .set(toWrite);
+            }
+        }
     }
 
     public static void clearCart() {
         CART_STORE.clear();
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("users")
+                    .document(uid)
+                    .collection("cart")
+                    .get()
+                    .addOnSuccessListener(query -> {
+                        for (DocumentSnapshot doc : query) {
+                            doc.getReference().delete();
+                        }
+                    });
+        }
     }
 }

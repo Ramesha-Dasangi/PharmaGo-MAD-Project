@@ -56,6 +56,7 @@ dependencies {
     // Extra libraries
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     // Testing dependencies
     testImplementation(libs.junit)

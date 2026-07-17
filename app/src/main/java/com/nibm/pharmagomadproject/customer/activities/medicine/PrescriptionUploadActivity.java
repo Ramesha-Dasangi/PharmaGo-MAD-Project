@@ -45,10 +45,10 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         uploadArea  = findViewById(R.id.uploadArea);
-//        ivPreview   = findViewById(R.id.ivPreview);
-//        tvFileName  = findViewById(R.id.tvFileName);
-//        tvProgress  = findViewById(R.id.tvProgress);
-//        progressBar = findViewById(R.id.progressBar);
+        ivPreview   = findViewById(R.id.ivPreview);
+        tvFileName  = findViewById(R.id.tvFileName);
+        tvProgress  = findViewById(R.id.tvProgress);
+        progressBar = findViewById(R.id.progressBar);
         btnCamera   = findViewById(R.id.btnCamera);
         btnGallery  = findViewById(R.id.btnGallery);
         btnSubmit   = findViewById(R.id.btnSubmitPrescription);

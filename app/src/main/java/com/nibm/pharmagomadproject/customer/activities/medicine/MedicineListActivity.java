@@ -73,9 +73,8 @@ public class MedicineListActivity extends AppCompatActivity {
 
     // Type chips
     private final String[] TYPE_CHIPS = {
-            "All", "OTC", "Prescription",
-            "Pain relief", "Antibiotic", "Supplement",
-            "Gastric", "Diabetes", "Blood pressure", "First Aid"
+            "All", "OTC", "Prescription", "Rx",
+            "First Aid", "Vitamins", "Chronic", "Baby", "Eye Care", "Dental"
     };
 
     @Override
@@ -114,30 +113,21 @@ public class MedicineListActivity extends AppCompatActivity {
                 intent.putExtra("medicine_type",     medicine.getType());
                 intent.putExtra("medicine_category", medicine.getCategory());
                 intent.putExtra("medicine_pharmacy", medicine.getPharmacy());
+                intent.putExtra("medicine_image",    medicine.getImageUrl());
                 startActivity(intent);
             }
 
             @Override
             public void onAddToCartClick(Medicine medicine) {
-                boolean found = false;
-                for (Cart item : CartActivity.CART_STORE) {
-                    if (item.getMedicineId() != null && item.getMedicineId().equals(medicine.getMedicineId())) {
-                        item.setQuantity(item.getQuantity() + 1);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    CartActivity.CART_STORE.add(new Cart(
-                            medicine.getMedicineId(),
-                            medicine.getMedicineName(),
-                            medicine.getBrandName(),
-                            medicine.getPharmacyId(),
-                            medicine.getPharmacy(),
-                            medicine.getPrice(),
-                            1
-                    ));
-                }
+                CartActivity.addToCart(new Cart(
+                        medicine.getMedicineId(),
+                        medicine.getMedicineName(),
+                        medicine.getBrandName(),
+                        medicine.getPharmacyId(),
+                        medicine.getPharmacy(),
+                        medicine.getPrice(),
+                        1
+                ));
                 Toast.makeText(MedicineListActivity.this, medicine.getMedicineName() + " added to cart!", Toast.LENGTH_SHORT).show();
             }
         });
@@ -159,16 +149,22 @@ public class MedicineListActivity extends AppCompatActivity {
             if (layoutPharmacyFilter != null) {
                 layoutPharmacyFilter.setVisibility(View.GONE);
             }
+            View btnOpenFilter = findViewById(R.id.btnOpenFilter);
+            if (btnOpenFilter != null) btnOpenFilter.setVisibility(View.GONE);
         } else {
             if (layoutPharmacyFilter != null) {
                 layoutPharmacyFilter.setVisibility(View.VISIBLE);
             }
+            View btnOpenFilter = findViewById(R.id.btnOpenFilter);
+            if (btnOpenFilter != null) btnOpenFilter.setVisibility(View.VISIBLE);
         }
 
         // Pre-select the matching category chip when opened via category shortcut
         if ("category".equals(mode) && !query.isEmpty()) {
             for (String chip : TYPE_CHIPS) {
-                if (chip.equalsIgnoreCase(query)) {
+                String chipClean = chip.replace(" ", "").toLowerCase();
+                String queryClean = query.replace(" ", "").toLowerCase();
+                if (chipClean.equals(queryClean)) {
                     activeType = chip;
                     break;
                 }
@@ -374,7 +370,9 @@ public class MedicineListActivity extends AppCompatActivity {
             // Mode filter
             boolean modeMatch = true;
             if ("category".equals(mode)) {
-                modeMatch = m.getCategory().equalsIgnoreCase(query);
+                String catFieldClean = m.getCategory() != null ? m.getCategory().replace(" ", "").toLowerCase() : "";
+                String queryClean = query.replace(" ", "").toLowerCase();
+                modeMatch = catFieldClean.equals(queryClean);
             } else if ("pharmacy".equals(mode)) {
                 modeMatch = (m.getPharmacyId() != null && m.getPharmacyId().equalsIgnoreCase(query))
                         || (m.getPharmacy() != null && m.getPharmacy().equalsIgnoreCase(query));
@@ -494,6 +492,7 @@ public class MedicineListActivity extends AppCompatActivity {
                                 pharmacyName
                         );
                         m.setPharmacyId(pharmacyId);
+                        m.setImageUrl(doc.getString("imageUrl"));
                         allMedicines.add(m);
                     }
 
