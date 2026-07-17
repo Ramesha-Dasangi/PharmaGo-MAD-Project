@@ -378,6 +378,7 @@ public class InventoryActivity extends AppCompatActivity {
 
         db.collection("medicines")
                 .get()
+
                 .addOnSuccessListener(queryDocumentSnapshots -> {
 
 
@@ -390,8 +391,14 @@ public class InventoryActivity extends AppCompatActivity {
 
 
 
+                        String id =
+                                document.getId();
+
+
+
                         String name =
                                 document.getString("medicineName");
+
 
 
                         String category =
@@ -409,12 +416,20 @@ public class InventoryActivity extends AppCompatActivity {
 
 
 
+
                         InventoryModel item =
                                 new InventoryModel(
+
+                                        id,
+
                                         name,
+
                                         category,
+
                                         price != null ? price : 0,
+
                                         stock != null ? stock.intValue() : 0
+
                                 );
 
 
@@ -427,6 +442,7 @@ public class InventoryActivity extends AppCompatActivity {
 
 
                     filteredList.clear();
+
 
                     filteredList.addAll(inventoryList);
 
@@ -443,7 +459,7 @@ public class InventoryActivity extends AppCompatActivity {
 
                     Toast.makeText(
                             this,
-                            "Error : "+e.getMessage(),
+                            e.getMessage(),
                             Toast.LENGTH_LONG
                     ).show();
 
@@ -451,9 +467,8 @@ public class InventoryActivity extends AppCompatActivity {
                 });
 
 
+
     }
-
-
 
 
 
