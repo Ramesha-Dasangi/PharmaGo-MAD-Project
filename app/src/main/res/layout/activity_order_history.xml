@@ -131,301 +131,32 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Order card: Out for delivery -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone" />
 
-            <androidx.cardview.widget.CardView
+            <TextView
+                android:id="@+id/tvEmpty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
+                android:text="No orders"
+                android:textColor="@color/pg_sub"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:visibility="gone"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="4dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="#PG-00234"
-                            android:textColor="@color/pg_text"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Out for delivery"
-                            android:textSize="10sp"
-                            android:textColor="#1E40AF"
-                            android:fontFamily="sans-serif-medium"
-                            android:background="@drawable/bg_tag_blue"
-                            android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"/>
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="21 Jun · 2 pharmacies · Rs. 304"
-                        android:textColor="@color/pg_sub"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="8dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Track order →"
-                        android:textColor="@color/pg_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="sans-serif-medium"/>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Order card: Delivered -->
-
-            <androidx.cardview.widget.CardView
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvOrders"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="4dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="#PG-00229"
-                            android:textColor="@color/pg_text"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Delivered"
-                            android:textSize="10sp"
-                            android:textColor="#065F46"
-                            android:fontFamily="sans-serif-medium"
-                            android:background="@drawable/bg_tag_green"
-                            android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"/>
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="19 Jun · MediCare Pharmacy · Rs. 156"
-                        android:textColor="@color/pg_sub"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="8dp"/>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Reorder"
-                            android:textColor="@color/pg_primary"
-                            android:textSize="12sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:layout_marginEnd="16dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Report an issue"
-                            android:textColor="#EF4444"
-                            android:textSize="12sp"/>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Order card: Delivered 2 -->
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="4dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="#PG-00211"
-                            android:textColor="@color/pg_text"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Delivered"
-                            android:textSize="10sp"
-                            android:textColor="#065F46"
-                            android:fontFamily="sans-serif-medium"
-                            android:background="@drawable/bg_tag_green"
-                            android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"/>
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="15 Jun · City Pharma · Rs. 890"
-                        android:textColor="@color/pg_sub"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="8dp"/>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Reorder"
-                            android:textColor="@color/pg_primary"
-                            android:textSize="12sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:layout_marginEnd="16dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Report an issue"
-                            android:textColor="#EF4444"
-                            android:textSize="12sp"/>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Order card: Cancelled -->
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="4dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="#PG-00198"
-                            android:textColor="@color/pg_text"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cancelled"
-                            android:textSize="10sp"
-                            android:textColor="#991B1B"
-                            android:fontFamily="sans-serif-medium"
-                            android:background="@drawable/bg_tag_red"
-                            android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"/>
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="12 Jun · MediCare Pharmacy · Rs. 240"
-                        android:textColor="@color/pg_sub"
-                        android:textSize="11sp"/>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
+                android:nestedScrollingEnabled="false" />
 
         </LinearLayout>
 

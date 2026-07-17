@@ -1,6 +1,7 @@
 package com.nibm.pharmagomadproject.customer.activities.auth;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.ImageView;
@@ -9,13 +10,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,130 +29,184 @@ public class RegisterPharmacyActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private TextInputEditText etPharmacyName, etOwnerName, etLicenseNo, etEmail, etPhone, etAddress, etPassword;
+    private SupabaseStorageHelper storageHelper;
+    private Uri licenseUri;
+    private ActivityResultLauncher<String> imagePicker;
+
+    private TextInputEditText etPharmacyName, etOwnerName, etLicenseNo,
+            etEmail, etPhone, etAddress, etPassword, etConfirmPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register_pharmacy);
+
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
-        db    = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();
+        storageHelper = new SupabaseStorageHelper(this);
+
+        // Image picker
+        imagePicker = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        licenseUri = uri;
+                        Toast.makeText(this, "License selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
 
         etPharmacyName = findViewById(R.id.etPharmacyName);
-        etOwnerName    = findViewById(R.id.etOwnerName);
-        etLicenseNo    = findViewById(R.id.etLicenseNo);
-        etEmail        = findViewById(R.id.etEmail);
-        etPhone        = findViewById(R.id.etPhone);
-        etAddress      = findViewById(R.id.etAddress);
+        etOwnerName = findViewById(R.id.etOwnerName);
+        etLicenseNo = findViewById(R.id.etLicenseNo);
+        etEmail = findViewById(R.id.etEmail);
+        etPhone = findViewById(R.id.etPhone);
+        etAddress = findViewById(R.id.etAddress);
+        etPassword = findViewById(R.id.etPassword);
+        etConfirmPassword = findViewById(R.id.etConfirmPassword);
 
         ImageView btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // Role toggle — back to customer
-        TextView roleCustomer = findViewById(R.id.roleCustomer);
-        TextView roleRider    = findViewById(R.id.roleRider);
-        if (roleCustomer != null) roleCustomer.setOnClickListener(v -> {
-            startActivity(new Intent(this, RegisterActivity.class));
-            finish();
-        });
-        if (roleRider != null) roleRider.setOnClickListener(v -> {
-            startActivity(new Intent(this, RegisterRiderActivity.class));
-            finish();
-        });
-
         LinearLayout uploadArea = findViewById(R.id.uploadLicenseArea);
-        if (uploadArea != null) uploadArea.setOnClickListener(v ->
-                Toast.makeText(this, "Upload feature coming soon", Toast.LENGTH_SHORT).show());
+        if (uploadArea != null) {
+            uploadArea.setOnClickListener(v -> imagePicker.launch("image/*"));
+        }
 
         MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
-        if (btnSubmit != null) btnSubmit.setOnClickListener(v -> attemptRegister());
+        btnSubmit.setOnClickListener(v -> {
+            registerPharmacy();
+        });
 
         TextView tvLogin = findViewById(R.id.tvLogin);
-        if (tvLogin != null) tvLogin.setOnClickListener(v -> {
+        tvLogin.setOnClickListener(v -> {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
     }
 
-    private void attemptRegister() {
-        String pharmacyName = etPharmacyName.getText() != null ? etPharmacyName.getText().toString().trim() : "";
-        String ownerName    = etOwnerName.getText()    != null ? etOwnerName.getText().toString().trim()    : "";
-        String licenseNo    = etLicenseNo.getText()    != null ? etLicenseNo.getText().toString().trim()    : "";
-        String email        = etEmail.getText()        != null ? etEmail.getText().toString().trim()        : "";
-        String phone        = etPhone.getText()        != null ? etPhone.getText().toString().trim()        : "";
-        String address      = etAddress.getText()      != null ? etAddress.getText().toString().trim()      : "";
+    private void registerPharmacy() {
+        String pharmacyName = etPharmacyName.getText().toString().trim();
+        String ownerName = etOwnerName.getText().toString().trim();
+        String licenseNo = etLicenseNo.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String phone = etPhone.getText().toString().trim();
+        String address = etAddress.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String confirm = etConfirmPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(pharmacyName)) {
-            etPharmacyName.setError("Required");
-            etPharmacyName.requestFocus();
-            return;
-        }
-        if (TextUtils.isEmpty(ownerName)){
-            etOwnerName.setError("Required");
-            etOwnerName.requestFocus();
-            return;
-        }
-        if (TextUtils.isEmpty(licenseNo)){
-            etLicenseNo.setError("Required");
-            etLicenseNo.requestFocus();
-            return;
-        }
-        if (TextUtils.isEmpty(email)){
-            etEmail.setError("Required");
-            etEmail.requestFocus();
-            return;
-        }
-        if (TextUtils.isEmpty(phone)){
-            etPhone.setError("Required");
-            etPhone.requestFocus();
+        if (TextUtils.isEmpty(pharmacyName)) { etPharmacyName.setError("Required"); return; }
+        if (TextUtils.isEmpty(ownerName)) { etOwnerName.setError("Required"); return; }
+        if (TextUtils.isEmpty(licenseNo)) { etLicenseNo.setError("Required"); return; }
+        if (TextUtils.isEmpty(email)) { etEmail.setError("Required"); return; }
+        if (phone.isEmpty()) { etPhone.setError("Required"); return; }
+        if (address.isEmpty()) { etAddress.setError("Required"); return; }
+        if (password.length() < 6) { etPassword.setError("Minimum 6 characters"); return; }
+        if (!password.equals(confirm)) { etConfirmPassword.setError("Password mismatch"); return; }
+        if (licenseUri == null) {
+            Toast.makeText(this, "Please upload license", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Create auth account with temp password, save to Firestore — pending approval
-        String tempPassword = licenseNo + phone.substring(Math.max(0, phone.length() - 4));
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+        if (btnSubmit != null) btnSubmit.setEnabled(false);
 
-        mAuth.createUserWithEmailAndPassword(email, tempPassword)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String userId = mAuth.getCurrentUser().getUid();
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    String uid = mAuth.getCurrentUser().getUid();
+                    uploadLicenseAndSave(uid, pharmacyName, ownerName, licenseNo, email, phone, address);
+                })
+                .addOnFailureListener(e -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
-                        // Save pharmacy owner role
-                        Map<String, Object> userData = new HashMap<>();
-                        userData.put("name",         ownerName);
-                        userData.put("email",        email);
-                        userData.put("phone",        phone);
-                        userData.put("role",         "pharmacy_owner");
-                        userData.put("isApproved",   false); // admin approval
-                        userData.put("createdAt",    com.google.firebase.Timestamp.now());
+    private void uploadLicenseAndSave(String uid, String pharmacyName, String ownerName,
+                                      String licenseNo, String email, String phone, String address) {
+        storageHelper.uploadFile(
+                SupabaseStorageHelper.BUCKET_LICENSES,
+                "pharmacy/" + uid + "/license_" + System.currentTimeMillis() + ".jpg",
+                licenseUri,
+                new SupabaseStorageHelper.UploadCallback() {
+                    @Override
+                    public void onSuccess(String url) {
+                        saveFirestoreData(uid, pharmacyName, ownerName, licenseNo, email, phone, address, url);
+                    }
+                    @Override
+                    public void onFailure(String error) {
+                        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                        if (btnSubmit != null) btnSubmit.setEnabled(true);
+                        Toast.makeText(RegisterPharmacyActivity.this,
+                                "Upload failed: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+    }
 
-                        // pharmacy details save in pharmacies collection
-                        Map<String, Object> pharmacyData = new HashMap<>();
-                        pharmacyData.put("name",      pharmacyName);
-                        pharmacyData.put("ownerId",   userId);
-                        pharmacyData.put("ownerName", ownerName);
-                        pharmacyData.put("licenseNo", licenseNo);
-                        pharmacyData.put("address",   address);
-                        pharmacyData.put("phone",     phone);
-                        pharmacyData.put("email",     email);
-                        pharmacyData.put("isApproved",false);
-                        pharmacyData.put("rating",    0.0);
-                        pharmacyData.put("createdAt", com.google.firebase.Timestamp.now());
+    private void saveFirestoreData(String uid, String pharmacyName, String ownerName,
+                                   String licenseNo, String email, String phone,
+                                   String address, String licenseUrl) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("name", ownerName);
+        user.put("email", email);
+        user.put("phone", phone);
+        user.put("role", "pharmacy_owner");
+        user.put("isApproved", false);
+        user.put("status", "pending");
+        user.put("createdAt", Timestamp.now());
 
-                        db.collection("users").document(userId).set(userData);
-                        db.collection("pharmacies").add(pharmacyData)
-                                .addOnSuccessListener(ref -> {
-                                    // Sign out — they need admin approval first
-                                    mAuth.signOut();
-                                    startActivity(new Intent(this, AccountStatusActivity.class));
-                                    finish();
+        Map<String, Object> pharmacy = new HashMap<>();
+        pharmacy.put("ownerId", uid);
+        pharmacy.put("name", pharmacyName);
+        pharmacy.put("ownerName", ownerName);
+        pharmacy.put("licenseNo", licenseNo);
+        pharmacy.put("email", email);
+        pharmacy.put("phone", phone);
+        pharmacy.put("address", address);
+        pharmacy.put("licenseImageUrl", licenseUrl);
+        pharmacy.put("isApproved", false);
+        pharmacy.put("status", "pending");
+        pharmacy.put("rating", 0.0);
+        pharmacy.put("createdAt", Timestamp.now());
+
+        // FIX #1: Properly chain Firestore operations - save user first, then pharmacy
+        db.collection("users").document(uid).set(user)
+                .addOnSuccessListener(aVoid -> {
+                    // User saved successfully, now save pharmacy
+                    db.collection("pharmacies").add(pharmacy)
+                            .addOnSuccessListener(ref -> {
+                                mAuth.signOut();
+                                Toast.makeText(RegisterPharmacyActivity.this,
+                                        "Registration submitted. Wait for approval", Toast.LENGTH_LONG).show();
+                                startActivity(new Intent(RegisterPharmacyActivity.this, AccountStatusActivity.class));
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                                if (btnSubmit != null) btnSubmit.setEnabled(true);
+                                Toast.makeText(RegisterPharmacyActivity.this,
+                                        "Failed to save pharmacy: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    // FIX #2: Delete user from Firebase Auth if Firestore save fails
+                    if (mAuth.getCurrentUser() != null) {
+                        mAuth.getCurrentUser().delete()
+                                .addOnCompleteListener(task -> {
+                                    MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                                    Toast.makeText(RegisterPharmacyActivity.this,
+                                            "Failed to save user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
                     } else {
-                        Toast.makeText(this,
-                                "Error: " + task.getException().getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
+                        if (btnSubmit != null) btnSubmit.setEnabled(true);
+                        Toast.makeText(RegisterPharmacyActivity.this,
+                                "Failed to save user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

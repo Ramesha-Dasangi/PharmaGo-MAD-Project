@@ -14,6 +14,7 @@ import androidx.cardview.widget.CardView;
 
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.order.CartActivity;
+import com.nibm.pharmagomadproject.customer.models.Cart;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,9 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         // Read intent extras
+        String id       = getIntent().getStringExtra("medicine_id");
+        String brand    = getIntent().getStringExtra("brand_name");
+        String phId     = getIntent().getStringExtra("pharmacy_id");
         String name     = getIntent().getStringExtra("medicine_name");
         int    price    = getIntent().getIntExtra("medicine_price", 42);
         String type     = getIntent().getStringExtra("medicine_type");
@@ -60,6 +64,25 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         // Add to cart
         safeClick(R.id.btnAddToCart, v -> {
             String medName = name != null ? name : "Medicine";
+            boolean found = false;
+            for (Cart item : CartActivity.CART_STORE) {
+                if (item.getMedicineId() != null && item.getMedicineId().equals(id)) {
+                    item.setQuantity(item.getQuantity() + 1);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                CartActivity.CART_STORE.add(new Cart(
+                        id != null ? id : "temp_id",
+                        medName,
+                        brand != null ? brand : "",
+                        phId != null ? phId : "",
+                        pharmacy != null ? pharmacy : "",
+                        price,
+                        1
+                ));
+            }
             Toast.makeText(this, medName + " added to cart!", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, CartActivity.class));
         });
@@ -67,8 +90,35 @@ public class MedicineDetailsActivity extends AppCompatActivity {
         // Order now
         safeClick(R.id.btnOrderNow, v -> {
             if ("Prescription".equals(type) || "Rx".equals(type)) {
-                startActivity(new Intent(this, PrescriptionUploadActivity.class));
+                Intent uploadIntent = new Intent(this, PrescriptionUploadActivity.class);
+                uploadIntent.putExtra("medicine_id", id);
+                uploadIntent.putExtra("medicine_name", name);
+                uploadIntent.putExtra("brand_name", brand);
+                uploadIntent.putExtra("pharmacy_id", phId);
+                uploadIntent.putExtra("pharmacy_name", pharmacy);
+                uploadIntent.putExtra("medicine_price", price);
+                startActivity(uploadIntent);
             } else {
+                String medName = name != null ? name : "Medicine";
+                boolean found = false;
+                for (Cart item : CartActivity.CART_STORE) {
+                    if (item.getMedicineId() != null && item.getMedicineId().equals(id)) {
+                        item.setQuantity(item.getQuantity() + 1);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    CartActivity.CART_STORE.add(new Cart(
+                            id != null ? id : "temp_id",
+                            medName,
+                            brand != null ? brand : "",
+                            phId != null ? phId : "",
+                            pharmacy != null ? pharmacy : "",
+                            price,
+                            1
+                    ));
+                }
                 startActivity(new Intent(this, CartActivity.class));
             }
         });

@@ -9,7 +9,8 @@ public class Medicine {
     private String type;
     private double price;
     private int stock;
-    private String pharmacy;
+    private String pharmacy;     // pharmacy display name
+    private String pharmacyId;   // pharmacy owner's uid (matches "pharmacyId" field in medicines docs)
 
     public Medicine() {
         // Required for Firebase
@@ -40,6 +41,11 @@ public class Medicine {
         return id;
     }
 
+    /** Convenience alias matching the cart/detail activity API. */
+    public String getMedicineId() {
+        return id;
+    }
+
     public String getBrandName() {
         return brandName;
     }
@@ -66,5 +72,13 @@ public class Medicine {
 
     public String getPharmacy() {
         return pharmacy;
+    }
+
+    public String getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(String pharmacyId) {
+        this.pharmacyId = pharmacyId;
     }
 }

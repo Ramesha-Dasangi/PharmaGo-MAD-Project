@@ -1,6 +1,8 @@
 package com.nibm.pharmagomadproject.customer.activities.auth;
 
+
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.ImageView;
@@ -8,151 +10,638 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper;
+
 
 import java.util.HashMap;
 import java.util.Map;
 
+
+
 public class RegisterRiderActivity extends AppCompatActivity {
+
+
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private TextInputEditText etName, etNic, etEmail, etPhone, etVehicleType, etVehicleReg;
+
+    private SupabaseStorageHelper storageHelper;
+
+
+    private Uri licenseUri;
+
+
+
+    private TextInputEditText etName,
+            etNic,
+            etEmail,
+            etPhone,
+            etVehicleType,
+            etVehicleReg,
+            etPassword,
+            etConfirmPassword;
+
+
+
+    private static final int PICK_LICENSE = 101;
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         EdgeToEdge.enable(this);
+
         setContentView(R.layout.activity_register_rider);
-        if (getSupportActionBar() != null) getSupportActionBar().hide();
+
+
+
+        if(getSupportActionBar()!=null)
+            getSupportActionBar().hide();
+
+
+
+
 
         mAuth = FirebaseAuth.getInstance();
-        db    = FirebaseFirestore.getInstance();
 
-        etName        = findViewById(R.id.etName);
-        etNic         = findViewById(R.id.etNic);
-        etEmail       = findViewById(R.id.etEmail);
-        etPhone       = findViewById(R.id.etPhone);
-        etVehicleType = findViewById(R.id.etVehicleType);
-        etVehicleReg  = findViewById(R.id.etVehicleReg);
+        db = FirebaseFirestore.getInstance();
 
-        ImageView btnBack = findViewById(R.id.btnBack);
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // Role toggles
-        TextView roleCustomer = findViewById(R.id.roleCustomer);
-        TextView rolePharmacy = findViewById(R.id.rolePharmacy);
-        if (roleCustomer != null) roleCustomer.setOnClickListener(v -> {
-            startActivity(new Intent(this, RegisterActivity.class));
-            finish();
+        storageHelper =
+                new SupabaseStorageHelper(this);
+
+
+
+
+
+        etName =
+                findViewById(R.id.etName);
+
+        etNic =
+                findViewById(R.id.etNic);
+
+        etEmail =
+                findViewById(R.id.etEmail);
+
+        etPhone =
+                findViewById(R.id.etPhone);
+
+        etVehicleType =
+                findViewById(R.id.etVehicleType);
+
+        etVehicleReg =
+                findViewById(R.id.etVehicleReg);
+
+
+        etPassword =
+                findViewById(R.id.etPassword);
+
+
+        etConfirmPassword =
+                findViewById(R.id.etConfirmPassword);
+
+
+
+
+
+        ImageView btnBack =
+                findViewById(R.id.btnBack);
+
+
+        btnBack.setOnClickListener(v -> finish());
+
+
+
+
+
+        LinearLayout uploadArea =
+                findViewById(R.id.uploadLicenseArea);
+
+
+
+        uploadArea.setOnClickListener(v -> {
+
+
+            Intent intent =
+                    new Intent(Intent.ACTION_PICK);
+
+
+            intent.setType("image/*");
+
+
+            startActivityForResult(
+                    intent,
+                    PICK_LICENSE
+            );
+
+
         });
-        if (rolePharmacy != null) rolePharmacy.setOnClickListener(v -> {
-            startActivity(new Intent(this, RegisterPharmacyActivity.class));
-            finish();
+
+
+
+
+
+
+        MaterialButton btnSubmit =
+                findViewById(R.id.btnSubmitForApproval);
+
+
+
+        btnSubmit.setOnClickListener(v -> {
+
+
+            registerRider();
+
+
         });
 
-        LinearLayout uploadArea = findViewById(R.id.uploadLicenseArea);
-        if (uploadArea != null) uploadArea.setOnClickListener(v ->
-                Toast.makeText(this, "Upload feature coming soon", Toast.LENGTH_SHORT).show());
 
-        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
-        if (btnSubmit != null) btnSubmit.setOnClickListener(v -> attemptRegister());
 
-        TextView tvLogin = findViewById(R.id.tvLogin);
-        if (tvLogin != null) tvLogin.setOnClickListener(v -> {
-            startActivity(new Intent(this, LoginActivity.class));
+
+
+        TextView tvLogin =
+                findViewById(R.id.tvLogin);
+
+
+
+        tvLogin.setOnClickListener(v -> {
+
+
+            startActivity(
+                    new Intent(
+                            this,
+                            LoginActivity.class
+                    )
+            );
+
+
             finish();
+
+
         });
+
+
+
     }
 
-    private void attemptRegister() {
-        String name        = etName.getText()        != null ? etName.getText().toString().trim()        : "";
-        String nic         = etNic.getText()         != null ? etNic.getText().toString().trim()         : "";
-        String email       = etEmail.getText()       != null ? etEmail.getText().toString().trim()       : "";
-        String phone       = etPhone.getText()       != null ? etPhone.getText().toString().trim()       : "";
-        String vehicleType = etVehicleType.getText() != null ? etVehicleType.getText().toString().trim() : "";
-        String vehicleReg  = etVehicleReg.getText()  != null ? etVehicleReg.getText().toString().trim()  : "";
 
-        if (TextUtils.isEmpty(name)){
+
+
+
+
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data
+    ){
+
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data
+        );
+
+
+
+        if(requestCode==PICK_LICENSE &&
+                resultCode==RESULT_OK &&
+                data!=null){
+
+
+            licenseUri =
+                    data.getData();
+
+
+
+            Toast.makeText(
+                    this,
+                    "License selected",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    private void registerRider(){
+
+
+
+        String name =
+                etName.getText()
+                        .toString()
+                        .trim();
+
+
+        String nic =
+                etNic.getText()
+                        .toString()
+                        .trim();
+
+
+        String email =
+                etEmail.getText()
+                        .toString()
+                        .trim();
+
+
+        String phone =
+                etPhone.getText()
+                        .toString()
+                        .trim();
+
+
+        String vehicleType =
+                etVehicleType.getText()
+                        .toString()
+                        .trim();
+
+
+        String vehicleReg =
+                etVehicleReg.getText()
+                        .toString()
+                        .trim();
+
+
+
+        String password =
+                etPassword.getText()
+                        .toString()
+                        .trim();
+
+
+        String confirm =
+                etConfirmPassword.getText()
+                        .toString()
+                        .trim();
+
+
+
+
+
+
+        if(TextUtils.isEmpty(name)){
+
             etName.setError("Required");
-            etName.requestFocus();
             return;
+
         }
-        if (TextUtils.isEmpty(nic)){
-            etNic.setError("Required");
-            etNic.requestFocus();
-            return;
-        }
-        if (TextUtils.isEmpty(email)){
+
+
+        if(TextUtils.isEmpty(email)){
+
             etEmail.setError("Required");
-            etEmail.requestFocus();
             return;
+
         }
-        if (TextUtils.isEmpty(phone)){
+
+
+        if(TextUtils.isEmpty(phone)){
+
             etPhone.setError("Required");
-            etPhone.requestFocus();
             return;
-        }
-        if (TextUtils.isEmpty(vehicleType)) {
-            etVehicleType.setError("Required");
-            etVehicleType.requestFocus();
-            return;
-        }
-        if (TextUtils.isEmpty(vehicleReg))  {
-            etVehicleReg.setError("Required");
-            etVehicleReg.requestFocus();
-            return;
+
         }
 
-        // Temp password from NIC last 4 digits
-        String tempPassword = nic + phone.substring(Math.max(0, phone.length() - 4));
 
-        mAuth.createUserWithEmailAndPassword(email, tempPassword)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String userId = mAuth.getCurrentUser().getUid();
+        if(licenseUri==null){
 
-                        // Save rider role in firestore
-                        Map<String, Object> userData = new HashMap<>();
-                        userData.put("name",       name);
-                        userData.put("email",      email);
-                        userData.put("phone",      phone);
-                        userData.put("role",       "rider");
-                        userData.put("isApproved", false);
-                        userData.put("createdAt",  com.google.firebase.Timestamp.now());
+            Toast.makeText(
+                    this,
+                    "Upload driving license",
+                    Toast.LENGTH_SHORT
+            ).show();
 
-                        // Save Rider details
-                        Map<String, Object> riderData = new HashMap<>();
-                        riderData.put("name",        name);
-                        riderData.put("userId",      userId);
-                        riderData.put("nic",         nic);
-                        riderData.put("email",       email);
-                        riderData.put("phone",       phone);
-                        riderData.put("vehicleType", vehicleType);
-                        riderData.put("vehicleReg",  vehicleReg);
-                        riderData.put("isApproved",  false);
-                        riderData.put("rating",      0.0);
-                        riderData.put("createdAt",   com.google.firebase.Timestamp.now());
+            return;
 
-                        db.collection("users").document(userId).set(userData);
-                        db.collection("riders").add(riderData)
-                                .addOnSuccessListener(ref -> {
-                                    mAuth.signOut();
-                                    startActivity(new Intent(this, AccountStatusActivity.class));
-                                    finish();
-                                });
-                    } else {
-                        Toast.makeText(this,
-                                "Error: " + task.getException().getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+        }
+
+
+
+        if(password.length()<6){
+
+            etPassword.setError(
+                    "Minimum 6 characters"
+            );
+
+            return;
+
+        }
+
+
+
+
+        if(!password.equals(confirm)){
+
+
+            etConfirmPassword.setError(
+                    "Password not match"
+            );
+
+            return;
+
+        }
+
+
+
+
+
+        createAccount(
+                email,
+                password,
+                name,
+                nic,
+                phone,
+                vehicleType,
+                vehicleReg
+        );
+
+
+
     }
+
+
+
+
+
+
+
+
+
+    private void createAccount(
+            String email,
+            String password,
+            String name,
+            String nic,
+            String phone,
+            String vehicleType,
+            String vehicleReg
+    ){
+
+
+
+        mAuth.createUserWithEmailAndPassword(
+                        email,
+                        password
+                )
+
+
+                .addOnSuccessListener(authResult -> {
+
+
+
+                    String uid =
+                            mAuth.getCurrentUser()
+                                    .getUid();
+
+
+
+
+                    uploadLicense(
+                            uid,
+                            name,
+                            nic,
+                            email,
+                            phone,
+                            vehicleType,
+                            vehicleReg
+                    );
+
+
+
+                })
+
+
+
+                .addOnFailureListener(e -> {
+
+
+                    Toast.makeText(
+                            this,
+                            e.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+
+                });
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    private void uploadLicense(
+            String uid,
+            String name,
+            String nic,
+            String email,
+            String phone,
+            String vehicleType,
+            String vehicleReg
+    ){
+
+
+
+        String path =
+                "riders/"+uid+"/license.jpg";
+
+
+
+
+
+        storageHelper.uploadFile(
+                SupabaseStorageHelper.BUCKET_LICENSES,
+                path,
+                licenseUri,
+
+                new SupabaseStorageHelper.UploadCallback() {
+
+
+                    @Override
+                    public void onSuccess(String url) {
+
+
+
+                        saveFirestore(
+                                uid,
+                                name,
+                                nic,
+                                email,
+                                phone,
+                                vehicleType,
+                                vehicleReg,
+                                url
+                        );
+
+
+                    }
+
+
+
+                    @Override
+                    public void onFailure(String error) {
+
+
+                        Toast.makeText(
+                                RegisterRiderActivity.this,
+                                error,
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+
+                    }
+
+
+                }
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    private void saveFirestore(
+            String uid,
+            String name,
+            String nic,
+            String email,
+            String phone,
+            String vehicleType,
+            String vehicleReg,
+            String licenseUrl
+    ){
+
+
+
+        Map<String,Object> user =
+                new HashMap<>();
+
+
+        user.put("name",name);
+        user.put("email",email);
+        user.put("phone",phone);
+        user.put("role","rider");
+        user.put("isApproved",false);
+        user.put("status","pending");
+        user.put("createdAt", Timestamp.now());
+
+
+
+
+
+
+        Map<String,Object> rider =
+                new HashMap<>();
+
+
+        rider.put("userId",uid);
+        rider.put("name",name);
+        rider.put("nic",nic);
+        rider.put("email",email);
+        rider.put("phone",phone);
+        rider.put("vehicleType",vehicleType);
+        rider.put("vehicleReg",vehicleReg);
+        rider.put("licenseUrl",licenseUrl);
+        rider.put("isApproved",false);
+        rider.put("status","pending");
+        rider.put("rating",0);
+        rider.put("createdAt",Timestamp.now());
+
+
+
+
+
+
+
+        db.collection("users")
+                .document(uid)
+                .set(user);
+
+
+
+        db.collection("riders")
+                .add(rider)
+
+                .addOnSuccessListener(ref -> {
+
+
+                    mAuth.signOut();
+
+
+
+                    Toast.makeText(
+                            this,
+                            "Registration submitted. Wait for approval",
+                            Toast.LENGTH_LONG
+                    ).show();
+
+
+
+
+                    startActivity(
+                            new Intent(
+                                    this,
+                                    AccountStatusActivity.class
+                            )
+                    );
+
+
+                    finish();
+
+
+
+                });
+
+
+
+    }
+
+
+
 }

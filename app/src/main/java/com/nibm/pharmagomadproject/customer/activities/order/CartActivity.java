@@ -3,122 +3,177 @@ package com.nibm.pharmagomadproject.customer.activities.order;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.activities.profile.DeliveryAddressActivity;
+import com.nibm.pharmagomadproject.customer.adapter.CartAdapter;
+import com.nibm.pharmagomadproject.customer.models.Cart;
 
-public class CartActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
 
-    private int qtyMedicare = 2;
-    private int qtyCity     = 1;
-    private boolean mediCareInCart = true;
-    private boolean cityInCart     = true;
+public class CartActivity extends AppCompatActivity implements CartAdapter.CartListener {
 
-    private TextView tvQtyMedicare, tvQtyCity, tvSubtotal, tvTotal;
-    private LinearLayout medicareItem, cityItem;
+    private RecyclerView   rvCart;
+    private CartAdapter    adapter;
+    private List<Cart>     cartItems;
+    private TextView       tvSubtotal, tvTotal, tvEmptyCart, tvDeliveryAddress;
+    private CardView       cardAddressCart;
+    private MaterialButton btnProceedToPayment;
 
-    private static final int PRICE_MEDICARE = 42;
-    private static final int PRICE_CITY     = 120;
-    private static final int DELIVERY_FEE   = 100;
+    private static final int DELIVERY_FEE = 100;
+
+    // ✅ Static cart store — singleton list (activity restart survive karanawa)
+    public static final List<Cart> CART_STORE = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cart);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
+
+        rvCart              = findViewById(R.id.rvCart);
+        tvSubtotal          = findViewById(R.id.tvSubtotal);
+        tvTotal             = findViewById(R.id.tvTotal);
+        tvEmptyCart         = findViewById(R.id.tvEmptyCart);
+        tvDeliveryAddress   = findViewById(R.id.tvDeliveryAddress);
+        cardAddressCart     = findViewById(R.id.cardAddressCart);
+        btnProceedToPayment = findViewById(R.id.btnProceedToPayment);
+
+        ImageView btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+
+        // Launch Delivery Address screen when clicking address card
+        if (cardAddressCart != null) {
+            cardAddressCart.setOnClickListener(v -> {
+                startActivity(new Intent(this, DeliveryAddressActivity.class));
+            });
         }
 
-        tvQtyMedicare = findViewById(R.id.tvQtyMedicare);
-        tvQtyCity     = findViewById(R.id.tvQtyCity);
-        tvSubtotal    = findViewById(R.id.tvSubtotal);
-        tvTotal       = findViewById(R.id.tvTotal);
+        // ✅ Use global cart store
+        cartItems = CART_STORE;
 
-        // Back
-        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
-
-        // MediCare qty
-        findViewById(R.id.btnPlusMedicare).setOnClickListener(v -> {
-            if (!mediCareInCart) return;
-            qtyMedicare++;
-            updateUI();
-        });
-        findViewById(R.id.btnMinusMedicare).setOnClickListener(v -> {
-            if (!mediCareInCart) return;
-            if (qtyMedicare > 1) {
-                qtyMedicare--;
-                updateUI();
-            } else {
-                // qty reaches 0 — remove item with confirmation
-                showRemoveToast("Paracetamol 500mg");
-                mediCareInCart = false;
-                qtyMedicare = 0;
-                updateUI();
-            }
-        });
-
-        // City Pharma qty
-        findViewById(R.id.btnPlusCity).setOnClickListener(v -> {
-            if (!cityInCart) return;
-            qtyCity++;
-            updateUI();
-        });
-        findViewById(R.id.btnMinusCity).setOnClickListener(v -> {
-            if (!cityInCart) return;
-            if (qtyCity > 1) {
-                qtyCity--;
-                updateUI();
-            } else {
-                showRemoveToast("Vitamin C 1000mg");
-                cityInCart = false;
-                qtyCity = 0;
-                updateUI();
-            }
-        });
+        adapter = new CartAdapter(cartItems, this);
+        if (rvCart != null) {
+            rvCart.setLayoutManager(new LinearLayoutManager(this));
+            rvCart.setAdapter(adapter);
+        }
 
         updateUI();
 
-        // Proceed to payment
-        MaterialButton btnProceed = findViewById(R.id.btnProceedToPayment);
-        btnProceed.setOnClickListener(v -> {
-            if (!mediCareInCart && !cityInCart) {
-                Toast.makeText(this, "Your cart is empty!", Toast.LENGTH_SHORT).show();
+        btnProceedToPayment.setOnClickListener(v -> {
+            if (cartItems.isEmpty()) {
+                Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Pass totals to PaymentActivity
-            Intent payIntent = new Intent(this, PaymentActivity.class);
-            payIntent.putExtra("subtotal",    (mediCareInCart ? qtyMedicare * PRICE_MEDICARE : 0) + (cityInCart ? qtyCity * PRICE_CITY : 0));
-            payIntent.putExtra("deliveryFee", DELIVERY_FEE);
-            payIntent.putExtra("total",        ((mediCareInCart ? qtyMedicare * PRICE_MEDICARE : 0) + (cityInCart ? qtyCity * PRICE_CITY : 0)) + DELIVERY_FEE);
-            startActivity(payIntent);
+            Intent intent = new Intent(this, PaymentActivity.class);
+            intent.putExtra("subtotal",    (int) getSubtotal());
+            intent.putExtra("total",       (int) (getSubtotal() + DELIVERY_FEE));
+            intent.putExtra("deliveryFee", DELIVERY_FEE);
+            startActivity(intent);
         });
     }
 
-    private void showRemoveToast(String name) {
-        Toast.makeText(this, name + " removed from cart", Toast.LENGTH_SHORT).show();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserAddress();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+        updateUI();
+    }
+
+    private void loadUserAddress() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId != null && tvDeliveryAddress != null) {
+            FirebaseFirestore.getInstance().collection("users").document(userId).get()
+                    .addOnSuccessListener(document -> {
+                        if (document.exists()) {
+                            String address = document.getString("address");
+                            if (address != null && !address.trim().isEmpty()) {
+                                tvDeliveryAddress.setText(address);
+                            } else {
+                                tvDeliveryAddress.setText("Tap to add delivery address");
+                            }
+                        }
+                    });
+        }
+    }
+
+    // CartAdapter.CartListener
+    @Override
+    public void onQuantityChanged(int position, int newQty) {
+        cartItems.get(position).setQuantity(newQty);
+        adapter.notifyItemChanged(position);
+        updateUI();
+    }
+
+    @Override
+    public void onRemoveItem(int position) {
+        cartItems.remove(position);
+        adapter.notifyItemRemoved(position);
+        updateUI();
     }
 
     private void updateUI() {
-        // Update quantities display
-        tvQtyMedicare.setText(String.valueOf(qtyMedicare));
-        tvQtyCity.setText(String.valueOf(qtyCity));
+        boolean empty = cartItems.isEmpty();
+        if (rvCart != null) {
+            rvCart.setVisibility(empty ? View.GONE : View.VISIBLE);
+        }
+        if (tvEmptyCart != null) {
+            tvEmptyCart.setVisibility(empty ? View.VISIBLE : View.GONE);
+        }
+        if (btnProceedToPayment != null) {
+            btnProceedToPayment.setEnabled(!empty);
+        }
 
-        // Calculate totals
-        int subtotal = (mediCareInCart ? qtyMedicare * PRICE_MEDICARE : 0)
-                + (cityInCart     ? qtyCity     * PRICE_CITY     : 0);
-        int total    = subtotal > 0 ? subtotal + DELIVERY_FEE : 0;
-        tvSubtotal.setText("Rs. " + subtotal);
-        tvTotal.setText("Rs. " + total);
+        double subtotal = getSubtotal();
+        double total    = subtotal + DELIVERY_FEE;
+        if (tvSubtotal != null) {
+            tvSubtotal.setText("Rs. " + String.format("%.0f", subtotal));
+        }
+        if (tvTotal != null) {
+            tvTotal.setText("Rs. " + String.format("%.0f", total));
+        }
+    }
 
-        // Dim removed items
-        View mediCareRow = findViewById(R.id.btnPlusMedicare).getRootView()
-                .findViewWithTag("medicare_row");
-        View cityRow = findViewById(R.id.btnPlusCity).getRootView()
-                .findViewWithTag("city_row");
+    private double getSubtotal() {
+        double sum = 0;
+        for (Cart c : cartItems) sum += c.getSubtotal();
+        return sum;
+    }
+
+    // Static helper — add item to cart from anywhere
+    public static void addToCart(Cart item) {
+        // Check if same medicine from same pharmacy already in cart
+        for (Cart c : CART_STORE) {
+            if (c.getMedicineId().equals(item.getMedicineId())
+                    && c.getPharmacyName().equals(item.getPharmacyName())) {
+                c.setQuantity(c.getQuantity() + item.getQuantity());
+                return;
+            }
+        }
+        CART_STORE.add(item);
+    }
+
+    public static void clearCart() {
+        CART_STORE.clear();
     }
 }

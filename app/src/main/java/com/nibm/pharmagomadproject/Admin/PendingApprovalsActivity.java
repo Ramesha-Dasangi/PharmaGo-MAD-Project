@@ -3,19 +3,39 @@ package com.nibm.pharmagomadproject.Admin;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.nibm.pharmagomadproject.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PendingApprovalsActivity extends AppCompatActivity {
+
+    private static final String TAG = "PendingApprovals";
+
+    private FirebaseFirestore db;
+    private ListenerRegistration pharmacyListener;
+
+    private PendingPharmacyAdapter pharmacyAdapter;
+    private RecyclerView rvPharmacies;
+    private ProgressBar progressPharmacies;
+    private TextView tvEmptyPharmacies;
+    private TextView tabPharmacies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,34 +45,21 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        ImageView ivBack = findViewById(R.id.ivBack);
-        ivBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        db = FirebaseFirestore.getInstance();
 
-        MaterialButton btnReview1 = findViewById(R.id.btnReview1);
-        btnReview1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(PendingApprovalsActivity.this, ReviewApplicationActivity.class);
-                startActivity(intent);
-            }
-        });
+        findViewById(R.id.ivBack).setOnClickListener(v -> finish());
 
-        MaterialButton btnReviewRider1 = findViewById(R.id.btnReviewRider1);
-        btnReviewRider1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(PendingApprovalsActivity.this, ReviewRiderActivity.class);
-                startActivity(intent);
-            }
-        });
+        // Pharmacies list setup
+        rvPharmacies = findViewById(R.id.rvPharmacies);
+        progressPharmacies = findViewById(R.id.progressPharmacies);
+        tvEmptyPharmacies = findViewById(R.id.tvEmptyPharmacies);
 
-        TextView tabPharmacies = findViewById(R.id.tabPharmacies);
+        rvPharmacies.setLayoutManager(new LinearLayoutManager(this));
+        pharmacyAdapter = new PendingPharmacyAdapter(this::openReview);
+        rvPharmacies.setAdapter(pharmacyAdapter);
+
         TextView tabRiders = findViewById(R.id.tabRiders);
+        tabPharmacies = findViewById(R.id.tabPharmacies);
         LinearLayout llPharmacies = findViewById(R.id.llPharmacies);
         LinearLayout llRiders = findViewById(R.id.llRiders);
 
@@ -82,15 +89,6 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             llRiders.setVisibility(View.VISIBLE);
         });
 
-        MaterialButton btnReview2 = findViewById(R.id.btnReview2);
-        btnReview2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(PendingApprovalsActivity.this, ReviewApplicationActivity.class);
-                startActivity(intent);
-            }
-        });
-
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setSelectedItemId(R.id.nav_approvals);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -108,6 +106,61 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                 return true;
             }
             return false;
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        listenPendingPharmacies();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (pharmacyListener != null) {
+            pharmacyListener.remove();
+            pharmacyListener = null;
+        }
+    }
+
+    private void openReview(PendingPharmacyModel pharmacy) {
+        Intent intent = new Intent(PendingApprovalsActivity.this, ReviewApplicationActivity.class);
+        intent.putExtra("pharmacyId", pharmacy.getId());
+        startActivity(intent);
+    }
+
+    private void listenPendingPharmacies() {
+        progressPharmacies.setVisibility(View.VISIBLE);
+        tvEmptyPharmacies.setVisibility(View.GONE);
+
+        Query query = db.collection("pharmacies")
+                .whereEqualTo("status", "pending");
+
+        pharmacyListener = query.addSnapshotListener((snapshots, error) -> {
+            progressPharmacies.setVisibility(View.GONE);
+
+            if (error != null) {
+                Log.e(TAG, "Failed to load pending pharmacies", error);
+                Toast.makeText(this, "Failed to load pharmacies: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            List<PendingPharmacyModel> pharmacies = new ArrayList<>();
+            if (snapshots != null) {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                    PendingPharmacyModel model = doc.toObject(PendingPharmacyModel.class);
+                    if (model != null) {
+                        model.setId(doc.getId());
+                        pharmacies.add(model);
+                    }
+                }
+            }
+
+            pharmacyAdapter.setItems(pharmacies);
+            tabPharmacies.setText("Pharmacies (" + pharmacies.size() + ")");
+            tvEmptyPharmacies.setVisibility(pharmacies.isEmpty() ? View.VISIBLE : View.GONE);
+            rvPharmacies.setVisibility(pharmacies.isEmpty() ? View.GONE : View.VISIBLE);
         });
     }
 }
