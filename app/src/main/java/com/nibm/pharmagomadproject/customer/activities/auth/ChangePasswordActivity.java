@@ -9,6 +9,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.nibm.pharmagomadproject.R;
 
 public class ChangePasswordActivity extends AppCompatActivity {
@@ -66,9 +70,46 @@ public class ChangePasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // TODO: verify current password with Firebase Auth, then update
-        Toast.makeText(this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
-        finish();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        String email = user.getEmail();
+        if (email == null) {
+            Toast.makeText(this, "Email not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Re-authenticate user to verify current password
+        AuthCredential credential = EmailAuthProvider.getCredential(email, current);
+        MaterialButton btnUpdate = findViewById(R.id.btnUpdatePassword);
+        if (btnUpdate != null) {
+            btnUpdate.setEnabled(false);
+        }
+
+        user.reauthenticate(credential).addOnCompleteListener(reauthTask -> {
+            if (reauthTask.isSuccessful()) {
+                // Password verified. Update password.
+                user.updatePassword(newPass).addOnCompleteListener(updateTask -> {
+                    if (btnUpdate != null) {
+                        btnUpdate.setEnabled(true);
+                    }
+                    if (updateTask.isSuccessful()) {
+                        Toast.makeText(ChangePasswordActivity.this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(ChangePasswordActivity.this, "Failed to update password: " + updateTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                if (btnUpdate != null) {
+                    btnUpdate.setEnabled(true);
+                }
+                etCurrentPassword.setError("Incorrect current password");
+                etCurrentPassword.requestFocus();
+            }
+        });
     }
 }

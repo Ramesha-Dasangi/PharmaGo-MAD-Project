@@ -1,27 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBackground">
 
-    <View
-        android:id="@+id/topBackground"
+    <View android:id="@+id/topBackground"
         android:layout_width="match_parent"
         android:layout_height="120dp"
         android:background="@color/colorPrimary"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <ImageView
         android:id="@+id/ivBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_arrow_back"
+        android:src="@android:drawable/ic_menu_revert"
         app:tint="@color/white"
         android:layout_marginTop="56dp"
         android:layout_marginStart="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <TextView
         android:id="@+id/tvTitle"
@@ -34,7 +34,7 @@
         android:layout_marginStart="16dp"
         app:layout_constraintStart_toEndOf="@id/ivBack"
         app:layout_constraintTop_toTopOf="@id/ivBack"
-        app:layout_constraintBottom_toBottomOf="@id/ivBack" />
+        app:layout_constraintBottom_toBottomOf="@id/ivBack"/>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -60,13 +60,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Pharmacies (4)"
+                    android:text="Pharmacies"
                     android:textColor="@color/white"
                     android:background="@drawable/tab_active_bg"
                     android:paddingVertical="8dp"
                     android:paddingHorizontal="16dp"
                     android:gravity="center"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:id="@+id/tabRiders"
@@ -77,7 +77,7 @@
                     android:textColor="@color/colorTextSecondary"
                     android:paddingVertical="8dp"
                     android:paddingHorizontal="16dp"
-                    android:gravity="center" />
+                    android:gravity="center"/>
             </LinearLayout>
 
             <LinearLayout
@@ -86,168 +86,30 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Pharmacy Card 1 -->
-                <com.google.android.material.card.MaterialCardView
+                <ProgressBar
+                    android:id="@+id/progressPharmacies"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="24dp"/>
+
+                <TextView
+                    android:id="@+id/tvEmptyPharmacies"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp">
+                    android:text="No pending pharmacy applications"
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:layout_marginTop="24dp"
+                    android:visibility="gone"/>
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:id="@+id/ivIcon1"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@drawable/ic_store"
-                            android:background="@drawable/icon_bg_blue"
-                            android:padding="12dp"
-                            app:tint="@color/colorBlue"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <TextView
-                            android:id="@+id/tvName1"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:text="City Pharma Express"
-                            android:textColor="@color/black"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="8dp"
-                            app:layout_constraintStart_toEndOf="@id/ivIcon1"
-                            app:layout_constraintTop_toTopOf="@id/ivIcon1"
-                            app:layout_constraintEnd_toStartOf="@id/tvStatus1" />
-
-                        <TextView
-                            android:id="@+id/tvTime1"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:text="2 days ago"
-                            android:textColor="@color/colorTextSecondary"
-                            android:textSize="12sp"
-                            android:layout_marginStart="16dp"
-                            app:layout_constraintStart_toEndOf="@id/ivIcon1"
-                            app:layout_constraintTop_toBottomOf="@id/tvName1" />
-
-                        <TextView
-                            android:id="@+id/tvStatus1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending"
-                            android:textColor="#F57C00"
-                            android:background="@drawable/status_pending_bg"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="4dp"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="@id/tvTime1" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnReview1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Review"
-                            android:textColor="@color/white"
-                            android:textSize="14sp"
-                            app:backgroundTint="@color/colorAccent"
-                            app:cornerRadius="8dp"
-                            android:layout_marginTop="16dp"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/ivIcon1" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Pharmacy Card 2 -->
-                <com.google.android.material.card.MaterialCardView
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPharmacies"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp">
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:id="@+id/ivIcon2"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@drawable/ic_store"
-                            android:background="@drawable/icon_bg_blue"
-                            android:padding="12dp"
-                            app:tint="@color/colorBlue"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <TextView
-                            android:id="@+id/tvName2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:text="Wellness Pharmacy"
-                            android:textColor="@color/black"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="8dp"
-                            app:layout_constraintStart_toEndOf="@id/ivIcon2"
-                            app:layout_constraintTop_toTopOf="@id/ivIcon2"
-                            app:layout_constraintEnd_toStartOf="@id/tvStatus2" />
-
-                        <TextView
-                            android:id="@+id/tvTime2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:text="5 hours ago"
-                            android:textColor="@color/colorTextSecondary"
-                            android:textSize="12sp"
-                            android:layout_marginStart="16dp"
-                            app:layout_constraintStart_toEndOf="@id/ivIcon2"
-                            app:layout_constraintTop_toBottomOf="@id/tvName2" />
-
-                        <TextView
-                            android:id="@+id/tvStatus2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending"
-                            android:textColor="#F57C00"
-                            android:background="@drawable/status_pending_bg"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="4dp"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="@id/tvTime2" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnReview2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Review"
-                            android:textColor="@color/white"
-                            android:textSize="14sp"
-                            app:backgroundTint="@color/colorAccent"
-                            app:cornerRadius="8dp"
-                            android:layout_marginTop="16dp"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/ivIcon2" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
-
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_pending_pharmacy"/>
             </LinearLayout>
 
             <LinearLayout
@@ -256,8 +118,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="gone">
-
-                <!-- Rider Card 1 -->
+                <!--  Rider Card 1  -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -280,7 +141,7 @@
                             android:padding="12dp"
                             app:tint="@color/colorAccent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintTop_toTopOf="parent"/>
 
                         <TextView
                             android:id="@+id/tvRiderName"
@@ -294,7 +155,7 @@
                             android:layout_marginEnd="8dp"
                             app:layout_constraintStart_toEndOf="@id/ivIconRider"
                             app:layout_constraintTop_toTopOf="@id/ivIconRider"
-                            app:layout_constraintEnd_toStartOf="@id/tvRiderStatus" />
+                            app:layout_constraintEnd_toStartOf="@id/tvRiderStatus"/>
 
                         <TextView
                             android:id="@+id/tvRiderTime"
@@ -305,7 +166,7 @@
                             android:textSize="12sp"
                             android:layout_marginStart="16dp"
                             app:layout_constraintStart_toEndOf="@id/ivIconRider"
-                            app:layout_constraintTop_toBottomOf="@id/tvRiderName" />
+                            app:layout_constraintTop_toBottomOf="@id/tvRiderName"/>
 
                         <TextView
                             android:id="@+id/tvRiderStatus"
@@ -320,7 +181,7 @@
                             android:textStyle="bold"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="@id/tvRiderTime" />
+                            app:layout_constraintBottom_toBottomOf="@id/tvRiderTime"/>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnReviewRider1"
@@ -333,13 +194,10 @@
                             app:cornerRadius="8dp"
                             android:layout_marginTop="16dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/ivIconRider" />
-
+                            app:layout_constraintTop_toBottomOf="@id/ivIconRider"/>
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -355,6 +213,5 @@
         app:itemRippleColor="@android:color/transparent"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/admin_bottom_nav"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
+        app:layout_constraintBottom_toBottomOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

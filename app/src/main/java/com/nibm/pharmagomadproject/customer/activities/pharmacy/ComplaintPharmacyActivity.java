@@ -5,16 +5,25 @@ import android.text.TextUtils;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ComplaintPharmacyActivity extends AppCompatActivity {
 
     private String selectedPharmacy = "MediCare Pharmacy";
     private String selectedChip     = "Wrong medicine";
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,11 +32,14 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_complaint_pharmacy);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // Pharmacy selection options
-        LinearLayout optMediCare   = (LinearLayout) ((android.view.View) findViewById(R.id.optMediCare));
-        LinearLayout optCityPharma = (LinearLayout) ((android.view.View) findViewById(R.id.optCityPharma));
+        LinearLayout optMediCare   = findViewById(R.id.optMediCare);
+        LinearLayout optCityPharma = findViewById(R.id.optCityPharma);
 
         findViewById(R.id.optMediCare).setOnClickListener(v -> {
             selectedPharmacy = "MediCare Pharmacy";
@@ -82,8 +94,35 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
             etDesc.requestFocus();
             return;
         }
-        // TODO: save complaint to Firebase
-        Toast.makeText(this, "Complaint submitted successfully!", Toast.LENGTH_LONG).show();
-        finish();
+
+        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+        String complaintId = "CMP-" + System.currentTimeMillis();
+
+        Map<String, Object> complaint = new HashMap<>();
+        complaint.put("complaintId", complaintId);
+        complaint.put("customerId", uid);
+        complaint.put("type", "pharmacy");
+        complaint.put("targetName", selectedPharmacy);
+        complaint.put("category", selectedChip);
+        complaint.put("description", desc);
+        complaint.put("status", "pending");
+        complaint.put("createdAt", System.currentTimeMillis());
+
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitComplaint);
+        btnSubmit.setEnabled(false);
+        btnSubmit.setText("Submitting...");
+
+        db.collection("complaints")
+                .document(complaintId)
+                .set(complaint)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Complaint submitted successfully!", Toast.LENGTH_LONG).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnSubmit.setEnabled(true);
+                    btnSubmit.setText("Submit Complaint");
+                    Toast.makeText(this, "Failed to submit: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

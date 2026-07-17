@@ -129,6 +129,44 @@
 
             </LinearLayout>
 
+            <!-- Preview and progress views -->
+            <ImageView
+                android:id="@+id/ivPreview"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_upload_area"
+                android:contentDescription="Prescription Preview" />
+
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/pg_text"
+                android:textSize="14sp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="12dp" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/pg_sub"
+                android:textSize="12sp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone" />
+
             <!-- Camera / Gallery buttons -->
             <LinearLayout
                 android:layout_width="match_parent"

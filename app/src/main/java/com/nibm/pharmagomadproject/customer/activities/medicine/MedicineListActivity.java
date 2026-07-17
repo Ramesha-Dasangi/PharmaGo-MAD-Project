@@ -23,7 +23,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.activities.order.CartActivity;
+import com.nibm.pharmagomadproject.customer.models.Cart;
+import com.nibm.pharmagomadproject.customer.models.Medicine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,8 +46,10 @@ public class MedicineListActivity extends AppCompatActivity {
 
     // Views
     private DrawerLayout drawerLayout;
-    private LinearLayout medicineListContainer, typeChipsContainer, pharmacyCheckboxContainer,
-            activeFiltersRow;
+    private androidx.recyclerview.widget.RecyclerView medicineRecyclerView;
+    private com.nibm.pharmagomadproject.customer.adapter.MedicineAdapter medicineAdapter;
+    private LinearLayout typeChipsContainer, pharmacyCheckboxContainer,
+            activeFiltersRow, layoutPharmacyFilter;
     private EditText            etSearch;
     private ImageView           btnClearSearch;
     private TextView            tvScreenTitle, tvActiveFilters;
@@ -59,12 +67,14 @@ public class MedicineListActivity extends AppCompatActivity {
 
     private final Set<String>  hiddenPharmacies = new HashSet<>();
     private final List<Medicine> allMedicines   = new ArrayList<>();
+    private final Map<String, String> pharmacyNameById = new HashMap<>(); // ownerId -> pharmacy display name
+
+    private FirebaseFirestore db;
 
     // Type chips
     private final String[] TYPE_CHIPS = {
-            "All", "OTC", "Prescription",
-            "Pain relief", "Antibiotic", "Supplement",
-            "Gastric", "Diabetes", "Blood pressure", "First Aid"
+            "All", "OTC", "Prescription", "Rx",
+            "First Aid", "Vitamins", "Chronic", "Baby", "Eye Care", "Dental"
     };
 
     @Override
@@ -74,12 +84,15 @@ public class MedicineListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_medicine_list);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        db = FirebaseFirestore.getInstance();
+
         // Bind views
         drawerLayout              = findViewById(R.id.drawerLayout);
-        medicineListContainer     = findViewById(R.id.medicineListContainer);
+        medicineRecyclerView      = findViewById(R.id.medicineRecyclerView);
         typeChipsContainer        = findViewById(R.id.typeChipsContainer);
         pharmacyCheckboxContainer = findViewById(R.id.pharmacyCheckboxContainer);
         activeFiltersRow          = findViewById(R.id.activeFiltersRow);
+        layoutPharmacyFilter      = findViewById(R.id.layoutPharmacyFilter);
         etSearch                  = findViewById(R.id.etSearch);
         btnClearSearch            = findViewById(R.id.btnClearSearch);
         tvScreenTitle             = findViewById(R.id.tvScreenTitle);
@@ -87,6 +100,42 @@ public class MedicineListActivity extends AppCompatActivity {
         rgPriceSort               = findViewById(R.id.rgPriceSort);
         etMinPrice                = findViewById(R.id.etMinPrice);
         etMaxPrice                = findViewById(R.id.etMaxPrice);
+
+        medicineAdapter = new com.nibm.pharmagomadproject.customer.adapter.MedicineAdapter(this, new ArrayList<>(), new com.nibm.pharmagomadproject.customer.adapter.MedicineAdapter.OnMedicineClickListener() {
+            @Override
+            public void onCardClick(Medicine medicine) {
+                Intent intent = new Intent(MedicineListActivity.this, MedicineDetailsActivity.class);
+                intent.putExtra("medicine_id",       medicine.getMedicineId());
+                intent.putExtra("brand_name",        medicine.getBrandName());
+                intent.putExtra("pharmacy_id",       medicine.getPharmacyId());
+                intent.putExtra("medicine_name",     medicine.getMedicineName());
+                intent.putExtra("medicine_price",    (int) medicine.getPrice());
+                intent.putExtra("medicine_type",     medicine.getType());
+                intent.putExtra("medicine_category", medicine.getCategory());
+                intent.putExtra("medicine_pharmacy", medicine.getPharmacy());
+                intent.putExtra("medicine_image",    medicine.getImageUrl());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onAddToCartClick(Medicine medicine) {
+                CartActivity.addToCart(new Cart(
+                        medicine.getMedicineId(),
+                        medicine.getMedicineName(),
+                        medicine.getBrandName(),
+                        medicine.getPharmacyId(),
+                        medicine.getPharmacy(),
+                        medicine.getPrice(),
+                        1
+                ));
+                Toast.makeText(MedicineListActivity.this, medicine.getMedicineName() + " added to cart!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        if (medicineRecyclerView != null) {
+            medicineRecyclerView.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
+            medicineRecyclerView.setAdapter(medicineAdapter);
+        }
 
         // Intent extras
         mode  = getIntent().getStringExtra(EXTRA_MODE)  != null ? getIntent()
@@ -96,7 +145,33 @@ public class MedicineListActivity extends AppCompatActivity {
                 .getStringExtra(EXTRA_QUERY) : "";
         if (title != null) tvScreenTitle.setText(title);
 
-        loadSampleData();
+        if ("pharmacy".equals(mode)) {
+            if (layoutPharmacyFilter != null) {
+                layoutPharmacyFilter.setVisibility(View.GONE);
+            }
+            View btnOpenFilter = findViewById(R.id.btnOpenFilter);
+            if (btnOpenFilter != null) btnOpenFilter.setVisibility(View.GONE);
+        } else {
+            if (layoutPharmacyFilter != null) {
+                layoutPharmacyFilter.setVisibility(View.VISIBLE);
+            }
+            View btnOpenFilter = findViewById(R.id.btnOpenFilter);
+            if (btnOpenFilter != null) btnOpenFilter.setVisibility(View.VISIBLE);
+        }
+
+        // Pre-select the matching category chip when opened via category shortcut
+        if ("category".equals(mode) && !query.isEmpty()) {
+            for (String chip : TYPE_CHIPS) {
+                String chipClean = chip.replace(" ", "").toLowerCase();
+                String queryClean = query.replace(" ", "").toLowerCase();
+                if (chipClean.equals(queryClean)) {
+                    activeType = chip;
+                    break;
+                }
+            }
+        }
+
+        loadMedicinesFromFirestore();
 
         // Top bar buttons
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
@@ -148,13 +223,10 @@ public class MedicineListActivity extends AppCompatActivity {
             refreshList();
         });
 
-        // Search bar
-        if ("search".equals(mode)) {
-            etSearch.setVisibility(View.VISIBLE);
+        // Search bar — always visible so users can search in any mode
+        etSearch.setVisibility(View.VISIBLE);
+        if ("search".equals(mode) || "pharmacy".equals(mode)) {
             etSearch.requestFocus();
-        } else {
-            etSearch.setVisibility(View.GONE);
-            btnClearSearch.setVisibility(View.GONE);
         }
 
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -230,7 +302,7 @@ public class MedicineListActivity extends AppCompatActivity {
         // Get unique pharmacies from data
         List<String> pharmacies = new ArrayList<>();
         for (Medicine m : allMedicines) {
-            if (!pharmacies.contains(m.pharmacy)) pharmacies.add(m.pharmacy);
+            if (!pharmacies.contains(m.getPharmacy())) pharmacies.add(m.getPharmacy());
         }
 
         for (String pharmacy : pharmacies) {
@@ -273,6 +345,7 @@ public class MedicineListActivity extends AppCompatActivity {
                     hiddenPharmacies.add(pharmacy);
                     cb.setChecked(false);
                 }
+                refreshList();
             };
             row.setOnClickListener(toggleListener);
             cb.setOnClickListener(toggleListener);
@@ -285,39 +358,39 @@ public class MedicineListActivity extends AppCompatActivity {
 
     // FILTER + RENDER
     private void refreshList() {
-        medicineListContainer.removeAllViews();
-
-        String q = "search".equals(mode)
-                ? (etSearch.getText() != null ? etSearch.getText()
-                .toString().toLowerCase().trim() : "") : "";
+        // Use search text in ALL modes so users can search within a pharmacy / category too
+        String q = etSearch.getText() != null ? etSearch.getText().toString().toLowerCase().trim() : "";
 
         List<Medicine> filtered = new ArrayList<>();
 
         for (Medicine m : allMedicines) {
             // Hidden pharmacy
-            if (hiddenPharmacies.contains(m.pharmacy)) continue;
+            if (hiddenPharmacies.contains(m.getPharmacy())) continue;
 
             // Mode filter
             boolean modeMatch = true;
             if ("category".equals(mode)) {
-                modeMatch = m.categoryKey.equalsIgnoreCase(query);
+                String catFieldClean = m.getCategory() != null ? m.getCategory().replace(" ", "").toLowerCase() : "";
+                String queryClean = query.replace(" ", "").toLowerCase();
+                modeMatch = catFieldClean.equals(queryClean);
             } else if ("pharmacy".equals(mode)) {
-                modeMatch = m.pharmacy.equalsIgnoreCase(query);
+                modeMatch = (m.getPharmacyId() != null && m.getPharmacyId().equalsIgnoreCase(query))
+                        || (m.getPharmacy() != null && m.getPharmacy().equalsIgnoreCase(query));
             }
 
             // Search text
             boolean searchMatch = q.isEmpty()
-                    || m.name.toLowerCase().contains(q)
-                    || m.category.toLowerCase().contains(q)
-                    || m.pharmacy.toLowerCase().contains(q);
+                    || m.getMedicineName().toLowerCase().contains(q)
+                    || m.getCategory().toLowerCase().contains(q)
+                    || m.getPharmacy().toLowerCase().contains(q);
 
             // Type chip
             boolean typeMatch = "All".equals(activeType)
-                    || m.type.equalsIgnoreCase(activeType)
-                    || m.category.equalsIgnoreCase(activeType);
+                    || m.getType().equalsIgnoreCase(activeType)
+                    || m.getCategory().equalsIgnoreCase(activeType);
 
             // Price range
-            boolean priceMatch = m.price >= filterMinPrice && m.price <= filterMaxPrice;
+            boolean priceMatch = m.getPrice() >= filterMinPrice && m.getPrice() <= filterMaxPrice;
 
             if (modeMatch && searchMatch && typeMatch && priceMatch) {
                 filtered.add(m);
@@ -326,9 +399,9 @@ public class MedicineListActivity extends AppCompatActivity {
 
         // Sort
         if ("low_high".equals(priceSortMode)) {
-            filtered.sort((a, b) -> a.price - b.price);
+            filtered.sort((a, b) -> (int) (a.getPrice() - b.getPrice()));
         } else if ("high_low".equals(priceSortMode)) {
-            filtered.sort((a, b) -> b.price - a.price);
+            filtered.sort((a, b) -> (int) (b.getPrice() - a.getPrice()));
         }
 
         // Active filters summary
@@ -336,76 +409,13 @@ public class MedicineListActivity extends AppCompatActivity {
 
         if (filtered.isEmpty()) {
             tvScreenTitle.setText("No medicines found");
-            TextView empty = new TextView(this);
-            empty.setText("Try adjusting your filters");
-            empty.setTextColor(getResources().getColor(R.color.pg_sub, null));
-            empty.setTextSize(13);
-            empty.setPadding(0, dp(64), 0, 0);
-            empty.setGravity(android.view.Gravity.CENTER);
-            empty.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-            medicineListContainer.addView(empty);
-            return;
+        } else {
+            tvScreenTitle.setText(filtered.size() + " result" +
+                    (filtered.size() == 1 ? "" : "s") + " found");
         }
 
-        tvScreenTitle.setText(filtered.size() + " result" +
-                (filtered.size() == 1 ? "" : "s") + " found");
-
-        // Price comparison: group by medicine name, collect prices
-        Map<String, List<Medicine>> priceMap = new HashMap<>();
-        for (Medicine m : filtered) {
-            if (!priceMap.containsKey(m.name)) priceMap.put(m.name, new ArrayList<>());
-            priceMap.get(m.name).add(m);
-        }
-
-        LayoutInflater inflater = LayoutInflater.from(this);
-        for (Medicine m : filtered) {
-            View card = inflater.inflate(R.layout.item_medicine_card, medicineListContainer,
-                    false);
-            ((TextView) card.findViewById(R.id.tvMedicineName)).setText(m.brand + "\n" + m.name);
-            ((TextView) card.findViewById(R.id.tvMedicineCategory))
-                    .setText(m.category + " · " + m.type);
-
-            // Price + best price indicator
-            List<Medicine> sameNameList = priceMap.get(m.name);
-            int minPrice = m.price;
-            if (sameNameList != null) {
-                for (Medicine sm : sameNameList) {
-                    if (sm.price < minPrice) minPrice = sm.price;
-                }
-            }
-            TextView tvPrice = card.findViewById(R.id.tvMedicinePrice);
-            tvPrice.setText("Rs. " + m.price);
-            if (sameNameList != null && sameNameList.size() > 1 && m.price == minPrice) {
-                // Best price — show green badge
-                tvPrice.setTextColor(getResources().getColor(R.color.pg_primary, null));
-                tvPrice.setText("Rs. " + m.price + " ✓ Best");
-            } else {
-                tvPrice.setTextColor(getResources().getColor(R.color.pg_text, null));
-            }
-
-            // Pharmacy name below price
-            TextView tvCategory = card.findViewById(R.id.tvMedicineCategory);
-            tvCategory.setText(m.category + " · " + m.type + "\n" + m.pharmacy);
-
-            // Card click → MedicineDetailsActivity
-            card.setOnClickListener(v -> {
-                Intent intent = new Intent(this, MedicineDetailsActivity.class);
-                intent.putExtra("medicine_name",     m.name);
-                intent.putExtra("medicine_price",    m.price);
-                intent.putExtra("medicine_type",     m.type);
-                intent.putExtra("medicine_category", m.category);
-                intent.putExtra("medicine_pharmacy", m.pharmacy);
-                startActivity(intent);
-            });
-
-            // Add to cart
-            card.findViewById(R.id.btnAddToCartCard).setOnClickListener(v ->
-                    Toast.makeText(this, m.name + " added to cart!",
-                            Toast.LENGTH_SHORT).show());
-
-            medicineListContainer.addView(card);
+        if (medicineAdapter != null) {
+            medicineAdapter.updateList(filtered);
         }
     }
 
@@ -426,86 +436,76 @@ public class MedicineListActivity extends AppCompatActivity {
         }
     }
 
-    private void loadSampleData() {
-        allMedicines.add(new Medicine("Panadol", "Paracetamol 500mg", "Pain relief",
-                "OTC", 40, "otc", "MediCare Pharmacy"));
+    private void loadMedicinesFromFirestore() {
+        // Step 1: build a map of approved pharmacy ownerId -> pharmacy display name
+        db.collection("pharmacies")
+                .whereEqualTo("status", "approved")
+                .get()
+                .addOnSuccessListener(pharmacySnaps -> {
+                    pharmacyNameById.clear();
+                    for (DocumentSnapshot doc : pharmacySnaps) {
+                        String ownerId = doc.getString("ownerId");
+                        String name    = doc.getString("name");
+                        if (ownerId != null) {
+                            pharmacyNameById.put(ownerId, name != null ? name : "Pharmacy");
+                        }
+                    }
+                    loadMedicineDocs();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load pharmacies: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                    loadMedicineDocs();
+                });
+    }
 
-        allMedicines.add(new Medicine("Panadol", "Paracetamol 500mg", "Pain relief",
-                "OTC", 38, "otc", "City Pharma"));
+    private void loadMedicineDocs() {
+        db.collection("medicines")
+                .get()
+                .addOnSuccessListener(query -> {
+                    allMedicines.clear();
+                    for (QueryDocumentSnapshot doc : query) {
+                        String pharmacyId = doc.getString("pharmacyId");
+                        String pharmacyName = null;
+                        if (pharmacyId != null) {
+                            pharmacyName = pharmacyNameById.get(pharmacyId);
+                        }
+                        if (pharmacyName == null) {
+                            pharmacyName = doc.getString("pharmacy");
+                        }
+                        if (pharmacyName == null) {
+                            pharmacyName = "Pharmacy";
+                        }
 
-        allMedicines.add(new Medicine("Panadol Extra", "Paracetamol 500mg", "Pain relief",
-                "OTC", 55, "otc", "City Pharma"));
+                        double price = doc.getDouble("price") != null ? doc.getDouble("price") : 0;
+                        Long stockLong = doc.getLong("stock");
+                        int stock = stockLong != null ? stockLong.intValue() : 0;
 
-        allMedicines.add(new Medicine("Amoxil", "Amoxicillin 500mg", "Antibiotic",
-                "Prescription", 85, "rx", "MediCare Pharmacy"));
+                        Medicine m = new Medicine(
+                                doc.getId(),
+                                doc.getString("brand"),
+                                doc.getString("medicineName"),
+                                doc.getString("category"),
+                                doc.getString("type"),
+                                price,
+                                stock,
+                                pharmacyName
+                        );
+                        m.setPharmacyId(pharmacyId);
+                        m.setImageUrl(doc.getString("imageUrl"));
+                        allMedicines.add(m);
+                    }
 
-        allMedicines.add(new Medicine("Amoxil", "Amoxicillin 500mg", "Antibiotic",
-                "Prescription", 90, "rx", "City Pharma"));
-
-        allMedicines.add(new Medicine("Zithromax", "Azithromycin 500mg", "Antibiotic",
-                "Prescription", 220, "rx", "City Pharma"));
-
-        allMedicines.add(new Medicine("Losec", "Omeprazole 20mg", "Gastric",
-                "Prescription", 75, "rx", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Losec", "Omeprazole 20mg", "Gastric",
-                "Prescription", 80, "rx", "City Pharma"));
-
-        allMedicines.add(new Medicine("Glucophage", "Metformin 500mg", "Diabetes",
-                "Prescription", 35, "chronic", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Lipitor", "Atorvastatin 10mg", "Diabetes",
-                "Prescription", 120, "chronic", "City Pharma"));
-
-        allMedicines.add(new Medicine("Norvasc", "Amlodipine 5mg", "Blood pressure",
-                "Prescription", 95, "chronic", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Redoxon", "Vitamin C 1000mg", "Supplement",
-                "OTC", 120, "vitamins", "City Pharma"));
-
-        allMedicines.add(new Medicine("Celin", "Vitamin C 1000mg", "Supplement",
-                "OTC", 115, "vitamins", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Caltrate", "Vitamin D3 1000IU", "Supplement",
-                "OTC", 180, "vitamins", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Centrum", "Multivitamin Daily", "Supplement",
-                "OTC", 650, "vitamins", "City Pharma"));
-
-        allMedicines.add(new Medicine("Band-Aid", "Band-Aid Pack", "First Aid",
-                "OTC", 250, "firstaid", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Dettol", "Dettol Antiseptic", "First Aid",
-                "OTC", 320, "firstaid", "City Pharma"));
-
-        allMedicines.add(new Medicine("Refresh", "Eye Drops Refresh", "Eye care",
-                "OTC", 450, "eyecare", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Brufen", "Ibuprofen 400mg", "Pain relief",
-                "OTC", 65, "otc", "City Pharma"));
-
-        allMedicines.add(new Medicine("Eno", "Antacid Tablets", "Gastric",
-                "OTC", 95, "otc", "MediCare Pharmacy"));
-
-        allMedicines.add(new Medicine("Zyrtec", "Cetirizine 10mg", "Antibiotic",
-                "OTC", 38, "otc", "City Pharma"));
+                    buildTypeChips();
+                    buildPharmacyCheckboxes();
+                    refreshList();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load medicines: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
     }
 
     private int dp(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
-    }
-
-    static class Medicine {
-        String brand, name, category, type, categoryKey, pharmacy;
-        int price;
-        Medicine(String b, String n, String c, String t, int p, String ck, String ph) {
-            brand=b;
-            name=n;
-            category=c;
-            type=t;
-            price=p;
-            categoryKey=ck;
-            pharmacy=ph;
-        }
     }
 }

@@ -16,10 +16,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.models.Cart;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PaymentActivity extends AppCompatActivity {
@@ -39,9 +41,9 @@ public class PaymentActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     // Order data from CartActivity
-    private int subtotal    = 204;
+    private int subtotal    = 0;
     private int deliveryFee = 100;
-    private int total       = 304;
+    private int total       = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +68,9 @@ public class PaymentActivity extends AppCompatActivity {
         etCvv              = findViewById(R.id.etCvv);
 
         // Get totals from intent
-        subtotal    = getIntent().getIntExtra("subtotal",    204);
+        subtotal    = getIntent().getIntExtra("subtotal",    0);
         deliveryFee = getIntent().getIntExtra("deliveryFee", 100);
-        total       = getIntent().getIntExtra("total",       304);
+        total       = getIntent().getIntExtra("total",       100);
 
         tvPaySubtotal.setText("Rs. " + subtotal);
         tvPayTotal.setText("Rs. " + total);
@@ -76,8 +78,7 @@ public class PaymentActivity extends AppCompatActivity {
         // Back button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Payment method selection
-        // Default: COD selected
+        // Payment method selection – Default: COD selected
         selectCOD();
 
         optionCOD.setOnClickListener(v -> selectCOD());
@@ -88,39 +89,31 @@ public class PaymentActivity extends AppCompatActivity {
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
     }
 
-    // Select COD
     private void selectCOD() {
         selectedMethod = "cod";
-
-        // Highlight COD
         optionCOD.setBackgroundResource(R.drawable.bg_selected_option);
-        radioCOD.setImageResource(R.drawable.ic_check_circle);
-        radioCOD.setColorFilter(getResources().getColor(R.color.pg_primary, null));
-
-        // Unhighlight Card
         optionCard.setBackgroundResource(R.drawable.bg_unselected_option);
-        radioCard.setImageResource(R.drawable.ic_circle_dashed);
-        radioCard.setColorFilter(getResources().getColor(R.color.pg_sub, null));
 
-        // Hide card details
+        radioCOD.setImageResource(R.drawable.ic_check_circle);
+        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
+
+        radioCard.setImageResource(R.drawable.ic_circle_dashed);
+        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_sub, null)));
+
         cardDetailsSection.setVisibility(View.GONE);
     }
 
-    // Select Card
     private void selectCard() {
         selectedMethod = "card";
-
-        // Highlight Card
         optionCard.setBackgroundResource(R.drawable.bg_selected_option);
-        radioCard.setImageResource(R.drawable.ic_check_circle);
-        radioCard.setColorFilter(getResources().getColor(R.color.pg_primary, null));
-
-        // Unhighlight COD
         optionCOD.setBackgroundResource(R.drawable.bg_unselected_option);
-        radioCOD.setImageResource(R.drawable.ic_circle_dashed);
-        radioCOD.setColorFilter(getResources().getColor(R.color.pg_sub, null));
 
-        // Show card details
+        radioCard.setImageResource(R.drawable.ic_check_circle);
+        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
+
+        radioCOD.setImageResource(R.drawable.ic_circle_dashed);
+        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_sub, null)));
+
         cardDetailsSection.setVisibility(View.VISIBLE);
     }
 
@@ -149,13 +142,25 @@ public class PaymentActivity extends AppCompatActivity {
             }
         }
 
-        // Save order to Firestore
         String uid     = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
         String orderId = "PG-" + System.currentTimeMillis();
+
+        List<Map<String, Object>> itemsList = new ArrayList<>();
+        for (Cart c : CartActivity.CART_STORE) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("medicineId",   c.getMedicineId());
+            item.put("medicineName", c.getMedicineName());
+            item.put("pharmacyId",   c.getPharmacyId());
+            item.put("pharmacyName", c.getPharmacyName());
+            item.put("price",        c.getPrice());
+            item.put("quantity",     c.getQuantity());
+            itemsList.add(item);
+        }
 
         Map<String, Object> order = new HashMap<>();
         order.put("orderId",       orderId);
         order.put("customerId",    uid);
+        order.put("items",         itemsList);
         order.put("subtotal",      subtotal);
         order.put("deliveryFee",   deliveryFee);
         order.put("total",         total);
@@ -163,7 +168,22 @@ public class PaymentActivity extends AppCompatActivity {
         order.put("status",        "pending");
         order.put("createdAt",     System.currentTimeMillis());
 
-        // Disable button to prevent double click
+        // Fetch customer address before saving
+        if (!uid.isEmpty()) {
+            db.collection("users").document(uid).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists() && doc.getString("address") != null) {
+                            order.put("deliveryAddress", doc.getString("address"));
+                        }
+                        saveOrderToFirestore(orderId, order);
+                    })
+                    .addOnFailureListener(e -> saveOrderToFirestore(orderId, order));
+        } else {
+            saveOrderToFirestore(orderId, order);
+        }
+    }
+
+    private void saveOrderToFirestore(String orderId, Map<String, Object> order) {
         MaterialButton btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
         btnPlaceOrder.setEnabled(false);
         btnPlaceOrder.setText("Placing order...");
@@ -172,11 +192,27 @@ public class PaymentActivity extends AppCompatActivity {
                 .document(orderId)
                 .set(order)
                 .addOnSuccessListener(aVoid -> {
+                    // Clear the cart after successful order
+                    CartActivity.clearCart();
+
+                    // Write confirmation notification
+                    String notifUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+                    if (!notifUid.isEmpty()) {
+                        java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                        notif.put("userId",      notifUid);
+                        notif.put("title",       "Order confirmed \uD83C\uDF89");
+                        notif.put("message",     "Your order " + orderId + " has been placed! We'll notify you when it's ready.");
+                        notif.put("type",        "order_placed");
+                        notif.put("referenceId", orderId);
+                        notif.put("isRead",      false);
+                        notif.put("createdAt",   System.currentTimeMillis());
+                        db.collection("notifications").add(notif);
+                    }
+
                     Toast.makeText(this,
                             "✅ Order placed successfully!",
                             Toast.LENGTH_SHORT).show();
 
-                    // Navigate to order tracking
                     Intent intent = new Intent(this, OrderTrackingActivity.class);
                     intent.putExtra("orderId", orderId);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -192,3 +228,4 @@ public class PaymentActivity extends AppCompatActivity {
                 });
     }
 }
+

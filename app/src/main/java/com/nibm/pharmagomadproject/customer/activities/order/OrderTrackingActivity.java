@@ -94,32 +94,81 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private void updateStatusUI(String status) {
         if (status == null) return;
 
-        // Update step indicators based on status
-        // (These IDs should match your activity_order_tracking.xml)
         try {
             android.widget.TextView tvStatus = findViewById(R.id.tvCurrentStatus);
             if (tvStatus != null) {
                 switch (status) {
                     case "pending":
                         tvStatus.setText("Order confirmed");
+                        setStepsProgress(1);
                         break;
                     case "processing":
                         tvStatus.setText("Pharmacy is preparing your order");
+                        setStepsProgress(2);
                         break;
                     case "picked_up":
                         tvStatus.setText("Rider picked up your order");
+                        setStepsProgress(3);
                         break;
                     case "out_for_delivery":
                         tvStatus.setText("Out for delivery");
+                        setStepsProgress(4);
                         break;
                     case "delivered":
                         tvStatus.setText("Delivered ✓");
+                        setStepsProgress(5);
                         break;
                     default:
                         tvStatus.setText(status);
                 }
             }
         } catch (Exception ignored) {}
+    }
+
+    private void setStepsProgress(int activeStep) {
+        int[] indicatorIds = {
+                R.id.indicatorStep1,
+                R.id.indicatorStep2,
+                R.id.indicatorStep3,
+                R.id.indicatorStep4,
+                R.id.indicatorStep5
+        };
+        int[] iconIds = {
+                R.id.iconStep1,
+                R.id.iconStep2,
+                R.id.iconStep3,
+                R.id.iconStep4,
+                R.id.iconStep5
+        };
+
+        for (int i = 0; i < 5; i++) {
+            View indicator = findViewById(indicatorIds[i]);
+            ImageView icon = findViewById(iconIds[i]);
+            if (indicator == null) continue;
+
+            int stepNum = i + 1;
+            if (activeStep == 5 || stepNum < activeStep) {
+                // Done step
+                indicator.setBackgroundResource(R.drawable.bg_step_done);
+                if (icon != null) {
+                    icon.setVisibility(View.VISIBLE);
+                    icon.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
+                }
+            } else if (stepNum == activeStep) {
+                // Active step
+                indicator.setBackgroundResource(R.drawable.bg_step_active);
+                if (icon != null) {
+                    icon.setVisibility(View.VISIBLE);
+                    icon.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(android.R.color.white, null)));
+                }
+            } else {
+                // Pending step
+                indicator.setBackgroundResource(R.drawable.bg_step_pending);
+                if (icon != null) {
+                    icon.setVisibility(View.GONE);
+                }
+            }
+        }
     }
 
     @Override

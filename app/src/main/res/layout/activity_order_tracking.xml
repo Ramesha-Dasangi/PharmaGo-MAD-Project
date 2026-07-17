@@ -139,11 +139,13 @@
                 android:layout_marginBottom="2dp">
 
                 <FrameLayout
+                    android:id="@+id/indicatorStep1"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@drawable/bg_step_done">
 
                     <ImageView
+                        android:id="@+id/iconStep1"
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:layout_gravity="center"
@@ -182,10 +184,12 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="2dp">
                 <FrameLayout
+                    android:id="@+id/indicatorStep2"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@drawable/bg_step_done">
                     <ImageView
+                        android:id="@+id/iconStep2"
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:layout_gravity="center"
@@ -223,10 +227,12 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="2dp">
                 <FrameLayout
+                    android:id="@+id/indicatorStep3"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@drawable/bg_step_done">
                     <ImageView
+                        android:id="@+id/iconStep3"
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:layout_gravity="center"
@@ -264,10 +270,12 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="2dp">
                 <FrameLayout
+                    android:id="@+id/indicatorStep4"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@drawable/bg_step_active">
                     <ImageView
+                        android:id="@+id/iconStep4"
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:layout_gravity="center"
@@ -305,9 +313,19 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="16dp">
                 <FrameLayout
+                    android:id="@+id/indicatorStep5"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@drawable/bg_step_pending">
+                    <ImageView
+                        android:id="@+id/iconStep5"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        android:contentDescription="@null"
+                        app:tint="@android:color/white"
+                        android:visibility="gone"/>
                 </FrameLayout>
                 <LinearLayout
                     android:layout_width="0dp"

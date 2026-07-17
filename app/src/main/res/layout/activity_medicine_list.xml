@@ -309,23 +309,30 @@
                     android:layout_marginBottom="20dp"/>
 
                 <!-- PHARMACY FILTER -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="SHOW / HIDE PHARMACIES"
-                    android:textColor="@color/pg_sub"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.1"
-                    android:layout_marginBottom="10dp"/>
-
-                <!-- Pharmacy checkboxes added programmatically -->
                 <LinearLayout
-                    android:id="@+id/pharmacyCheckboxContainer"
+                    android:id="@+id/layoutPharmacyFilter"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="20dp"/>
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SHOW / HIDE PHARMACIES"
+                        android:textColor="@color/pg_sub"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="10dp"/>
+
+                    <!-- Pharmacy checkboxes added programmatically -->
+                    <LinearLayout
+                        android:id="@+id/pharmacyCheckboxContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="20dp"/>
+                </LinearLayout>
 
                 <!-- Divider -->
                 <View

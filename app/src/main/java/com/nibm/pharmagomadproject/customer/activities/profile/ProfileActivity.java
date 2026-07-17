@@ -3,18 +3,27 @@ package com.nibm.pharmagomadproject.customer.activities.profile;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.EdgeToEdge;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.order.CartActivity;
 import com.nibm.pharmagomadproject.customer.activities.order.OrderHistoryActivity;
 import com.nibm.pharmagomadproject.customer.activities.auth.ChangePasswordActivity;
 import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 import com.nibm.pharmagomadproject.customer.activities.home.HomeActivity;
+import com.nibm.pharmagomadproject.customer.activities.medicine.MedicineListActivity;
 
 public class ProfileActivity extends AppCompatActivity {
+
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private TextView tvProfileName, tvProfileEmail, tvProfilePhone, tvProfileAddress;
+    private com.google.android.material.switchmaterial.SwitchMaterial switchNotifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +32,25 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_customer_profile);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
+        }
+
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        tvProfileName = findViewById(R.id.tvProfileName);
+        tvProfileEmail = findViewById(R.id.tvProfileEmail);
+        tvProfilePhone = findViewById(R.id.tvProfilePhone);
+        tvProfileAddress = findViewById(R.id.tvProfileAddress);
+        switchNotifications = findViewById(R.id.switchNotifications);
+
+        if (switchNotifications != null) {
+            switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (mAuth.getCurrentUser() != null) {
+                    String uid = mAuth.getCurrentUser().getUid();
+                    db.collection("users").document(uid)
+                            .update("notificationsEnabled", isChecked);
+                }
+            });
         }
 
         // Row: Delivery address
@@ -51,6 +79,39 @@ public class ProfileActivity extends AppCompatActivity {
         setupBottomNav();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserProfile();
+    }
+
+    private void loadUserProfile() {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String name = document.getString("name");
+                        String email = document.getString("email");
+                        String phone = document.getString("phone");
+                        String address = document.getString("address");
+                        Boolean notifEnabled = document.getBoolean("notificationsEnabled");
+
+                        if (tvProfileName != null && name != null) tvProfileName.setText(name);
+                        if (tvProfileEmail != null && email != null) tvProfileEmail.setText(email);
+                        if (tvProfilePhone != null && phone != null) tvProfilePhone.setText(phone);
+                        if (tvProfileAddress != null && address != null) {
+                            tvProfileAddress.setText(address);
+                        } else if (tvProfileAddress != null) {
+                            tvProfileAddress.setText("No address saved");
+                        }
+                        if (switchNotifications != null) {
+                            switchNotifications.setChecked(notifEnabled == null || notifEnabled);
+                        }
+                    }
+                });
+    }
+
     private void showLogoutDialog() {
         android.view.View dialogView = getLayoutInflater()
                 .inflate(R.layout.activity_dialog_logout, null);
@@ -71,7 +132,8 @@ public class ProfileActivity extends AppCompatActivity {
         dialogView.findViewById(R.id.btnConfirmLogout)
                 .setOnClickListener(v -> {
                     dialog.dismiss();
-                    // Clear session and go to login
+                    // Sign out and clear session
+                    mAuth.signOut();
                     Intent intent = new Intent(this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -83,13 +145,15 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupBottomNav() {
-        // navProfile is already active (no tint change needed)
         findViewById(R.id.navHome).setOnClickListener(v -> {
             startActivity(new Intent(this, HomeActivity.class));
             finish();
         });
         findViewById(R.id.navSearch).setOnClickListener(v -> {
-            // TODO: SearchActivity
+            Intent intent = new Intent(this, MedicineListActivity.class);
+            intent.putExtra(MedicineListActivity.EXTRA_MODE, "search");
+            startActivity(intent);
+            finish();
         });
         findViewById(R.id.navCart).setOnClickListener(v -> {
             startActivity(new Intent(this, CartActivity.class));

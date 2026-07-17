@@ -152,7 +152,26 @@
                     android:text="8:00 AM – 10:00 PM"
                     android:textColor="@color/pg_sub"
                     android:textSize="12sp"/>
+
+
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0771234567"
+                android:textSize="12sp"
+                android:textColor="@color/pg_sub"/>
+
+
+            <TextView
+                android:id="@+id/tvAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Colombo"
+                android:textSize="12sp"
+                android:textColor="@color/pg_sub"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 

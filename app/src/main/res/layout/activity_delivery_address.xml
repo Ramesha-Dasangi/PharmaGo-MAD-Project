@@ -106,9 +106,10 @@
                             android:layout_marginBottom="2dp" />
 
                         <TextView
+                            android:id="@+id/tvCurrentAddress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="No. 15, Galle Road, Colombo 3"
+                            android:text="No address saved"
                             android:textColor="@color/pg_sub"
                             android:textSize="11sp" />
 

@@ -49,8 +49,22 @@ public class DashboardActivity extends AppCompatActivity {
 
         loadLowStockCount();
 
-        // Pharmacy Name
-        txtPharmacy.setText("City Pharma Express");
+        // Load pharmacy name from Firestore
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        if (auth.getCurrentUser() != null) {
+            String uid = auth.getCurrentUser().getUid();
+            db.collection("pharmacies")
+                    .whereEqualTo("ownerId", uid)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener(snaps -> {
+                        if (!snaps.isEmpty()) {
+                            String name = snaps.getDocuments().get(0).getString("name");
+                            if (name != null) txtPharmacy.setText(name);
+                        }
+                    });
+        }
 
         // Greeting
         setGreeting();
