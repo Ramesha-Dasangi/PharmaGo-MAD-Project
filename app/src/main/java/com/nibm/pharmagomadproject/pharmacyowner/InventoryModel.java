@@ -3,6 +3,8 @@ package com.nibm.pharmagomadproject.pharmacyowner;
 
 public class InventoryModel {
 
+
+    private String medicineId;
     private String medicineName;
     private String category;
     private double price;
@@ -10,94 +12,125 @@ public class InventoryModel {
     private int maxStock;
 
 
-    // Empty constructor (Firestore සඳහා)
-    public InventoryModel() {
+
+    // Empty constructor Firestore
+    public InventoryModel(){
 
     }
 
 
-    // Existing constructor
-    public InventoryModel(String medicineName,
+
+    public InventoryModel(String medicineId,
+                          String medicineName,
                           String category,
                           double price,
-                          int stock) {
+                          int stock){
 
+
+        this.medicineId = medicineId;
         this.medicineName = medicineName;
         this.category = category;
         this.price = price;
         this.stock = stock;
         this.maxStock = 100;
-    }
 
-
-    // ADD THIS constructor
-    public InventoryModel(String medicineName,
-                          String category,
-                          String price,
-                          int stock,
-                          int maxStock) {
-
-        this.medicineName = medicineName;
-        this.category = category;
-
-        // "Rs.40" වගේ String එක Double කරන්න
-        this.price = Double.parseDouble(
-                price.replace("Rs.", "")
-        );
-
-        this.stock = stock;
-        this.maxStock = maxStock;
     }
 
 
 
-    public String getMedicineName() {
+
+    public String getMedicineId(){
+
+        return medicineId;
+
+    }
+
+
+    public String getMedicineName(){
+
         return medicineName;
+
     }
 
 
-    public String getCategory() {
+
+    public String getCategory(){
+
         return category;
+
     }
 
 
-    public double getPrice() {
+
+    public double getPrice(){
+
         return price;
+
     }
 
 
-    public int getStock() {
+
+    public int getStock(){
+
         return stock;
+
     }
 
 
-    public int getMaxStock() {
+
+    public int getMaxStock(){
+
         return maxStock;
+
     }
 
 
-    public void setMedicineName(String medicineName) {
+
+    public void setMedicineId(String medicineId){
+
+        this.medicineId = medicineId;
+
+    }
+
+
+
+    public void setMedicineName(String medicineName){
+
         this.medicineName = medicineName;
+
     }
 
 
-    public void setCategory(String category) {
+
+    public void setCategory(String category){
+
         this.category = category;
+
     }
 
 
-    public void setPrice(double price) {
+
+    public void setPrice(double price){
+
         this.price = price;
+
     }
 
 
-    public void setStock(int stock) {
+
+    public void setStock(int stock){
+
         this.stock = stock;
+
     }
 
 
-    public void setMaxStock(int maxStock) {
+
+    public void setMaxStock(int maxStock){
+
         this.maxStock = maxStock;
+
     }
+
 
 }
