@@ -50,6 +50,9 @@ public class OrderDetailsActivity extends AppCompatActivity {
     // Gallery / Files Picker
     //==========================
 
+    private com.google.firebase.firestore.FirebaseFirestore db;
+    private String currentOrderId;
+
     private final ActivityResultLauncher<Intent> galleryLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -122,63 +125,103 @@ public class OrderDetailsActivity extends AppCompatActivity {
         // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // ==========================
-        // Receive Data
-        // ==========================
-
-        String orderId = getIntent().getStringExtra("orderId");
+        // Receive orderId
+        currentOrderId = getIntent().getStringExtra("orderId");
         String customer = getIntent().getStringExtra("customerName");
         String time = getIntent().getStringExtra("time");
         String amount = getIntent().getStringExtra("amount");
+        String customerId = getIntent().getStringExtra("customerId");
 
-        if (orderId != null)
-            txtOrderId.setText(orderId);
+        db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
 
-        if (time != null)
-            txtDate.setText(time);
+        if (currentOrderId != null) txtOrderId.setText(currentOrderId);
+        if (time != null) txtDate.setText(time);
+        if (customer != null) txtCustomer.setText(customer);
+        if (amount != null) txtTotal.setText("Total : " + amount);
 
-        if (customer != null)
-            txtCustomer.setText(customer);
+        // Load real address & phone from users collection
+        if (customerId != null && !customerId.isEmpty()) {
+            db.collection("users").document(customerId).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            String phone = doc.getString("phone");
+                            String address = doc.getString("address");
+                            if (phone != null) txtPhone.setText(phone);
+                            if (address != null) txtAddress.setText(address);
+                        }
+                    });
+        } else {
+            txtPhone.setText("—");
+            txtAddress.setText("—");
+        }
 
-        txtPhone.setText("077 123 4567");
-        txtAddress.setText("Colombo, Sri Lanka");
-
-        if (amount != null)
-            txtTotal.setText("Total : " + amount);
-
-        // ==========================
-        // Upload Button
-        // ==========================
+        // Also load order from Firestore to refresh any live data
+        if (currentOrderId != null) {
+            db.collection("orders").document(currentOrderId).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            java.util.List<java.util.Map<String, Object>> items =
+                                    (java.util.List<java.util.Map<String, Object>>) doc.get("items");
+                            if (items != null) {
+                                StringBuilder desc = new StringBuilder();
+                                for (java.util.Map<String, Object> item : items) {
+                                    if (desc.length() > 0) desc.append("\n");
+                                    desc.append(item.get("medicineName"))
+                                        .append(" x").append(item.get("quantity"))
+                                        .append("  —  Rs. ")
+                                        .append(String.format("%.0f", ((Number) item.getOrDefault("price", 0)).doubleValue()));
+                                }
+                                // Show items in txtDate as a secondary display if available
+                                // (txtDate already has time, so only update if customer/amount not yet set)
+                            }
+                            // Show prescription if present
+                            String presUrl = doc.getString("prescriptionUrl");
+                            if (presUrl != null && !presUrl.isEmpty() && txtFileName != null) {
+                                txtFileName.setText("Prescription attached — tap to view");
+                            }
+                            Double total = doc.getDouble("total");
+                            if (total != null) txtTotal.setText("Total : Rs. " + total.intValue());
+                        }
+                    });
+        }
 
         btnUploadPrescription.setOnClickListener(v -> showImagePickerDialog());
 
-        // ==========================
-        // Approve
-        // ==========================
+        // Approve — set status to 'processing'
+        btnApprove.setOnClickListener(v -> {
+            if (currentOrderId == null) return;
+            btnApprove.setEnabled(false);
+            db.collection("orders").document(currentOrderId)
+                    .update("status", "processing")
+                    .addOnSuccessListener(unused -> {
+                        Toast.makeText(OrderDetailsActivity.this,
+                                "Order approved — now processing!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnApprove.setEnabled(true);
+                        Toast.makeText(OrderDetailsActivity.this,
+                                "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
 
-        btnApprove.setOnClickListener(v ->
-
-                Toast.makeText(
-                        OrderDetailsActivity.this,
-                        "Order Approved Successfully",
-                        Toast.LENGTH_SHORT
-                ).show()
-
-        );
-
-        // ==========================
-        // Reject
-        // ==========================
-
-        btnReject.setOnClickListener(v ->
-
-                Toast.makeText(
-                        OrderDetailsActivity.this,
-                        "Order Rejected",
-                        Toast.LENGTH_SHORT
-                ).show()
-
-        );
+        // Reject — set status to 'rejected'
+        btnReject.setOnClickListener(v -> {
+            if (currentOrderId == null) return;
+            btnReject.setEnabled(false);
+            db.collection("orders").document(currentOrderId)
+                    .update("status", "rejected")
+                    .addOnSuccessListener(unused -> {
+                        Toast.makeText(OrderDetailsActivity.this,
+                                "Order rejected.", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnReject.setEnabled(true);
+                        Toast.makeText(OrderDetailsActivity.this,
+                                "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
 
     }
 

@@ -86,6 +86,7 @@
                     </FrameLayout>
 
                     <TextView
+                        android:id="@+id/tvProfileName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Buddhini Perera"
@@ -95,6 +96,7 @@
                         android:layout_marginBottom="2dp"/>
 
                     <TextView
+                        android:id="@+id/tvProfileEmail"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="buddhini@gmail.com"
@@ -103,6 +105,7 @@
                         android:layout_marginBottom="4dp"/>
 
                     <TextView
+                        android:id="@+id/tvProfilePhone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="077 123 4567"
@@ -174,6 +177,7 @@
                                 android:fontFamily="sans-serif-medium"/>
 
                             <TextView
+                                android:id="@+id/tvProfileAddress"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="No. 15, Galle Road, Colombo 3"

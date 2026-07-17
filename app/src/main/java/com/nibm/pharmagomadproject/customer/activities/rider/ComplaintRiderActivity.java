@@ -4,15 +4,24 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ComplaintRiderActivity extends AppCompatActivity {
 
     private String selectedChip = "Late delivery";
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +29,9 @@ public class ComplaintRiderActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_complaint_rider);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
+
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
@@ -60,7 +72,35 @@ public class ComplaintRiderActivity extends AppCompatActivity {
             etDesc.requestFocus();
             return;
         }
-        Toast.makeText(this, "Complaint submitted successfully!", Toast.LENGTH_LONG).show();
-        finish();
+
+        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+        String complaintId = "CMP-" + System.currentTimeMillis();
+
+        Map<String, Object> complaint = new HashMap<>();
+        complaint.put("complaintId", complaintId);
+        complaint.put("customerId", uid);
+        complaint.put("type", "rider");
+        complaint.put("targetName", "Delivery Rider");
+        complaint.put("category", selectedChip);
+        complaint.put("description", desc);
+        complaint.put("status", "pending");
+        complaint.put("createdAt", System.currentTimeMillis());
+
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitComplaintRider);
+        btnSubmit.setEnabled(false);
+        btnSubmit.setText("Submitting...");
+
+        db.collection("complaints")
+                .document(complaintId)
+                .set(complaint)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Complaint submitted successfully!", Toast.LENGTH_LONG).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnSubmit.setEnabled(true);
+                    btnSubmit.setText("Submit Complaint");
+                    Toast.makeText(this, "Failed to submit: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

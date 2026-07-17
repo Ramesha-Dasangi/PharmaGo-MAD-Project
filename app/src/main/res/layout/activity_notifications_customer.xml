@@ -44,150 +44,15 @@
 
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvNotifications"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:padding="16dp"
+        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Notif 1: Order -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="12dp">
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_tab_selected"
-                        android:layout_marginEnd="10dp">
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_orders"
-                            android:contentDescription="@null"
-                            app:tint="@color/pg_primary"/>
-                    </FrameLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Order out for delivery"
-                            android:textColor="@color/pg_text" android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="#PG-00234 · Your order is on the way!"
-                            android:textColor="@color/pg_sub" android:textSize="11sp"
-                            android:layout_marginTop="2dp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="2 mins ago"
-                            android:textColor="@color/pg_sub" android:textSize="10sp"
-                            android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Notif 2: Rx verified -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="12dp">
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_tab_selected"
-                        android:layout_marginEnd="10dp">
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check_circle"
-                            android:contentDescription="@null"
-                            app:tint="@color/pg_primary"/>
-                    </FrameLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Prescription verified"
-                            android:textColor="@color/pg_text" android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="MediCare Pharmacy approved your Rx"
-                            android:textColor="@color/pg_sub" android:textSize="11sp"
-                            android:layout_marginTop="2dp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="1 hr ago"
-                            android:textColor="@color/pg_sub" android:textSize="10sp"
-                            android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Notif 3: Delivered -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/pg_card">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="12dp">
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_tag_green"
-                        android:layout_marginEnd="10dp">
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check"
-                            android:contentDescription="@null"
-                            app:tint="#065F46"/>
-                    </FrameLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Order delivered!"
-                            android:textColor="@color/pg_text" android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="#PG-00229 delivered successfully"
-                            android:textColor="@color/pg_sub" android:textSize="11sp"
-                            android:layout_marginTop="2dp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Yesterday"
-                            android:textColor="@color/pg_sub" android:textSize="10sp"
-                            android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-    </ScrollView>
+        app:layout_constraintEnd_toEndOf="parent" />>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
