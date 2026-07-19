@@ -43,13 +43,7 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity> <!-- <activity -->
+            android:exported="false" /> <!-- <activity -->
         <!-- android:name=".customer.dialog_logout" -->
         <!-- android:exported="false" /> -->
         <activity
@@ -162,7 +156,13 @@
             android:exported="false" /> <!-- Delivery Rider -->
         <activity
             android:name=".deliveryrider.RiderDashboardActivity"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".deliveryrider.AssignmentDetailsActivity"
             android:exported="false" />

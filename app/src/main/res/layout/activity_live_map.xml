@@ -45,10 +45,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/bottomPanel">
         
-        <org.osmdroid.views.MapView
-            android:id="@+id/mapView"
+        <ImageView
+            android:id="@+id/mapPlaceholder"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="#E5E5E5"
+            android:src="@android:drawable/ic_dialog_map"
+            android:scaleType="center"
+            app:tint="#999999" />
             
         <TextView
             android:layout_width="wrap_content"
