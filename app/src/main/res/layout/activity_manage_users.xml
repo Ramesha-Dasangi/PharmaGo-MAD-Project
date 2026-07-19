@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
+
+    <View
+        android:id="@+id/topBackground"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_back"
+        app:tint="@color/white"
+        android:layout_marginTop="56dp"
+        android:layout_marginStart="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Manage users"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toEndOf="@id/ivBack"
+        app:layout_constraintTop_toTopOf="@id/ivBack"
+        app:layout_constraintBottom_toBottomOf="@id/ivBack" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Tabs -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/tabAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All"
+                    android:textColor="@color/white"
+                    android:background="@drawable/tab_active_bg"
+                    android:paddingVertical="8dp"
+                    android:paddingHorizontal="14dp"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="4dp" />
+
+                <TextView
+                    android:id="@+id/tabCustomers"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Customers"
+                    android:textColor="@color/colorTextSecondary"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/tabPharmacies"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pharmacies"
+                    android:textColor="@color/colorTextSecondary"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/tabRiders"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Riders"
+                    android:textColor="@color/colorTextSecondary"
+                    android:gravity="center" />
+            </LinearLayout>
+
+            <!-- ALL TAB CONTENT -->
+            <LinearLayout
+                android:id="@+id/llAll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Customer 1 -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp">
+                        <ImageView android:id="@+id/ivI1" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@android:drawable/ic_menu_myplaces" android:background="@drawable/icon_bg_green"
+                            android:padding="12dp" app:tint="@color/colorAccent"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvN1" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Buddhini Perera" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivI1" app:layout_constraintTop_toTopOf="@id/ivI1" app:layout_constraintEnd_toStartOf="@id/tvS1" />
+                        <TextView android:id="@+id/tvR1" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Customer · Jan 2026" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivI1" app:layout_constraintTop_toBottomOf="@id/tvN1" />
+                        <TextView android:id="@+id/tvS1" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Pharmacy 1 -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp">
+                        <ImageView android:id="@+id/ivI2" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@drawable/ic_store" android:background="@drawable/icon_bg_blue"
+                            android:padding="12dp" app:tint="@color/colorBlue"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvN2" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="MediCare Pharmacy" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivI2" app:layout_constraintTop_toTopOf="@id/ivI2" app:layout_constraintEnd_toStartOf="@id/tvS2" />
+                        <TextView android:id="@+id/tvR2" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Pharmacy · Colombo 3" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivI2" app:layout_constraintTop_toBottomOf="@id/tvN2" />
+                        <TextView android:id="@+id/tvS2" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Flagged Customer -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:padding="16dp">
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp">
+                            <ImageView android:id="@+id/ivI3" android:layout_width="48dp" android:layout_height="48dp"
+                                android:src="@android:drawable/ic_menu_myplaces" android:background="@drawable/bg_warning_red"
+                                android:padding="12dp" app:tint="@color/colorRed"
+                                app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                            <TextView android:id="@+id/tvN3" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:text="Unknown User 882" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                                android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                                app:layout_constraintStart_toEndOf="@id/ivI3" app:layout_constraintTop_toTopOf="@id/ivI3" app:layout_constraintEnd_toStartOf="@id/tvS3" />
+                            <TextView android:id="@+id/tvR3" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:text="Customer · 4 reports" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                                android:layout_marginStart="16dp"
+                                app:layout_constraintStart_toEndOf="@id/ivI3" app:layout_constraintTop_toBottomOf="@id/tvN3" />
+                            <TextView android:id="@+id/tvS3" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Flagged" android:textColor="@color/colorRed" android:background="@drawable/bg_warning_red"
+                                android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDeleteAccount"
+                            android:layout_width="match_parent" android:layout_height="56dp"
+                            android:text="Delete flagged account" android:textColor="@color/white"
+                            app:icon="@android:drawable/ic_menu_delete" app:iconGravity="textStart" app:iconTint="@color/white"
+                            app:backgroundTint="#D32F2F" app:cornerRadius="12dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- CUSTOMERS TAB -->
+            <LinearLayout
+                android:id="@+id/llCustomers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivC1" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@android:drawable/ic_menu_myplaces" android:background="@drawable/icon_bg_green"
+                            android:padding="12dp" app:tint="@color/colorAccent"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNC1" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Buddhini Perera" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivC1" app:layout_constraintTop_toTopOf="@id/ivC1" app:layout_constraintEnd_toStartOf="@id/tvSC1" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Customer · Jan 2026" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivC1" app:layout_constraintTop_toBottomOf="@id/tvNC1" />
+                        <TextView android:id="@+id/tvSC1" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivC2" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@android:drawable/ic_menu_myplaces" android:background="@drawable/icon_bg_green"
+                            android:padding="12dp" app:tint="@color/colorAccent"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNC2" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Saman Kumara" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivC2" app:layout_constraintTop_toTopOf="@id/ivC2" app:layout_constraintEnd_toStartOf="@id/tvSC2" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Customer · Mar 2026" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivC2" app:layout_constraintTop_toBottomOf="@id/tvNC2" />
+                        <TextView android:id="@+id/tvSC2" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:padding="16dp">
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp">
+                            <ImageView android:id="@+id/ivC3" android:layout_width="48dp" android:layout_height="48dp"
+                                android:src="@android:drawable/ic_menu_myplaces" android:background="@drawable/bg_warning_red"
+                                android:padding="12dp" app:tint="@color/colorRed"
+                                app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                            <TextView android:id="@+id/tvNC3" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:text="Unknown User 882" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                                android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                                app:layout_constraintStart_toEndOf="@id/ivC3" app:layout_constraintTop_toTopOf="@id/ivC3" app:layout_constraintEnd_toStartOf="@id/tvSC3" />
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:text="Customer · 4 reports" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                                android:layout_marginStart="16dp"
+                                app:layout_constraintStart_toEndOf="@id/ivC3" app:layout_constraintTop_toBottomOf="@id/tvNC3" />
+                            <TextView android:id="@+id/tvSC3" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Flagged" android:textColor="@color/colorRed" android:background="@drawable/bg_warning_red"
+                                android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDeleteCustomer"
+                            android:layout_width="match_parent" android:layout_height="56dp"
+                            android:text="Delete flagged account" android:textColor="@color/white"
+                            app:icon="@android:drawable/ic_menu_delete" app:iconGravity="textStart" app:iconTint="@color/white"
+                            app:backgroundTint="#D32F2F" app:cornerRadius="12dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- PHARMACIES TAB -->
+            <LinearLayout
+                android:id="@+id/llPharmacies"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivP1" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@drawable/ic_store" android:background="@drawable/icon_bg_blue"
+                            android:padding="12dp" app:tint="@color/colorBlue"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNP1" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="MediCare Pharmacy" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivP1" app:layout_constraintTop_toTopOf="@id/ivP1" app:layout_constraintEnd_toStartOf="@id/tvSP1" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Pharmacy · Colombo 3" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivP1" app:layout_constraintTop_toBottomOf="@id/tvNP1" />
+                        <TextView android:id="@+id/tvSP1" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivP2" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@drawable/ic_store" android:background="@drawable/icon_bg_blue"
+                            android:padding="12dp" app:tint="@color/colorBlue"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNP2" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="City Pharma Express" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivP2" app:layout_constraintTop_toTopOf="@id/ivP2" app:layout_constraintEnd_toStartOf="@id/tvSP2" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Pharmacy · Kandy" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivP2" app:layout_constraintTop_toBottomOf="@id/tvNP2" />
+                        <TextView android:id="@+id/tvSP2" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- RIDERS TAB -->
+            <LinearLayout
+                android:id="@+id/llRiders"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivRd1" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@drawable/ic_motorcycle" android:background="@drawable/icon_bg_green"
+                            android:padding="12dp" app:tint="@color/colorAccent"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNRd1" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Kamal Silva" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivRd1" app:layout_constraintTop_toTopOf="@id/ivRd1" app:layout_constraintEnd_toStartOf="@id/tvSRd1" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Rider · 2 active orders" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivRd1" app:layout_constraintTop_toBottomOf="@id/tvNRd1" />
+                        <TextView android:id="@+id/tvSRd1" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivRd2" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@drawable/ic_motorcycle" android:background="@drawable/icon_bg_green"
+                            android:padding="12dp" app:tint="@color/colorAccent"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNRd2" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Nuwan Fernando" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivRd2" app:layout_constraintTop_toTopOf="@id/ivRd2" app:layout_constraintEnd_toStartOf="@id/tvSRd2" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Rider · Available" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivRd2" app:layout_constraintTop_toBottomOf="@id/tvNRd2" />
+                        <TextView android:id="@+id/tvSRd2" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp" app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                        <ImageView android:id="@+id/ivRd3" android:layout_width="48dp" android:layout_height="48dp"
+                            android:src="@drawable/ic_motorcycle" android:background="@drawable/icon_bg_green"
+                            android:padding="12dp" app:tint="@color/colorAccent"
+                            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvNRd3" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Sahan Jayasuriya" android:textColor="@color/black" android:textSize="16sp" android:textStyle="bold"
+                            android:layout_marginStart="16dp" android:layout_marginEnd="8dp"
+                            app:layout_constraintStart_toEndOf="@id/ivRd3" app:layout_constraintTop_toTopOf="@id/ivRd3" app:layout_constraintEnd_toStartOf="@id/tvSRd3" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:text="Rider · 1 active order" android:textColor="@color/colorTextSecondary" android:textSize="12sp"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintStart_toEndOf="@id/ivRd3" app:layout_constraintTop_toBottomOf="@id/tvNRd3" />
+                        <TextView android:id="@+id/tvSRd3" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Active" android:textColor="@color/colorAccent" android:background="@drawable/bg_badge_green"
+                            android:paddingHorizontal="12dp" android:paddingVertical="4dp" android:textSize="12sp" android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

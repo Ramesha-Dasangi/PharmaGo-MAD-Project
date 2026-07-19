@@ -23,9 +23,16 @@ public class NotificationsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifications);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         recyclerNotifications = findViewById(R.id.recyclerNotifications);
         bottomNavigation = findViewById(R.id.bottomNavigation);
+
+        // Back
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+
 
         recyclerNotifications.setLayoutManager(
                 new LinearLayoutManager(this));

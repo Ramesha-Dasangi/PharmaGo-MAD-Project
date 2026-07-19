@@ -1,202 +1,218 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:fillViewport="true"
+    android:orientation="vertical"
     android:background="#F5F5F5">
+
+    <!-- HEADER -->
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="90dp"
+        android:background="@color/green"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
-        <!-- HEADER -->
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            app:tint="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginBottom="15dp"
-            android:background="@color/green"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:gravity="center"
             android:text="Edit Medicine"
             android:textColor="@android:color/white"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <!-- MEDICINE NAME -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="MEDICINE NAME"
-            android:textColor="@android:color/black"
-            android:textSize="15dp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/edtName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Panadol 500mg"
-            android:textSize="15dp"
-            android:textColor="@android:color/black"
-            android:textColorHint="#9E9E9E"/>
-
-        <!-- GENERIC -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="GENERIC NAME"
-            android:textStyle="bold"
-            android:textSize="15dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edtGeneric"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Paracetamol"
-            android:textSize="15dp"
-            android:textColor="@android:color/black"
-            android:textColorHint="#9E9E9E"/>
-
-        <!-- CATEGORY -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CATEGORY"
-            android:textStyle="bold"
-            android:textSize="15dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edtCategory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Pain Relief"
-            android:textSize="15dp"
-            android:textColor="@android:color/black"
-            android:textColorHint="#9E9E9E"/>
-
-        <!-- TYPE -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TYPE"
-            android:textStyle="bold"
-            android:textSize="15dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/black"/>
-
-        <RadioGroup
-            android:id="@+id/radioType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/rbOTC"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="OTC"
-                android:buttonTint="@color/green"/>
-
-            <RadioButton
-                android:id="@+id/rbPrescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="25dp"
-                android:text="Prescription"
-                android:buttonTint="@color/green"/>
-        </RadioGroup>
-
-        <!-- PRICE -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="PRICE (RS.)"
-            android:textStyle="bold"
-            android:textSize="15dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edtPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="40.00"
-            android:textColor="@android:color/black"
-            android:textSize="15dp"
-            android:textColorHint="#9E9E9E"/>
-
-        <!-- STOCK -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="STOCK QUANTITY"
-            android:textStyle="bold"
-            android:textSize="15dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edtStock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="100"
-            android:textColor="@android:color/black"
-            android:textSize="15dp"
-            android:textColorHint="#9E9E9E"/>
-
-        <!-- EXPIRY -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="EXPIRY DATE"
-            android:textStyle="bold"
-            android:textSize="15dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edtDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="2026-12-31"
-            android:textColor="@android:color/black"
-            android:textSize="15dp"
-            android:textColorHint="#9E9E9E"/>
-
-        <!-- SAVE -->
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="20dp"
-            android:text="Save Medicine"
-            android:textSize="15dp"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:backgroundTint="#00C389"/>
-
-        <!-- DELETE -->
-        <Button
-            android:id="@+id/btnDelete"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="20dp"
-            android:text="Delete Medicine"
-            android:textSize="15dp"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:backgroundTint="#F44336"/>
+            android:textSize="24dp"
+            android:textStyle="bold"/>
 
     </LinearLayout>
 
-</ScrollView>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- MEDICINE NAME -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MEDICINE NAME"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+
+                <EditText
+                    android:id="@+id/edtName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Panadol 500mg"/>
+
+                <!-- GENERIC -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="GENERIC NAME"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edtGeneric"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Paracetamol"/>
+
+                <!-- CATEGORY -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="CATEGORY"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edtCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Pain Relief"/>
+
+                <!-- TYPE -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="TYPE"
+                    android:textStyle="bold"/>
+
+                <RadioGroup
+                    android:id="@+id/radioType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbOTC"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="OTC"
+                        android:buttonTint="@color/green"/>
+
+                    <RadioButton
+                        android:id="@+id/rbPrescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:text="Prescription"
+                        android:buttonTint="@color/green"/>
+
+                </RadioGroup>
+
+                <!-- PRICE -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="PRICE (RS.)"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edtPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="40.00"
+                    android:inputType="numberDecimal"/>
+
+                <!-- STOCK -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="STOCK QUANTITY"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edtStock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="100"
+                    android:inputType="number"/>
+
+                <!-- EXPIRY -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="EXPIRY DATE"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edtDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="2026-12-31"/>
+
+                <!-- SAVE BUTTON -->
+
+                <Button
+                    android:id="@+id/btnSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:layout_marginTop="20dp"
+                    android:text="Update Medicine"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="@color/green"/>
+
+                <!-- DELETE BUTTON -->
+
+                <Button
+                    android:id="@+id/btnDelete"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Delete Medicine"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="#F44336"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </ScrollView>
+
+</LinearLayout>

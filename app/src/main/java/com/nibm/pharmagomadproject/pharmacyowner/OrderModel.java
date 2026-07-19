@@ -4,14 +4,16 @@ public class OrderModel {
 
     private String orderId;
     private String customerName;
+    private String customerId;
     private String itemCount;
     private String time;
     private String amount;
-    private String type;     // RX Required / OTC
-    private String status;   // New / Processing / Completed
+    private String type;
+    private String status;
 
     public OrderModel(String orderId,
                       String customerName,
+                      String customerId,
                       String itemCount,
                       String time,
                       String amount,
@@ -20,6 +22,7 @@ public class OrderModel {
 
         this.orderId = orderId;
         this.customerName = customerName;
+        this.customerId = customerId;
         this.itemCount = itemCount;
         this.time = time;
         this.amount = amount;
@@ -33,6 +36,10 @@ public class OrderModel {
 
     public String getCustomerName() {
         return customerName;
+    }
+
+    public String getCustomerId() {
+        return customerId;
     }
 
     public String getItemCount() {

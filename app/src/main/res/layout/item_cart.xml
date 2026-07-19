@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="5dp">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+
+        <!-- Medicine Name -->
+
+        <TextView
+            android:id="@+id/tvMedicineName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Medicine Name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/pg_text"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Brand + Pharmacy -->
+
+        <TextView
+            android:id="@+id/tvBrand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Brand · Pharmacy"
+            android:textSize="14sp"
+            android:textColor="@color/pg_text"
+            android:layout_marginTop="5dp"
+            app:layout_constraintTop_toBottomOf="@id/tvMedicineName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Price -->
+
+        <TextView
+            android:id="@+id/tvMedicinePrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rs. 100 each"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/pg_primary"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/tvBrand"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+
+        <!-- Subtotal -->
+
+        <TextView
+            android:id="@+id/tvSubtotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rs. 500"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/pg_text"
+            app:layout_constraintTop_toBottomOf="@id/tvBrand"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Quantity Layout -->
+
+        <LinearLayout
+
+            android:id="@+id/quantityLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="18dp"
+
+            app:layout_constraintTop_toBottomOf="@id/tvMedicinePrice"
+            app:layout_constraintStart_toStartOf="parent">
+
+
+            <ImageView
+
+                android:id="@+id/btnMinusMedicare"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:padding="8dp"
+                android:src="@android:drawable/ic_media_previous"
+                android:contentDescription="Decrease quantity"/>
+
+
+            <TextView
+
+                android:id="@+id/tvQtyMedicare"
+                android:layout_width="45dp"
+                android:layout_height="35dp"
+                android:gravity="center"
+                android:text="1"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+
+            <ImageView
+
+                android:id="@+id/btnPlusMedicare"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:padding="8dp"
+                android:src="@android:drawable/ic_input_add"
+                android:contentDescription="Increase quantity"/>
+
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

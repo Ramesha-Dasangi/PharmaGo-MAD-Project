@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.nibm.pharmagomadproject.R;
-
+import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.DashboardActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.InventoryActivity;
 import com.nibm.pharmagomadproject.pharmacyowner.OrdersActivity;
@@ -30,20 +30,17 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // ===========================
         // Initialize Views
-        // ===========================
 
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
         switchNotification = findViewById(R.id.switchNotification);
 
         txtChangePassword = findViewById(R.id.txtChangePassword);
+
         txtLogout = findViewById(R.id.txtLogout);
 
-        // ===========================
         // Notification Switch
-        // ===========================
 
         switchNotification.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
@@ -67,23 +64,21 @@ public class ProfileActivity extends AppCompatActivity {
 
         });
 
-        // ===========================
         // Change Password
-        // ===========================
 
-        txtChangePassword.setOnClickListener(v ->
+        txtChangePassword.setOnClickListener(v -> {
 
-                Toast.makeText(
-                        ProfileActivity.this,
-                        "Change Password Clicked",
-                        Toast.LENGTH_SHORT
-                ).show()
+            Intent intent = new Intent(
+                    ProfileActivity.this,
+                    ChangePasswordActivity.class
+            );
 
-        );
+            startActivity(intent);
 
-        // ===========================
+        });
+
+
         // Logout
-        // ===========================
 
         txtLogout.setOnClickListener(v -> {
 
@@ -93,13 +88,14 @@ public class ProfileActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT
             ).show();
 
-            finishAffinity();
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
 
         });
 
-        // ===========================
         // Bottom Navigation
-        // ===========================
 
         bottomNavigation.setSelectedItemId(R.id.nav_profile);
 
@@ -162,4 +158,5 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
     }
+
 }

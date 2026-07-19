@@ -17,19 +17,14 @@ import com.nibm.pharmagomadproject.R;
 
 import java.util.ArrayList;
 
-import com.nibm.pharmagomadproject.pharmacyowner.OrderModel;
-import com.nibm.pharmagomadproject.pharmacyowner.VerifyPrescriptionActivity;
-
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
 
     private Context context;
     private ArrayList<OrderModel> orderList;
 
     public OrderAdapter(Context context, ArrayList<OrderModel> orderList) {
-
         this.context = context;
         this.orderList = orderList;
-
     }
 
     @NonNull
@@ -40,7 +35,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
                 .inflate(R.layout.order_item, parent, false);
 
         return new ViewHolder(view);
-
     }
 
     @Override
@@ -57,63 +51,63 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         holder.btnStatus.setText(order.getStatus());
         holder.btnType.setText(order.getType());
 
-        // Status Button Colors
-
+        // STATUS COLOR
         if (order.getStatus().equalsIgnoreCase("New")) {
 
             holder.btnStatus.setBackgroundTintList(
-                    ColorStateList.valueOf(Color.parseColor("#4CAF50"))); // Green
+                    ColorStateList.valueOf(Color.parseColor("#4CAF50")));
 
         } else if (order.getStatus().equalsIgnoreCase("Processing")) {
 
             holder.btnStatus.setBackgroundTintList(
-                    ColorStateList.valueOf(Color.parseColor("#FF9800"))); // Orange
+                    ColorStateList.valueOf(Color.parseColor("#FF9800")));
 
         } else {
 
             holder.btnStatus.setBackgroundTintList(
-                    ColorStateList.valueOf(Color.parseColor("#2196F3"))); // Blue
-
+                    ColorStateList.valueOf(Color.parseColor("#2196F3")));
         }
 
         holder.btnStatus.setTextColor(Color.WHITE);
 
-        // Medicine Type Button
-
-        if (order.getType().equalsIgnoreCase("RX Required")
-                || order.getType().equalsIgnoreCase("Rx Required")) {
+        // TYPE BUTTON
+        if (order.getType().equalsIgnoreCase("RX Required")) {
 
             holder.btnType.setBackgroundTintList(
-                    ColorStateList.valueOf(Color.parseColor("#E53935"))); // Red
+                    ColorStateList.valueOf(Color.parseColor("#E53935")));
 
             holder.btnType.setTextColor(Color.WHITE);
 
             holder.btnType.setOnClickListener(v -> {
-
-                Intent intent = new Intent(
-                        context,
-                        VerifyPrescriptionActivity.class);
-
+                Intent intent = new Intent(context, VerifyPrescriptionActivity.class);
                 context.startActivity(intent);
-
             });
 
         } else {
 
             holder.btnType.setBackgroundTintList(
-                    ColorStateList.valueOf(Color.parseColor("#4CAF50"))); // Green
+                    ColorStateList.valueOf(Color.parseColor("#4CAF50")));
 
             holder.btnType.setTextColor(Color.WHITE);
-
-            holder.btnType.setOnClickListener(v -> {
-
-                // OTC Order
-                // No prescription verification required
-
-            });
-
         }
 
+        // ✅ VIEW BUTTON CLICK
+        holder.btnView.setOnClickListener(v -> {
+
+            Intent intent = new Intent(context, OrderDetailsActivity.class);
+
+            intent.putExtra("orderId", order.getOrderId());
+            intent.putExtra("customerName", order.getCustomerName());
+            intent.putExtra("customerId", order.getCustomerId());
+            intent.putExtra("items", order.getItemCount());
+            intent.putExtra("time", order.getTime());
+            intent.putExtra("amount", order.getAmount());
+            intent.putExtra("status", order.getStatus());
+            intent.putExtra("type", order.getType());
+
+            context.startActivity(intent);
+
+        });
     }
 
     @Override
@@ -123,14 +117,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView txtOrderId;
-        TextView txtCustomer;
-        TextView txtItems;
-        TextView txtTime;
-        TextView txtAmount;
-
-        Button btnStatus;
-        Button btnType;
+        TextView txtOrderId, txtCustomer, txtItems, txtTime, txtAmount;
+        Button btnStatus, btnType, btnView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -143,7 +131,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
             btnStatus = itemView.findViewById(R.id.btnStatus);
             btnType = itemView.findViewById(R.id.btnType);
-
+            btnView = itemView.findViewById(R.id.btnView);
         }
     }
 }

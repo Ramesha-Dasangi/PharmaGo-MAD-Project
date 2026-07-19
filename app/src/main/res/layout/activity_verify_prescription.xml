@@ -4,10 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#F5F5F5">
 
-    <!-- Header -->
+    <!-- HEADER -->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,13 +17,17 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <ImageButton
+        <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@android:color/transparent"
-            android:src="@android:drawable/ic_media_previous"
-            android:tint="@android:color/white"/>
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            app:tint="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -31,8 +35,8 @@
             android:layout_marginStart="12dp"
             android:text="Verify Prescription"
             android:textColor="@android:color/white"
-            android:textSize="28dp"
-            android:textStyle="bold"/>
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
@@ -46,125 +50,149 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Order Details -->
+            <!-- ORDER DETAILS -->
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="15dp">
+                app:cardCornerRadius="15dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="15dp">
+                    android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/txtOrder"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Order : #PG-00234"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        android:textSize="16sp" />
 
                     <TextView
+                        android:id="@+id/txtPatient"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Patient : Buddhini Perera"/>
+                        android:layout_marginTop="8dp"
+                        android:text="Patient : Buddhini Perera" />
 
                     <TextView
+                        android:id="@+id/txtMedicine"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Medicine : Paracetamol 500mg"/>
+                        android:layout_marginTop="8dp"
+                        android:text="Medicine : Paracetamol 500mg" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Uploaded Prescription -->
+            <!-- PRESCRIPTION -->
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Uploaded Prescription"
-                android:textSize="18sp"
-                android:textStyle="bold"/>
+                android:layout_marginTop="20dp"
+                android:text="Upload Prescription"
+                android:textStyle="bold"
+                android:textSize="18sp" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:cardCornerRadius="15dp">
+                app:cardCornerRadius="15dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:padding="16dp">
 
                     <ImageView
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@android:drawable/ic_menu_gallery"/>
+                        android:id="@+id/imgPrescription"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:background="#EEEEEE"
+                        android:padding="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@android:drawable/ic_menu_gallery" />
 
                     <TextView
+                        android:id="@+id/txtFileName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="prescription.jpg"/>
+                        android:layout_marginTop="12dp"
+                        android:text="No Prescription Selected"
+                        android:textColor="#666666"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnUploadPrescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="16dp"
+                        android:backgroundTint="@color/green"
+                        android:text="Upload Prescription"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Checklist -->
+            <!-- CHECKLIST -->
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:text="Verification Checklist"
-                android:textSize="18sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:textSize="18sp" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:cardCornerRadius="15dp">
+                app:cardCornerRadius="15dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="15dp">
+                    android:padding="16dp">
 
                     <CheckBox
                         android:id="@+id/chkSignature"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="Doctor signature present"/>
+                        android:text="Doctor Signature Present" />
 
                     <CheckBox
                         android:id="@+id/chkMedicine"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="Medicine name matches order"/>
+                        android:text="Medicine Matches Order" />
 
                     <CheckBox
                         android:id="@+id/chkExpiry"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Prescription not expired"/>
+                        android:text="Prescription Not Expired" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Buttons -->
+            <!-- BUTTONS -->
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -175,28 +203,24 @@
                 <Button
                     android:id="@+id/btnReject"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:backgroundTint="#F44336"
-                    android:gravity="center"
                     android:text="Reject"
                     android:textAllCaps="false"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    android:textColor="@android:color/white" />
 
                 <Button
                     android:id="@+id/btnApprove"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="@color/green"
-                    android:gravity="center"
-                    android:text="Approve/Confirm"
+                    android:text="Approve"
                     android:textAllCaps="false"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    android:textColor="@android:color/white" />
 
             </LinearLayout>
 

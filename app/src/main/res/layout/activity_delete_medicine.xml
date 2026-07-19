@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- TOP BAR -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:background="#00C389"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            app:tint="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Delete Medicine"
+            android:textColor="@android:color/white"
+            android:textSize="28dp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <!-- CONTENT -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="25dp">
+
+        <!-- Warning Circle -->
+
+        <ImageView
+            android:id="@+id/imgWarning"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@android:drawable/stat_sys_warning"
+            android:tint="#F44336"
+            android:background="#FFEBEE"
+            android:padding="25dp"/>
+
+        <!-- Title -->
+
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Delete Panadol 500mg?"
+            android:textColor="@android:color/black"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <!-- Description -->
+
+        <TextView
+            android:id="@+id/txtDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="This will remove the medicine from your inventory. Customers won't be able to find or order it anymore. This can't be undone."
+            android:textColor="#757575"
+            android:textSize="15sp"/>
+
+        <!-- Delete Button -->
+
+        <Button
+            android:id="@+id/btnDeleteMedicine"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="35dp"
+            android:backgroundTint="#F44336"
+            android:text="Yes, Delete Medicine"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"/>
+
+        <!-- Cancel Button -->
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="15dp"
+            android:backgroundTint="@android:color/white"
+            android:text="Cancel"
+            android:textAllCaps="false"
+            android:textColor="#00C389"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

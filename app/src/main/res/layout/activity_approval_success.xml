@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <ImageView
+        android:id="@+id/imgSuccess"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:src="@drawable/ic_success"
+        android:contentDescription="Success"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Congratulations!"
+        android:textStyle="bold"
+        android:textSize="28sp"
+        android:textColor="#222222"/>
+
+    <TextView
+        android:id="@+id/txtMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="Your Pharmacy Account&#10;Has Been Approved"
+        android:textAlignment="center"
+        android:textColor="#00C389"
+        android:textStyle="bold"
+        android:textSize="22sp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        android:text="You can now access all features\nand start managing your pharmacy."
+        android:textColor="#666666"
+        android:textSize="16sp"/>
+
+    <Button
+        android:id="@+id/btnDashboard"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginTop="45dp"
+        android:backgroundTint="#00C389"
+        android:text="GO TO DASHBOARD"
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        android:textColor="@android:color/white"/>
+
+</LinearLayout>

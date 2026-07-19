@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/pg_bg"
-    tools:context=".customer.MedicineDetailsActivity">
+    tools:context=".customer.activities.medicine.MedicineDetailsActivity">
 
     <!-- Top bar -->
     <LinearLayout
@@ -91,19 +91,20 @@
                     android:gravity="center"
                     android:padding="20dp">
 
-                    <!-- Medicine icon placeholder -->
+                    <!-- Medicine icon / image container -->
                     <FrameLayout
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
                         android:background="@drawable/bg_medicine_icon"
                         android:layout_marginBottom="12dp">
                         <ImageView
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
+                            android:id="@+id/imgMedicine"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_pill"
-                            android:contentDescription="@null"
-                            app:tint="@color/pg_primary" />
+                            app:tint="@color/pg_primary"
+                            android:padding="16dp" />
                     </FrameLayout>
 
                     <!-- Medicine name -->
@@ -119,6 +120,7 @@
 
                     <!-- Manufacturer -->
                     <TextView
+                        android:id="@+id/tvManufacturer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="GSK Pharmaceuticals · 10 tablets"
@@ -203,6 +205,7 @@
                         android:layout_marginBottom="6dp">
 
                         <TextView
+                            android:id="@+id/tvPharmacy1Name"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -212,6 +215,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tvPharmacy1Price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rs. 42"
@@ -275,6 +279,7 @@
                         android:layout_marginBottom="6dp">
 
                         <TextView
+                            android:id="@+id/tvPharmacy2Name"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -284,6 +289,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tvPharmacy2Price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rs. 45"
@@ -336,6 +342,7 @@
                         android:layout_marginBottom="6dp">
 
                         <TextView
+                            android:id="@+id/tvPharmacy3Name"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -345,6 +352,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tvPharmacy3Price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rs. 50"
