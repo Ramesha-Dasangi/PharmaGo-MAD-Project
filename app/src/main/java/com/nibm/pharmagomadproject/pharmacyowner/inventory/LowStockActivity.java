@@ -8,12 +8,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.pharmacyowner.InventoryModel;
 import com.nibm.pharmagomadproject.pharmacyowner.LowStockAdapter;
+import com.nibm.pharmagomadproject.pharmacyowner.NetworkUtils;
 
 
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ public class LowStockActivity extends AppCompatActivity {
     ArrayList<InventoryModel> lowStockList;
 
     FirebaseFirestore db;
+    FirebaseAuth mAuth;
 
 
 
@@ -68,8 +72,7 @@ public class LowStockActivity extends AppCompatActivity {
 
 
         db = FirebaseFirestore.getInstance();
-
-
+        mAuth = FirebaseAuth.getInstance();
 
         loadLowStockMedicines();
 
@@ -80,132 +83,68 @@ public class LowStockActivity extends AppCompatActivity {
 
     private void loadLowStockMedicines(){
 
+        if (!NetworkUtils.isNetworkAvailable(LowStockActivity.this)) {
+            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        String ownerId = user.getUid();
 
         db.collection("medicines")
-
-
-                .whereLessThanOrEqualTo(
-                        "stock",
-                        10
-                )
-
-
+                .whereEqualTo("pharmacyId", ownerId)
                 .get()
-
-
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-
-
 
                     lowStockList.clear();
 
-
-
                     for(QueryDocumentSnapshot document : queryDocumentSnapshots){
 
-
-
-                        InventoryModel model =
-                                new InventoryModel();
-
-
-
-                        // Document ID save
-                        model.setMedicineId(
-                                document.getId()
-                        );
-
-
-
-                        model.setMedicineName(
-                                document.getString("medicineName")
-                        );
-
-
-
-                        model.setCategory(
-                                document.getString("category")
-                        );
-
-
-
-                        Long stock =
-                                document.getLong("stock");
-
-
-
-                        if(stock != null){
-
-                            model.setStock(
-                                    stock.intValue()
-                            );
-
+                        Boolean deleted = document.getBoolean("deleted");
+                        if (Boolean.TRUE.equals(deleted)) {
+                            continue; // Skip soft deleted items
                         }
 
+                        Long stock = document.getLong("stock");
+                        if (stock != null && stock <= 20) {   // threshold = 20
+                            InventoryModel model = new InventoryModel();
+                            model.setMedicineId(document.getId());
+                            model.setMedicineName(document.getString("medicineName"));
+                            model.setCategory(document.getString("category"));
+                            model.setStock(stock.intValue());
 
+                            Double price = document.getDouble("price");
+                            if(price != null){
+                                model.setPrice(price);
+                            }
 
-                        Long price =
-                                document.getLong("price");
-
-
-
-                        if(price != null){
-
-                            model.setPrice(
-                                    price.doubleValue()
-                            );
-
+                            model.setMaxStock(20);   // threshold = 20
+                            lowStockList.add(model);
                         }
-
-
-
-                        // Reorder level
-                        model.setMaxStock(10);
-
-
-
-                        lowStockList.add(model);
-
-
-
                     }
-
-
 
                     adapter.notifyDataSetChanged();
 
-
-
                     if(lowStockList.isEmpty()){
-
-
                         Toast.makeText(
                                 this,
                                 "No Low Stock Medicines",
                                 Toast.LENGTH_SHORT
                         ).show();
-
                     }
-
-
-
                 })
-
-
-
                 .addOnFailureListener(e -> {
-
-
                     Toast.makeText(
                             this,
-                            e.getMessage(),
+                            "Error loading low stock: " + e.getMessage(),
                             Toast.LENGTH_LONG
                     ).show();
-
-
                 });
-
-
     }
 
 

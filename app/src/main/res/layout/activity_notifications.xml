@@ -21,17 +21,21 @@
         android:paddingTop="40dp"
         android:paddingBottom="14dp">
 
+        <!-- Back -->
+
         <ImageView
             android:id="@+id/btnBack"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:padding="12dp"
             android:src="@drawable/ic_arrow_back"
             android:contentDescription="Back"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
             app:tint="@android:color/white" />
+
+        <!-- Title -->
 
         <TextView
             android:id="@+id/txtTitle"
@@ -40,9 +44,23 @@
             android:layout_weight="1"
             android:text="Notifications"
             android:textColor="@android:color/white"
-            android:textSize="28sp"
             android:textStyle="bold"
-            android:paddingStart="8dp"/>
+            android:textSize="28sp"
+            android:paddingStart="8dp" />
+
+        <!-- Clear All -->
+
+        <ImageView
+            android:id="@+id/btnClearNotifications"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:contentDescription="Clear Notifications"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="@android:color/white" />
 
     </LinearLayout>
 
@@ -53,7 +71,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="12dp"/>
+        android:clipToPadding="false"
+        android:padding="12dp"
+        android:scrollbars="vertical" />
 
     <!-- Bottom Navigation -->
 
@@ -61,11 +81,10 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="@android:color/white"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/gray"
         app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_menu"/>
+        app:menu="@menu/bottom_menu" />
 
 </LinearLayout>

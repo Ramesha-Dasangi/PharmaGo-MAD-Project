@@ -7,12 +7,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.nibm.pharmagomadproject.pharmacyowner.NotificationHelper;
+import com.nibm.pharmagomadproject.pharmacyowner.NetworkUtils;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
-
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import com.nibm.pharmagomadproject.R;
 
@@ -36,6 +36,7 @@ public class DeleteMedicineActivity extends AppCompatActivity {
 
 
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
 
 
@@ -55,6 +56,8 @@ public class DeleteMedicineActivity extends AppCompatActivity {
 
         db =
                 FirebaseFirestore.getInstance();
+        mAuth =
+                FirebaseAuth.getInstance();
 
 
 
@@ -197,62 +200,97 @@ public class DeleteMedicineActivity extends AppCompatActivity {
 
     private void deleteMedicine(){
 
+        if (!NetworkUtils.isNetworkAvailable(DeleteMedicineActivity.this)) {
+            Toast.makeText(DeleteMedicineActivity.this, "No Internet Connection. Please check your connection and try again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        String pharmacyId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+        if (pharmacyId.isEmpty()) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        db.collection("medicines")
+        btnDeleteMedicine.setEnabled(false);
+        final String finalPharmacyId = pharmacyId;
 
-                .document(medicineId)
+        // Fetch current stock before soft deleting
+        db.collection("medicines").document(medicineId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        btnDeleteMedicine.setEnabled(true);
+                        Toast.makeText(DeleteMedicineActivity.this, "Medicine does not exist.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                .delete()
+                    Long currentStockLong = documentSnapshot.getLong("stock");
+                    final int currentStock = currentStockLong != null ? currentStockLong.intValue() : 0;
 
+                    // Update document to soft delete
+                    db.collection("medicines")
+                            .document(medicineId)
+                            .update(
+                                    "deleted", true,
+                                    "updatedAt", System.currentTimeMillis()
+                            )
+                            .addOnSuccessListener(unused -> {
+                                // Stock history update: from currentStock to 0 (since deleted)
+                                if (currentStock > 0) {
+                                    String histId = db.collection("stock_history").document().getId();
+                                    StockHistory history = new StockHistory(
+                                            histId,
+                                            medicineId,
+                                            medicineName,
+                                            currentStock,
+                                            0,
+                                            -currentStock,
+                                            "Medicine Deleted (Soft Delete)",
+                                            finalPharmacyId,
+                                            System.currentTimeMillis()
+                                    );
+                                    db.collection("stock_history").document(histId).set(history);
+                                }
 
+                                // Audit Log entry
+                                String auditId = db.collection("inventory_audit_log").document().getId();
+                                InventoryAuditLog audit = new InventoryAuditLog(
+                                        auditId,
+                                        "DELETE",
+                                        medicineId,
+                                        medicineName,
+                                        "Soft deleted medicine from inventory. Remaining stock was: " + currentStock,
+                                        finalPharmacyId,
+                                        System.currentTimeMillis()
+                                );
+                                db.collection("inventory_audit_log").document(auditId).set(audit);
 
-                .addOnSuccessListener(unused -> {
+                                NotificationHelper.addNotification(
+                                        "Medicine Deleted",
+                                        medicineName + " removed from inventory.",
+                                        "inventory"
+                                );
 
+                                Toast.makeText(
+                                        DeleteMedicineActivity.this,
+                                        "Medicine Deleted Successfully",
+                                        Toast.LENGTH_SHORT
+                                ).show();
 
-
-                    Toast.makeText(
-
-                            this,
-
-                            "Medicine Deleted Successfully",
-
-                            Toast.LENGTH_SHORT
-
-                    ).show();
-
-
-
-
-                    finish();
-
-
-
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                btnDeleteMedicine.setEnabled(true);
+                                Toast.makeText(
+                                        DeleteMedicineActivity.this,
+                                        "Failed to delete: " + e.getMessage(),
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            });
                 })
-
-
-
-
                 .addOnFailureListener(e -> {
-
-
-
-                    Toast.makeText(
-
-                            this,
-
-                            e.getMessage(),
-
-                            Toast.LENGTH_LONG
-
-                    ).show();
-
-
-
+                    btnDeleteMedicine.setEnabled(true);
+                    Toast.makeText(DeleteMedicineActivity.this, "Error fetching medicine: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-
-
-
     }
 
 

@@ -29,6 +29,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.pharmacyowner.NotificationHelper;
+import com.nibm.pharmagomadproject.pharmacyowner.NetworkUtils;
 
 import java.util.Calendar;
 
@@ -175,6 +177,11 @@ public class AddMedicineActivity extends AppCompatActivity {
 
         btnSave.setOnClickListener(v -> {
 
+            if (!NetworkUtils.isNetworkAvailable(AddMedicineActivity.this)) {
+                Toast.makeText(AddMedicineActivity.this, "No Internet Connection. Please check your connection and try again.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (edtName.getText().toString().trim().isEmpty()) {
                 edtName.setError("Medicine name required");
                 edtName.requestFocus();
@@ -217,75 +224,187 @@ public class AddMedicineActivity extends AppCompatActivity {
             }
 
             if (radioType.getCheckedRadioButtonId() == -1) {
-
                 Toast.makeText(
                         this,
                         "Select medicine type",
                         Toast.LENGTH_SHORT
                 ).show();
-
                 return;
             }
 
             String medicineName = edtName.getText().toString().trim();
             String category = edtCategory.getText().toString().trim();
             String brand = edtBrand.getText().toString().trim();
-
             String type = rbOTC.isChecked() ? "OTC" : "Prescription";
 
-            double price = Double.parseDouble(edtPrice.getText().toString().trim());
-            int stock = Integer.parseInt(edtStock.getText().toString().trim());
-
-            String expiryDate = edtDate.getText().toString().trim();
-            String description = edtDescription.getText().toString().trim();
-
-            String pharmacyId="";
-
-
-            if(mAuth.getCurrentUser()!=null){
-
-                pharmacyId =
-                        mAuth.getCurrentUser().getUid();
-
+            double price;
+            try {
+                price = Double.parseDouble(edtPrice.getText().toString().trim());
+                if (price <= 0) {
+                    edtPrice.setError("Price must be greater than zero");
+                    edtPrice.requestFocus();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                edtPrice.setError("Invalid price format");
+                edtPrice.requestFocus();
+                return;
             }
 
-            Medicine medicine = new Medicine(
-                    medicineName,
-                    category,
-                    brand,
-                    type,
-                    price,
-                    stock,
-                    expiryDate,
-                    description,
-                    "",   // imageUrl (දැනට හිස්)
-                    pharmacyId,
-                    System.currentTimeMillis()
-            );
+            int stock;
+            try {
+                stock = Integer.parseInt(edtStock.getText().toString().trim());
+                if (stock < 0) {
+                    edtStock.setError("Stock cannot be negative");
+                    edtStock.requestFocus();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                edtStock.setError("Invalid stock format");
+                edtStock.requestFocus();
+                return;
+            }
 
+            String expiryDate = edtDate.getText().toString().trim();
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("d/M/yyyy", java.util.Locale.getDefault());
+                sdf.setLenient(false);
+                java.util.Date expDate = sdf.parse(expiryDate);
+                java.util.Calendar todayCal = java.util.Calendar.getInstance();
+                todayCal.set(Calendar.HOUR_OF_DAY, 0);
+                todayCal.set(Calendar.MINUTE, 0);
+                todayCal.set(Calendar.SECOND, 0);
+                todayCal.set(Calendar.MILLISECOND, 0);
+                if (expDate != null && expDate.before(todayCal.getTime())) {
+                    edtDate.setError("Expiry date cannot be in the past");
+                    return;
+                }
+            } catch (java.text.ParseException e) {
+                edtDate.setError("Invalid date format (dd/MM/yyyy)");
+                return;
+            }
+
+            String description = edtDescription.getText().toString().trim();
+            String pharmacyId = "";
+
+            if (mAuth.getCurrentUser() != null) {
+                pharmacyId = mAuth.getCurrentUser().getUid();
+            }
+            if (pharmacyId.isEmpty()) {
+                Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            btnSave.setEnabled(false);
+            final String finalPharmacyId = pharmacyId;
+
+            // Duplicate Medicine check
             db.collection("medicines")
-                    .add(medicine)
-                    .addOnSuccessListener(documentReference -> {
+                    .whereEqualTo("pharmacyId", finalPharmacyId)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            btnSave.setEnabled(true);
+                            Toast.makeText(AddMedicineActivity.this, "Database error checking duplicates: " + 
+                                    (task.getException() != null ? task.getException().getMessage() : "Unknown"), Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-                        Toast.makeText(
-                                AddMedicineActivity.this,
-                                "Medicine Added Successfully",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        boolean duplicate = false;
+                        if (task.getResult() != null) {
+                            for (com.google.firebase.firestore.QueryDocumentSnapshot doc : task.getResult()) {
+                                String nameInDb = doc.getString("medicineName");
+                                String brandInDb = doc.getString("brand");
+                                Boolean isDeletedInDb = doc.getBoolean("deleted");
+                                boolean active = (isDeletedInDb == null || !isDeletedInDb);
+                                if (active && nameInDb != null && brandInDb != null &&
+                                        nameInDb.equalsIgnoreCase(medicineName) &&
+                                        brandInDb.equalsIgnoreCase(brand)) {
+                                    duplicate = true;
+                                    break;
+                                }
+                            }
+                        }
 
-                        finish();
+                        if (duplicate) {
+                            btnSave.setEnabled(true);
+                            Toast.makeText(AddMedicineActivity.this, "This medicine (name and brand) already exists in your inventory.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
 
-                    })
-                    .addOnFailureListener(e ->
+                        // Save new medicine
+                        Medicine medicine = new Medicine(
+                                medicineName,
+                                category,
+                                brand,
+                                type,
+                                price,
+                                stock,
+                                expiryDate,
+                                description,
+                                "",   // imageUrl
+                                finalPharmacyId,
+                                System.currentTimeMillis()
+                        );
+                        medicine.setDeleted(false);
+                        medicine.setUpdatedAt(System.currentTimeMillis());
 
-                            Toast.makeText(
-                                    AddMedicineActivity.this,
-                                    e.getMessage(),
-                                    Toast.LENGTH_LONG
-                            ).show()
+                        db.collection("medicines")
+                                .add(medicine)
+                                .addOnSuccessListener(documentReference -> {
+                                    String docId = documentReference.getId();
 
-                    );
+                                    // Create Stock History record
+                                    String histId = db.collection("stock_history").document().getId();
+                                    StockHistory history = new StockHistory(
+                                            histId,
+                                            docId,
+                                            medicineName,
+                                            0,
+                                            stock,
+                                            stock,
+                                            "Initial Stock Add",
+                                            finalPharmacyId,
+                                            System.currentTimeMillis()
+                                    );
+                                    db.collection("stock_history").document(histId).set(history);
 
+                                    // Create Audit Log entry
+                                    String auditId = db.collection("inventory_audit_log").document().getId();
+                                    InventoryAuditLog audit = new InventoryAuditLog(
+                                            auditId,
+                                            "ADD",
+                                            docId,
+                                            medicineName,
+                                            "Added new medicine. Price: Rs." + price + ", Stock: " + stock + " units.",
+                                            finalPharmacyId,
+                                            System.currentTimeMillis()
+                                    );
+                                    db.collection("inventory_audit_log").document(auditId).set(audit);
+
+                                    NotificationHelper.addNotification(
+                                            "Medicine Added",
+                                            medicineName + " was added successfully.",
+                                            "inventory"
+                                    );
+
+                                    Toast.makeText(
+                                            AddMedicineActivity.this,
+                                            "Medicine Added Successfully",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    btnSave.setEnabled(true);
+                                    Toast.makeText(
+                                            AddMedicineActivity.this,
+                                            "Failed to save: " + e.getMessage(),
+                                            Toast.LENGTH_LONG
+                                    ).show();
+                                });
+                    });
         });
 
     }
