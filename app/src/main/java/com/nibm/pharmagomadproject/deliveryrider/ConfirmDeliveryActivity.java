@@ -53,10 +53,35 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
             btnConfirmDelivered.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
+                    btnConfirmDelivered.setEnabled(false);
+                    btnConfirmDelivered.setText("Confirming...");
+
+                    com.google.firebase.auth.FirebaseAuth mAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
+                    String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+
+                    if (uid != null) {
+                        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+                        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+                        updates.put("activeOrderId", null);
+                        // Also, theoretically, the order status should be updated to 'delivered' here, 
+                        // but if that's handled elsewhere we just clear activeOrderId for the rider.
+                        
+                        com.google.firebase.firestore.WriteBatch batch = db.batch();
+                        batch.update(db.collection("riders").document(uid), updates);
+                        batch.update(db.collection("users").document(uid), updates);
+                        
+                        batch.commit().addOnCompleteListener(task -> {
+                            Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
+                        });
+                    } else {
+                        Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
                 }
             });
         }
