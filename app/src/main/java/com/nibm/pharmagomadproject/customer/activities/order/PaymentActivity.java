@@ -157,9 +157,18 @@ public class PaymentActivity extends AppCompatActivity {
             itemsList.add(item);
         }
 
+        String orderPharmacyId = "";
+        String orderPharmacyName = "";
+        if (CartActivity.CART_STORE != null && !CartActivity.CART_STORE.isEmpty()) {
+            orderPharmacyId = CartActivity.CART_STORE.get(0).getPharmacyId();
+            orderPharmacyName = CartActivity.CART_STORE.get(0).getPharmacyName();
+        }
+
         Map<String, Object> order = new HashMap<>();
         order.put("orderId",       orderId);
         order.put("customerId",    uid);
+        order.put("pharmacyId",    orderPharmacyId);
+        order.put("pharmacyName",  orderPharmacyName);
         order.put("items",         itemsList);
         order.put("subtotal",      subtotal);
         order.put("deliveryFee",   deliveryFee);

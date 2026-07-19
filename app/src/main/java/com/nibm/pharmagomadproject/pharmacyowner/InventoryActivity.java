@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -50,6 +52,10 @@ public class InventoryActivity extends AppCompatActivity {
 
     // Firebase
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+
+    private int currentPage = 1;
+    private static final int PAGE_SIZE = 10;
 
 
 
@@ -67,8 +73,8 @@ public class InventoryActivity extends AppCompatActivity {
 
 
         // Firebase initialize
-
         db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
 
 
@@ -111,6 +117,20 @@ public class InventoryActivity extends AppCompatActivity {
 
 
         recyclerInventory.setAdapter(adapter);
+
+        recyclerInventory.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() == filteredList.size() - 1) {
+                    if (filteredList.size() < inventoryList.size()) {
+                        currentPage++;
+                        displayPaginatedList();
+                    }
+                }
+            }
+        });
 
 
 
@@ -368,150 +388,94 @@ public class InventoryActivity extends AppCompatActivity {
 
 
 
-    // ===========================
-    // LOAD MEDICINES FROM FIRESTORE
-    // ===========================
-
-
     private void loadMedicines(){
 
+        if (!NetworkUtils.isNetworkAvailable(InventoryActivity.this)) {
+            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Session expired, please login.", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity.class));
+            finish();
+            return;
+        }
+        String ownerId = user.getUid();
 
         db.collection("medicines")
+                .whereEqualTo("pharmacyId", ownerId)
                 .get()
-
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-
 
                     inventoryList.clear();
 
+                    for(QueryDocumentSnapshot document : queryDocumentSnapshots){
 
+                        Boolean deleted = document.getBoolean("deleted");
+                        if (Boolean.TRUE.equals(deleted)) {
+                            continue; // Skip soft deleted items
+                        }
 
-                    for(QueryDocumentSnapshot document :
-                            queryDocumentSnapshots){
+                        String id = document.getId();
+                        String name = document.getString("medicineName");
+                        String category = document.getString("category");
+                        Double price = document.getDouble("price");
+                        Long stock = document.getLong("stock");
 
-
-
-                        String id =
-                                document.getId();
-
-
-
-                        String name =
-                                document.getString("medicineName");
-
-
-
-                        String category =
-                                document.getString("category");
-
-
-
-                        Double price =
-                                document.getDouble("price");
-
-
-
-                        Long stock =
-                                document.getLong("stock");
-
-
-
-
-                        InventoryModel item =
-                                new InventoryModel(
-
-                                        id,
-
-                                        name,
-
-                                        category,
-
-                                        price != null ? price : 0,
-
-                                        stock != null ? stock.intValue() : 0
-
-                                );
-
-
+                        InventoryModel item = new InventoryModel(
+                                id,
+                                name,
+                                category,
+                                price != null ? price : 0,
+                                stock != null ? stock.intValue() : 0
+                        );
 
                         inventoryList.add(item);
-
-
                     }
 
-
-
-                    filteredList.clear();
-
-
-                    filteredList.addAll(inventoryList);
-
-
-
-                    adapter.notifyDataSetChanged();
-
-
-
+                    currentPage = 1;
+                    displayPaginatedList();
                 })
-
                 .addOnFailureListener(e -> {
-
-
                     Toast.makeText(
                             this,
-                            e.getMessage(),
+                            "Error: " + e.getMessage(),
                             Toast.LENGTH_LONG
                     ).show();
-
-
                 });
-
-
-
     }
 
-
-
+    private void displayPaginatedList() {
+        filteredList.clear();
+        int end = Math.min(currentPage * PAGE_SIZE, inventoryList.size());
+        for (int i = 0; i < end; i++) {
+            filteredList.add(inventoryList.get(i));
+        }
+        adapter.updateList(filteredList);
+    }
 
     // ===========================
     // SEARCH
     // ===========================
 
-
     private void searchMedicine(String keyword){
-
-
-
-        ArrayList<InventoryModel> temp =
-                new ArrayList<>();
-
-
-
-        for(InventoryModel item : inventoryList){
-
-
-
-            if(item.getMedicineName()
-                    .toLowerCase()
-                    .contains(
-                            keyword.toLowerCase()
-                    )){
-
-
-                temp.add(item);
-
-
-            }
-
-
+        if (keyword.isEmpty()) {
+            displayPaginatedList();
+            return;
         }
 
-
+        ArrayList<InventoryModel> temp = new ArrayList<>();
+        for(InventoryModel item : inventoryList){
+            if(item.getMedicineName()
+                    .toLowerCase()
+                    .contains(keyword.toLowerCase())){
+                temp.add(item);
+            }
+        }
 
         adapter.updateList(temp);
-
-
-
     }
 
 

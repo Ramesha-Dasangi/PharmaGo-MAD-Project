@@ -63,8 +63,7 @@ public class OrdersActivity extends AppCompatActivity {
         adapter = new OrderAdapter(this, orderList);
         recyclerView.setAdapter(adapter);
 
-        // Load actual orders from Firestore
-        loadOrdersFromFirestore();
+        // Removed loadOrdersFromFirestore from onCreate, now called in onResume
 
         highlightButton(btnNew);
 
@@ -120,6 +119,12 @@ public class OrdersActivity extends AppCompatActivity {
 
             return false;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadOrdersFromFirestore();
     }
 
     // FILTER ORDERS
@@ -231,13 +236,19 @@ public class OrdersActivity extends AppCompatActivity {
                         String displayStatus = "New";
                         if ("processing".equalsIgnoreCase(fsStatus)) {
                             displayStatus = "Processing";
-                        } else if ("completed".equalsIgnoreCase(fsStatus) || "delivered".equalsIgnoreCase(fsStatus) || "rejected".equalsIgnoreCase(fsStatus)) {
+                        } else if ("completed".equalsIgnoreCase(fsStatus) || "delivered".equalsIgnoreCase(fsStatus) 
+                                || "ready".equalsIgnoreCase(fsStatus) || "rejected".equalsIgnoreCase(fsStatus) 
+                                || "cancelled".equalsIgnoreCase(fsStatus)) {
                             displayStatus = "Completed";
                         }
 
                         String type = hasRx || doc.getString("prescriptionUrl") != null ? "RX Required" : "OTC";
 
-                        double total = doc.getDouble("total") != null ? doc.getDouble("total") : 0;
+                        double total = 0;
+                        Object totalObj = doc.get("total");
+                        if (totalObj instanceof Number) {
+                            total = ((Number) totalObj).doubleValue();
+                        }
                         long createdAt = doc.getLong("createdAt") != null ? doc.getLong("createdAt") : 0;
 
                         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
@@ -255,6 +266,9 @@ public class OrdersActivity extends AppCompatActivity {
                         ));
                     }
                 }
+
+                // Sort orders by orderId descending (proxy for newest first as ID contains timestamp)
+                java.util.Collections.sort(allOrders, (a, b) -> b.getOrderId().compareTo(a.getOrderId()));
 
                 showOrders(activeFilterStatus);
                 updateCounts();
