@@ -185,59 +185,67 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     String role = document.getString("role");
-
+                    String status = document.getString("status");
                     Boolean approved = document.getBoolean("isApproved");
 
                     if (approved == null) {
-                        approved = false; // Default to false if not set
+                        approved = false;
                     }
 
-                    if(role==null){
-                        role="customer";
+                    if (role == null) {
+                        role = "customer";
                     }
 
-                    switch(role){
+                    // Block login if account is blocked
+                    if ("blocked".equals(status)) {
+                        mAuth.signOut();
+                        MaterialButton btnLoginBlocked = findViewById(R.id.btnLogin);
+                        if (btnLoginBlocked != null) btnLoginBlocked.setEnabled(true);
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Account Blocked")
+                                .setMessage("Your account has been blocked by the admin. Please contact support for assistance.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return;
+                    }
+
+                    switch (role) {
                         case "customer":
                             openCustomer();
                             break;
 
                         case "pharmacy_owner":
-                            if(Boolean.TRUE.equals(approved)){
+                            if (Boolean.TRUE.equals(approved)) {
                                 Boolean approvalSeen = document.getBoolean("approvalSeen");
                                 if (approvalSeen != null && approvalSeen) {
                                     openPharmacy();
                                 } else {
-                                    // Update Firestore flag so they only see it once
                                     db.collection("users").document(uid).update("approvalSeen", true);
                                     startActivity(new Intent(LoginActivity.this, ApprovalSuccessActivity.class));
                                     finish();
                                 }
-                            }else{
+                            } else {
                                 openPending();
                             }
                             break;
 
                         case "rider":
-                            if(Boolean.TRUE.equals(approved)){
+                            if (Boolean.TRUE.equals(approved)) {
                                 openRider();
-                            }else{
+                            } else {
                                 openPending();
                             }
                             break;
 
+                        case "admin":
+                            openAdmin();
+                            break;
+
                         default:
-                            Toast.makeText(
-                                    this,
-                                    "Invalid account type",
-                                    Toast.LENGTH_SHORT
-                            ).show();
-
+                            Toast.makeText(this, "Invalid account type", Toast.LENGTH_SHORT).show();
                             mAuth.signOut();
-
-                            MaterialButton btnLogin = findViewById(R.id.btnLogin);
-                            if (btnLogin != null) {
-                                btnLogin.setEnabled(true);
-                            }
+                            MaterialButton btnLoginDefault = findViewById(R.id.btnLogin);
+                            if (btnLoginDefault != null) btnLoginDefault.setEnabled(true);
                     }
                 })
 
@@ -278,6 +286,16 @@ public class LoginActivity extends AppCompatActivity {
                 new Intent(
                         this,
                         RiderDashboardActivity.class
+                )
+        );
+        finish();
+    }
+
+    private void openAdmin(){
+        startActivity(
+                new Intent(
+                        this,
+                        com.nibm.pharmagomadproject.Admin.AdminDashboardActivity.class
                 )
         );
         finish();

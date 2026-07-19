@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
 import com.nibm.pharmagomadproject.R;
 
 import java.util.ArrayList;
@@ -30,12 +29,14 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private ListenerRegistration pharmacyListener;
+    private ListenerRegistration riderListener;
 
     private PendingPharmacyAdapter pharmacyAdapter;
-    private RecyclerView rvPharmacies;
-    private ProgressBar progressPharmacies;
-    private TextView tvEmptyPharmacies;
-    private TextView tabPharmacies;
+    private PendingRiderAdapter riderAdapter;
+    private RecyclerView rvPharmacies, rvRiders;
+    private ProgressBar progressPharmacies, progressRiders;
+    private TextView tvEmptyPharmacies, tvEmptyRiders;
+    private TextView tabPharmacies, tabRiders;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +59,16 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         pharmacyAdapter = new PendingPharmacyAdapter(this::openReview);
         rvPharmacies.setAdapter(pharmacyAdapter);
 
-        TextView tabRiders = findViewById(R.id.tabRiders);
+        // Riders list setup
+        rvRiders = findViewById(R.id.rvRiders);
+        progressRiders = findViewById(R.id.progressRiders);
+        tvEmptyRiders = findViewById(R.id.tvEmptyRiders);
+
+        rvRiders.setLayoutManager(new LinearLayoutManager(this));
+        riderAdapter = new PendingRiderAdapter(this::openReviewRider);
+        rvRiders.setAdapter(riderAdapter);
+
+        tabRiders = findViewById(R.id.tabRiders);
         tabPharmacies = findViewById(R.id.tabPharmacies);
         LinearLayout llPharmacies = findViewById(R.id.llPharmacies);
         LinearLayout llRiders = findViewById(R.id.llRiders);
@@ -113,6 +123,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         listenPendingPharmacies();
+        listenPendingRiders();
     }
 
     @Override
@@ -122,6 +133,10 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             pharmacyListener.remove();
             pharmacyListener = null;
         }
+        if (riderListener != null) {
+            riderListener.remove();
+            riderListener = null;
+        }
     }
 
     private void openReview(PendingPharmacyModel pharmacy) {
@@ -130,14 +145,18 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void openReviewRider(PendingRiderModel rider) {
+        Intent intent = new Intent(PendingApprovalsActivity.this, ReviewRiderActivity.class);
+        intent.putExtra("riderId", rider.getId());
+        startActivity(intent);
+    }
+
     private void listenPendingPharmacies() {
         progressPharmacies.setVisibility(View.VISIBLE);
         tvEmptyPharmacies.setVisibility(View.GONE);
 
-        Query query = db.collection("pharmacies")
-                .whereEqualTo("status", "pending");
-
-        pharmacyListener = query.addSnapshotListener((snapshots, error) -> {
+        // Fetch all, filter client-side to catch null/missing status docs too
+        pharmacyListener = db.collection("pharmacies").addSnapshotListener((snapshots, error) -> {
             progressPharmacies.setVisibility(View.GONE);
 
             if (error != null) {
@@ -149,6 +168,9 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             List<PendingPharmacyModel> pharmacies = new ArrayList<>();
             if (snapshots != null) {
                 for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                    String status = doc.getString("status");
+                    // Show if status is pending, null, or empty (not yet explicitly approved/rejected)
+                    if ("approved".equals(status) || "rejected".equals(status)) continue;
                     PendingPharmacyModel model = doc.toObject(PendingPharmacyModel.class);
                     if (model != null) {
                         model.setId(doc.getId());
@@ -161,6 +183,41 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             tabPharmacies.setText("Pharmacies (" + pharmacies.size() + ")");
             tvEmptyPharmacies.setVisibility(pharmacies.isEmpty() ? View.VISIBLE : View.GONE);
             rvPharmacies.setVisibility(pharmacies.isEmpty() ? View.GONE : View.VISIBLE);
+        });
+    }
+
+    private void listenPendingRiders() {
+        progressRiders.setVisibility(View.VISIBLE);
+        tvEmptyRiders.setVisibility(View.GONE);
+
+        // Fetch all, filter client-side to catch null/missing status docs too
+        riderListener = db.collection("riders").addSnapshotListener((snapshots, error) -> {
+            progressRiders.setVisibility(View.GONE);
+
+            if (error != null) {
+                Log.e(TAG, "Failed to load pending riders", error);
+                Toast.makeText(this, "Failed to load riders: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            List<PendingRiderModel> riders = new ArrayList<>();
+            if (snapshots != null) {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                    String status = doc.getString("status");
+                    // Show if status is pending, null, or empty (not yet explicitly approved/rejected)
+                    if ("approved".equals(status) || "rejected".equals(status)) continue;
+                    PendingRiderModel model = doc.toObject(PendingRiderModel.class);
+                    if (model != null) {
+                        model.setId(doc.getId());
+                        riders.add(model);
+                    }
+                }
+            }
+
+            riderAdapter.setItems(riders);
+            tabRiders.setText("Riders (" + riders.size() + ")");
+            tvEmptyRiders.setVisibility(riders.isEmpty() ? View.VISIBLE : View.GONE);
+            rvRiders.setVisibility(riders.isEmpty() ? View.GONE : View.VISIBLE);
         });
     }
 }

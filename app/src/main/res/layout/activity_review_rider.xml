@@ -27,7 +27,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Review rider"
+        android:text="Review Rider"
         android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -36,9 +36,21 @@
         app:layout_constraintTop_toTopOf="@id/ivBack"
         app:layout_constraintBottom_toBottomOf="@id/ivBack" />
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/topBackground"
         app:layout_constraintBottom_toTopOf="@id/bottomContainer">
 
@@ -74,21 +86,23 @@
                         android:layout_marginBottom="12dp" />
 
                     <TextView
-                        android:id="@+id/tvName"
+                        android:id="@+id/tvRiderName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nuwan Fernando"
+                        android:text="—"
                         android:textColor="@color/black"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp" />
 
                     <TextView
+                        android:id="@+id/tvRiderSub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="077 456 7890 · Applied 3 hrs ago"
+                        android:text="—"
                         android:textColor="@color/colorTextSecondary"
                         android:textSize="14sp" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -107,87 +121,106 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
+                    <!-- NIC -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-                        
+                        android:layout_marginBottom="12dp">
                         <TextView
-                            android:id="@+id/tvNic"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="NIC"
                             android:textColor="@color/colorTextSecondary" />
-                            
                         <TextView
+                            android:id="@+id/tvNicValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="95xxxxxxxV"
+                            android:text="—"
                             android:textColor="@color/black"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Email -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
+                        android:layout_marginBottom="12dp">
                         <TextView
-                            android:id="@+id/tvEmail"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Email"
                             android:textColor="@color/colorTextSecondary" />
-
                         <TextView
+                            android:id="@+id/tvEmailValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="rider@gmail.com"
+                            android:text="—"
                             android:textColor="@color/black"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Phone -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-                        
+                        android:layout_marginBottom="12dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Phone"
+                            android:textColor="@color/colorTextSecondary" />
+                        <TextView
+                            android:id="@+id/tvPhoneValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="—"
+                            android:textColor="@color/black"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Vehicle -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Vehicle"
                             android:textColor="@color/colorTextSecondary" />
-                            
                         <TextView
+                            android:id="@+id/tvVehicleValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Motorbike — CAA-4521"
+                            android:text="—"
                             android:textColor="@color/black"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Vehicle Reg -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
-                        
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="License no."
+                            android:text="Vehicle Reg."
                             android:textColor="@color/colorTextSecondary" />
-                            
                         <TextView
+                            android:id="@+id/tvVehicleRegValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="B1234567"
+                            android:text="—"
                             android:textColor="@color/black"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -195,17 +228,18 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Driving license -->
+            <!-- Driving License -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Driving license"
+                android:text="Driving License"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardLicense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
@@ -217,7 +251,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="100dp"
                     android:orientation="vertical"
                     android:gravity="center">
 
@@ -229,53 +263,13 @@
                         android:layout_marginBottom="8dp" />
 
                     <TextView
+                        android:id="@+id/tvLicenseFileName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="license_front.jpg"
+                        android:text="No license document uploaded"
                         android:textColor="@color/colorTextSecondary"
                         android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- NIC copy -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NIC copy"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/colorBackground"
-                app:cardCornerRadius="12dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/colorStroke"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_gallery"
-                        app:tint="@color/colorTextSecondary"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="nic_copy.jpg"
-                        android:textColor="@color/colorTextSecondary"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
