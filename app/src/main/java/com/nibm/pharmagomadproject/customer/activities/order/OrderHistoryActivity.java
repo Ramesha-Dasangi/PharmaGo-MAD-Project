@@ -145,6 +145,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
             switch (currentTab) {
                 case "active":
                     include = "pending".equals(s) || "processing".equals(s)
+                            || "assigned".equals(s)
                             || "picked_up".equals(s) || "out_for_delivery".equals(s);
                     break;
                 case "delivered":

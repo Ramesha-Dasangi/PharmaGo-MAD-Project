@@ -6,13 +6,23 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 
 public class RiderProfileActivity extends AppCompatActivity {
+
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+
+    private TextView tvAvatarInitials, tvProfileName, tvProfileVehicle;
+    private TextView tvExpandName, tvExpandPhone, tvExpandVehicle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,8 +32,63 @@ public class RiderProfileActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
+        tvAvatarInitials = findViewById(R.id.tvAvatarInitials);
+        tvProfileName = findViewById(R.id.tvProfileName);
+        tvProfileVehicle = findViewById(R.id.tvProfileVehicle);
+        tvExpandName = findViewById(R.id.tvExpandName);
+        tvExpandPhone = findViewById(R.id.tvExpandPhone);
+        tvExpandVehicle = findViewById(R.id.tvExpandVehicle);
+
         setupExpandableItems();
         setupBottomNav();
+
+        fetchUserData();
+    }
+
+    private void fetchUserData() {
+        if (mAuth.getCurrentUser() != null) {
+            String uid = mAuth.getCurrentUser().getUid();
+            // Fetch basic info from users collection
+            db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    String name = doc.getString("name");
+                    String phone = doc.getString("phone");
+
+                    if (name != null) {
+                        if (tvProfileName != null) tvProfileName.setText(name);
+                        if (tvExpandName != null) tvExpandName.setText(name);
+
+                        // Set Initials
+                        String[] parts = name.trim().split("\\s+");
+                        String initials = "";
+                        if (parts.length > 0) initials += parts[0].charAt(0);
+                        if (parts.length > 1) initials += parts[1].charAt(0);
+                        if (tvAvatarInitials != null) tvAvatarInitials.setText(initials.toUpperCase());
+                    }
+
+                    if (phone != null && tvExpandPhone != null) {
+                        tvExpandPhone.setText(phone);
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(this, "Failed to load profile", Toast.LENGTH_SHORT).show();
+            });
+
+            // Fetch vehicle info from riders collection
+            db.collection("riders").document(uid).get().addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    String vNumber = doc.getString("vehicleReg");
+                    String vType = doc.getString("vehicleType");
+                    String vehicleStr = (vNumber != null ? vNumber : "Unknown") + " · " + (vType != null ? vType : "Unknown");
+                    
+                    if (tvProfileVehicle != null) tvProfileVehicle.setText(vehicleStr);
+                    if (tvExpandVehicle != null) tvExpandVehicle.setText(vehicleStr);
+                }
+            });
+        }
     }
 
     private void setupExpandableItems() {

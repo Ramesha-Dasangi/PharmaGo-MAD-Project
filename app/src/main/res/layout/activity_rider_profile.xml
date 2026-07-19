@@ -59,6 +59,7 @@
 
                 <!-- Avatar -->
                 <TextView
+                    android:id="@+id/tvAvatarInitials"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:text="KS"
@@ -69,6 +70,7 @@
                     android:gravity="center" />
 
                 <TextView
+                    android:id="@+id/tvProfileName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Kamal Silva"
@@ -78,6 +80,7 @@
                     android:layout_marginTop="12dp" />
 
                 <TextView
+                    android:id="@+id/tvProfileVehicle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CAA-4521 · Motorbike"
@@ -238,17 +241,17 @@
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Full name" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView android:id="@+id/tvExpandName" android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Kamal Silva" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Phone number" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView android:id="@+id/tvExpandPhone" android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="+94 77 123 4567" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Vehicle" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView android:id="@+id/tvExpandVehicle" android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="CAA-4521 · Motorbike" android:textColor="@color/text_primary" android:textSize="15sp"/>
                 </LinearLayout>
             </LinearLayout>
