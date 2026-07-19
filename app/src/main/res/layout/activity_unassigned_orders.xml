@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -36,150 +37,49 @@
         app:layout_constraintTop_toTopOf="@id/ivBack"
         app:layout_constraintBottom_toBottomOf="@id/ivBack" />
 
-    <androidx.core.widget.NestedScrollView
+    <TextView
+        android:id="@+id/tvOrderCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="13sp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ivBack"
+        app:layout_constraintBottom_toBottomOf="@id/ivBack" />
+
+    <ProgressBar
+        android:id="@+id/progressOrders"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No unassigned orders"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="15sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvOrders"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/topBackground"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
-
-            <!-- Order Card 1 -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardOrder1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/tvOrderNum1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Order #PG-00234"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tvStatus1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Unassigned"
-                        android:textColor="#F57C00"
-                        android:background="@drawable/status_pending_bg"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="4dp"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tvOrderDetails1"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="2 pharmacies · Buddhini Perera · Colombo 3"
-                        android:textColor="@color/colorTextSecondary"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tvOrderNum1" />
-                        
-                    <TextView
-                        android:id="@+id/tvTime1"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="15 mins ago"
-                        android:textColor="@color/colorTextSecondary"
-                        android:textSize="12sp"
-                        android:layout_marginTop="4dp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tvOrderDetails1" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Order Card 2 -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardOrder2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/tvOrderNum2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Order #PG-00235"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tvStatus2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Unassigned"
-                        android:textColor="#F57C00"
-                        android:background="@drawable/status_pending_bg"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="4dp"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tvOrderDetails2"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="1 pharmacy · Nimal Kumara · Kandy"
-                        android:textColor="@color/colorTextSecondary"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tvOrderNum2" />
-                        
-                    <TextView
-                        android:id="@+id/tvTime2"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="5 mins ago"
-                        android:textColor="@color/colorTextSecondary"
-                        android:textSize="12sp"
-                        android:layout_marginTop="4dp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tvOrderDetails2" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+        app:layout_constraintBottom_toTopOf="@id/bottomNav" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"

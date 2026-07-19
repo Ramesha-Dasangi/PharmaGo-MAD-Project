@@ -118,82 +118,104 @@ public class LoginActivity extends AppCompatActivity {
                         .toString()
                         .trim();
 
-        MaterialButton btnLogin = findViewById(R.id.btnLogin);
-
         if(TextUtils.isEmpty(email)){
             etEmail.setError("Enter email");
-            if (btnLogin != null) btnLogin.setEnabled(true);
+            MaterialButton btnLogin = findViewById(R.id.btnLogin);
+            if (btnLogin != null) {
+                btnLogin.setEnabled(true);
+            }
             return;
         }
 
         if(TextUtils.isEmpty(password)){
             etPassword.setError("Enter password");
-            if (btnLogin != null) btnLogin.setEnabled(true);
+            MaterialButton btnLogin = findViewById(R.id.btnLogin);
+            if (btnLogin != null) {
+                btnLogin.setEnabled(true);
+            }
             return;
         }
 
-        // Show loading state
-        if (btnLogin != null) {
-            btnLogin.setEnabled(false);
-            btnLogin.setText("Logging in...");
-        }
+        mAuth.signInWithEmailAndPassword(
+                        email,
+                        password
+                )
 
-        mAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    String uid = mAuth.getCurrentUser() != null
-                            ? mAuth.getCurrentUser().getUid() : null;
-                    if (uid != null) {
-                        checkUser(uid);
-                    } else {
-                        Toast.makeText(this, "Login error: could not get user ID", Toast.LENGTH_SHORT).show();
-                        if (btnLogin != null) { btnLogin.setEnabled(true); btnLogin.setText("Login"); }
-                    }
+                    String uid =
+                            mAuth.getCurrentUser()
+                                    .getUid();
+                    checkUser(uid);
                 })
-                .addOnFailureListener(e -> {
-                    if (btnLogin != null) { btnLogin.setEnabled(true); btnLogin.setText("Login"); }
-                    String msg = e.getMessage();
-                    if (msg != null && msg.contains("no user record")) {
-                        Toast.makeText(this, "No account found with this email.", Toast.LENGTH_LONG).show();
-                    } else if (msg != null && msg.contains("password is invalid")) {
-                        Toast.makeText(this, "Incorrect password. Please try again.", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(this, "Login failed: " + msg, Toast.LENGTH_LONG).show();
-                    }
-                });
-    }
 
-    private void resetLoginButton() {
-        MaterialButton btnLogin = findViewById(R.id.btnLogin);
-        if (btnLogin != null) {
-            btnLogin.setEnabled(true);
-            btnLogin.setText("Login");
-        }
+
+                .addOnFailureListener(e -> {
+                    MaterialButton btnLogin = findViewById(R.id.btnLogin);
+                    if (btnLogin != null) {
+                        btnLogin.setEnabled(true);
+                    }
+                    Toast.makeText(
+                            this,
+                            "Login failed: "+e.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                });
     }
 
     private void checkUser(String uid){
         db.collection("users")
                 .document(uid)
                 .get()
+
                 .addOnSuccessListener(document -> {
                     if(!document.exists()){
-                        Toast.makeText(this, "User data not found. Please register.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                this,
+                                "User data not found",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
                         mAuth.signOut();
-                        resetLoginButton();
+
+                        MaterialButton btnLogin = findViewById(R.id.btnLogin);
+                        if (btnLogin != null) {
+                            btnLogin.setEnabled(true);
+                        }
                         return;
                     }
 
                     String role = document.getString("role");
+                    String status = document.getString("status");
                     Boolean approved = document.getBoolean("isApproved");
-                    if (approved == null) approved = false;
-                    if (role == null) role = "customer";
 
-                    switch(role){
+                    if (approved == null) {
+                        approved = false;
+                    }
+
+                    if (role == null) {
+                        role = "customer";
+                    }
+
+                    // Block login if account is blocked
+                    if ("blocked".equals(status)) {
+                        mAuth.signOut();
+                        MaterialButton btnLoginBlocked = findViewById(R.id.btnLogin);
+                        if (btnLoginBlocked != null) btnLoginBlocked.setEnabled(true);
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Account Blocked")
+                                .setMessage("Your account has been blocked by the admin. Please contact support for assistance.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return;
+                    }
+
+                    switch (role) {
                         case "customer":
                             openCustomer();
                             break;
 
                         case "pharmacy_owner":
-                            if(Boolean.TRUE.equals(approved)){
+                            if (Boolean.TRUE.equals(approved)) {
                                 Boolean approvalSeen = document.getBoolean("approvalSeen");
                                 if (approvalSeen != null && approvalSeen) {
                                     openPharmacy();
@@ -208,22 +230,35 @@ public class LoginActivity extends AppCompatActivity {
                             break;
 
                         case "rider":
-                            if(Boolean.TRUE.equals(approved)){
+                            if (Boolean.TRUE.equals(approved)) {
                                 openRider();
                             } else {
                                 openPending();
                             }
                             break;
 
+                        case "admin":
+                            openAdmin();
+                            break;
+
                         default:
-                            Toast.makeText(this, "Invalid account type: " + role, Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Invalid account type", Toast.LENGTH_SHORT).show();
                             mAuth.signOut();
-                            resetLoginButton();
+                            MaterialButton btnLoginDefault = findViewById(R.id.btnLogin);
+                            if (btnLoginDefault != null) btnLoginDefault.setEnabled(true);
                     }
                 })
+
                 .addOnFailureListener(e -> {
-                    resetLoginButton();
-                    Toast.makeText(this, "Error loading account: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    MaterialButton btnLogin = findViewById(R.id.btnLogin);
+                    if (btnLogin != null) {
+                        btnLogin.setEnabled(true);
+                    }
+                    Toast.makeText(
+                            this,
+                            "Error: " + e.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
                 });
     }
 
@@ -251,6 +286,16 @@ public class LoginActivity extends AppCompatActivity {
                 new Intent(
                         this,
                         RiderDashboardActivity.class
+                )
+        );
+        finish();
+    }
+
+    private void openAdmin(){
+        startActivity(
+                new Intent(
+                        this,
+                        com.nibm.pharmagomadproject.Admin.AdminDashboardActivity.class
                 )
         );
         finish();

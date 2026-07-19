@@ -91,9 +91,10 @@
                             app:tint="@color/colorGreen" />
 
                         <TextView
+                            android:id="@+id/tvTotalUsers"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1,248"
+                            android:text="0"
                             android:textColor="@color/black"
                             android:textSize="20sp"
                             android:textStyle="bold"
@@ -132,9 +133,10 @@
                             app:tint="@color/colorPurple" />
 
                         <TextView
+                            android:id="@+id/tvPharmacies"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="34"
+                            android:text="0"
                             android:textColor="@color/black"
                             android:textSize="20sp"
                             android:textStyle="bold"
@@ -173,9 +175,10 @@
                             app:tint="@color/colorOrange" />
 
                         <TextView
+                            android:id="@+id/tvActiveRiders"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="18"
+                            android:text="0"
                             android:textColor="@color/black"
                             android:textSize="20sp"
                             android:textStyle="bold"
@@ -214,9 +217,10 @@
                             app:tint="@color/colorBlue" />
 
                         <TextView
+                            android:id="@+id/tvOrdersToday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="87"
+                            android:text="0"
                             android:textColor="@color/black"
                             android:textSize="20sp"
                             android:textStyle="bold"
@@ -275,17 +279,19 @@
                         android:layout_marginStart="16dp">
 
                         <TextView
+                            android:id="@+id/tvPendingApprovalsCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="7 pending approvals"
+                            android:text="0 pending approvals"
                             android:textColor="@color/black"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvPendingApprovalsSub"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="4 pharmacies · 3 riders"
+                            android:text="0 pharmacies · 0 riders"
                             android:textColor="@color/colorTextSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -331,17 +337,19 @@
                         android:layout_marginStart="16dp">
 
                         <TextView
+                            android:id="@+id/tvComplaintsCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="3 complaints"
+                            android:text="0 complaints"
                             android:textColor="@color/black"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvComplaintsSub"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1 high priority"
+                            android:text="0 high priority"
                             android:textColor="@color/colorTextSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -387,9 +395,10 @@
                         android:layout_marginStart="16dp">
 
                         <TextView
+                            android:id="@+id/tvUnassignedOrdersCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5 unassigned orders"
+                            android:text="0 unassigned orders"
                             android:textColor="@color/black"
                             android:textSize="16sp"
                             android:textStyle="bold" />

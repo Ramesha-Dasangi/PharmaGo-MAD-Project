@@ -63,6 +63,17 @@ public class PendingPharmacyAdapter extends RecyclerView.Adapter<PendingPharmacy
                 listener.onReviewClick(pharmacy);
             }
         });
+
+        if (pharmacy.getLicenseImageUrl() != null && !pharmacy.getLicenseImageUrl().isEmpty()) {
+            holder.btnViewDoc.setVisibility(View.VISIBLE);
+            holder.btnViewDoc.setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                intent.setData(android.net.Uri.parse(pharmacy.getLicenseImageUrl()));
+                v.getContext().startActivity(intent);
+            });
+        } else {
+            holder.btnViewDoc.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -95,6 +106,7 @@ public class PendingPharmacyAdapter extends RecyclerView.Adapter<PendingPharmacy
         TextView tvTime;
         TextView tvStatus;
         MaterialButton btnReview;
+        MaterialButton btnViewDoc;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,6 +115,7 @@ public class PendingPharmacyAdapter extends RecyclerView.Adapter<PendingPharmacy
             tvTime = itemView.findViewById(R.id.tvTime);
             tvStatus = itemView.findViewById(R.id.tvStatus);
             btnReview = itemView.findViewById(R.id.btnReview);
+            btnViewDoc = itemView.findViewById(R.id.btnViewDoc);
         }
     }
 }
