@@ -518,7 +518,8 @@ public class RegisterRiderActivity extends AppCompatActivity {
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
                     db.collection("riders")
-                            .add(rider)
+                            .document(uid)
+                            .set(rider)
                             .addOnSuccessListener(ref -> {
                                 mAuth.signOut();
                                 Toast.makeText(

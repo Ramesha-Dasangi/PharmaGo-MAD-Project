@@ -82,42 +82,51 @@
                 android:layout_marginBottom="12dp" />
 
             <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupReasonsRider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp">
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipInvalidLicense"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Invalid driving license"
                     android:textColor="@color/colorOrange"
+                    android:checkable="true"
                     app:chipBackgroundColor="#FFF3E0"
                     app:chipStrokeWidth="1dp"
                     app:chipStrokeColor="@color/colorOrange" />
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipVehicleDetails"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Vehicle details incorrect"
                     android:textColor="@color/colorTextSecondary"
+                    android:checkable="true"
                     app:chipBackgroundColor="@color/white"
                     app:chipStrokeWidth="1dp"
                     app:chipStrokeColor="@color/colorStroke" />
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipIncompleteInfoRider"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Incomplete info"
                     android:textColor="@color/colorTextSecondary"
+                    android:checkable="true"
                     app:chipBackgroundColor="@color/white"
                     app:chipStrokeWidth="1dp"
                     app:chipStrokeColor="@color/colorStroke" />
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipBackgroundCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Background check failed"
                     android:textColor="@color/colorTextSecondary"
+                    android:checkable="true"
                     app:chipBackgroundColor="@color/white"
                     app:chipStrokeWidth="1dp"
                     app:chipStrokeColor="@color/colorStroke" />
@@ -133,13 +142,14 @@
                 android:layout_marginBottom="12dp" />
 
             <EditText
+                android:id="@+id/etRejectionReason"
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:background="@drawable/rounded_edittext"
                 android:padding="16dp"
                 android:gravity="top|start"
-                android:text="The driving license provided appears to be expired..."
-                android:textColor="@color/colorTextSecondary"
+                android:hint="Type the reason for rejection here..."
+                android:textColor="@color/black"
                 android:textSize="14sp"
                 android:layout_marginBottom="32dp" />
 
