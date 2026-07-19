@@ -74,6 +74,25 @@ public class OrderTrackingActivity extends AppCompatActivity {
             });
         }
 
+        // Cancel Order button
+        MaterialButton btnCancelOrder = findViewById(R.id.btnCancelOrder);
+        if (btnCancelOrder != null && !orderId.isEmpty()) {
+            btnCancelOrder.setOnClickListener(v -> {
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                        .setTitle("Cancel Order?")
+                        .setMessage("Are you sure you want to cancel this order? This action cannot be undone.")
+                        .setPositiveButton("Yes, cancel", (dialog, which) ->
+                                db.collection("orders").document(orderId)
+                                        .update("status", "cancelled")
+                                        .addOnSuccessListener(aVoid ->
+                                                android.widget.Toast.makeText(this, "Order cancelled successfully", android.widget.Toast.LENGTH_SHORT).show())
+                                        .addOnFailureListener(e ->
+                                                android.widget.Toast.makeText(this, "Failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show()))
+                        .setNegativeButton("Keep order", null)
+                        .show();
+            });
+        }
+
         // Firestore real-time status listener
         if (!orderId.isEmpty()) {
             DocumentReference orderRef = db.collection("orders").document(orderId);
@@ -86,6 +105,15 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 // Show review button when delivered
                 if ("delivered".equals(status) && btnReview != null) {
                     btnReview.setVisibility(View.VISIBLE);
+                }
+
+                // Show cancel button if the order is still eligible to be cancelled
+                if (btnCancelOrder != null) {
+                    if ("pending".equalsIgnoreCase(status) || "processing".equalsIgnoreCase(status) || "assigned".equalsIgnoreCase(status)) {
+                        btnCancelOrder.setVisibility(View.VISIBLE);
+                    } else {
+                        btnCancelOrder.setVisibility(View.GONE);
+                    }
                 }
             });
         }
@@ -106,6 +134,10 @@ public class OrderTrackingActivity extends AppCompatActivity {
                         tvStatus.setText("Pharmacy is preparing your order");
                         setStepsProgress(2);
                         break;
+                    case "assigned":
+                        tvStatus.setText("Rider is assigned to your order");
+                        setStepsProgress(2);
+                        break;
                     case "picked_up":
                         tvStatus.setText("Rider picked up your order");
                         setStepsProgress(3);
@@ -117,6 +149,11 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     case "delivered":
                         tvStatus.setText("Delivered ✓");
                         setStepsProgress(5);
+                        break;
+                    case "cancelled":
+                        tvStatus.setText("Order cancelled ❌");
+                        tvStatus.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
+                        setStepsProgress(0); // Optional: you can hide or gray out the steps if it's cancelled
                         break;
                     default:
                         tvStatus.setText(status);

@@ -182,9 +182,10 @@
 
             <!-- TODAY label -->
             <TextView
+                android:id="@+id/tvDateLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TODAY"
+                android:text="ORDER HISTORY"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -192,146 +193,23 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Delivery Item 1 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <TextView
+                android:id="@+id/tvEmpty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_rounded_white"
-                android:layout_marginHorizontal="24dp"
-                android:layout_marginBottom="12dp"
-                android:padding="16dp"
-                android:elevation="2dp">
+                android:text="No orders found"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:layout_marginTop="32dp"
+                android:visibility="gone" />
 
-                <TextView
-                    android:id="@+id/tvOrder1Id"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="#PG-00229"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvBadge1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Delivered"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/green_accept"
-                    android:background="@drawable/bg_badge_delivered"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Buddhini Perera · 09:15 AM"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvOrder1Id" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Delivery Item 2 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvHistory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_rounded_white"
                 android:layout_marginHorizontal="24dp"
-                android:layout_marginBottom="12dp"
-                android:padding="16dp"
-                android:elevation="2dp">
-
-                <TextView
-                    android:id="@+id/tvOrder2Id"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="#PG-00221"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvBadge2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Delivered"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/green_accept"
-                    android:background="@drawable/bg_badge_delivered"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Amal Perera · 08:42 AM"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvOrder2Id" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Delivery Item 3 - Cancelled -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_rounded_white"
-                android:layout_marginHorizontal="24dp"
-                android:layout_marginBottom="12dp"
-                android:padding="16dp"
-                android:elevation="2dp">
-
-                <TextView
-                    android:id="@+id/tvOrder3Id"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="#PG-00215"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvBadge3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cancelled"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="#E84B6A"
-                    android:background="@drawable/bg_badge_cancelled"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Nimal Silva · 08:10 AM"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvOrder3Id" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                android:clipToPadding="false" />
 
         </LinearLayout>
     </ScrollView>
