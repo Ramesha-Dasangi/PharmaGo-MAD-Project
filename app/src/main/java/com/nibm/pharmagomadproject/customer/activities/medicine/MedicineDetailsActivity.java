@@ -94,7 +94,12 @@ public class MedicineDetailsActivity extends AppCompatActivity {
 
         // Order now
         safeClick(R.id.btnOrderNow, v -> {
-            if ("Prescription".equals(type) || "Rx".equals(type)) {
+            boolean needsRx = "Prescription".equalsIgnoreCase(type)
+                    || "Rx".equalsIgnoreCase(type)
+                    || "Prescription".equalsIgnoreCase(category)
+                    || "Rx".equalsIgnoreCase(category);
+
+            if (needsRx) {
                 Intent uploadIntent = new Intent(this, PrescriptionUploadActivity.class);
                 uploadIntent.putExtra("medicine_id", id);
                 uploadIntent.putExtra("medicine_name", name);

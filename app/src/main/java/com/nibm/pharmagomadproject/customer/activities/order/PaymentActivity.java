@@ -44,6 +44,7 @@ public class PaymentActivity extends AppCompatActivity {
     private int subtotal    = 0;
     private int deliveryFee = 100;
     private int total       = 100;
+    private String existingOrderId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,13 +68,31 @@ public class PaymentActivity extends AppCompatActivity {
         etExpiry           = findViewById(R.id.etExpiry);
         etCvv              = findViewById(R.id.etCvv);
 
-        // Get totals from intent
-        subtotal    = getIntent().getIntExtra("subtotal",    0);
-        deliveryFee = getIntent().getIntExtra("deliveryFee", 100);
-        total       = getIntent().getIntExtra("total",       100);
+        existingOrderId = getIntent().getStringExtra("orderId");
+        if (existingOrderId != null && !existingOrderId.isEmpty()) {
+            db.collection("orders").document(existingOrderId).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Double orderSubtotal = doc.getDouble("subtotal");
+                            Double orderTotal = doc.getDouble("total");
+                            Double orderDeliveryFee = doc.getDouble("deliveryFee");
+                            if (orderSubtotal != null) subtotal = orderSubtotal.intValue();
+                            if (orderTotal != null) total = orderTotal.intValue();
+                            if (orderDeliveryFee != null) deliveryFee = orderDeliveryFee.intValue();
 
-        tvPaySubtotal.setText("Rs. " + subtotal);
-        tvPayTotal.setText("Rs. " + total);
+                            tvPaySubtotal.setText("Rs. " + subtotal);
+                            tvPayTotal.setText("Rs. " + total);
+                        }
+                    });
+        } else {
+            // Get totals from intent
+            subtotal    = getIntent().getIntExtra("subtotal",    0);
+            deliveryFee = getIntent().getIntExtra("deliveryFee", 100);
+            total       = getIntent().getIntExtra("total",       100);
+
+            tvPaySubtotal.setText("Rs. " + subtotal);
+            tvPayTotal.setText("Rs. " + total);
+        }
 
         // Back button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
@@ -140,6 +159,47 @@ public class PaymentActivity extends AppCompatActivity {
                 etCvv.requestFocus();
                 return;
             }
+        }
+
+        if (existingOrderId != null && !existingOrderId.isEmpty()) {
+            MaterialButton btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
+            btnPlaceOrder.setEnabled(false);
+            btnPlaceOrder.setText("Processing payment...");
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("status", "processing");
+            updates.put("paymentMethod", selectedMethod);
+
+            db.collection("orders").document(existingOrderId)
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "✅ Payment successful! Order is now being prepared.", Toast.LENGTH_SHORT).show();
+
+                        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+                        if (!uid.isEmpty()) {
+                            java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                            notif.put("userId",      uid);
+                            notif.put("title",       "Payment Successful 💳");
+                            notif.put("message",     "Payment for order " + existingOrderId + " was successful! The pharmacy is preparing your items.");
+                            notif.put("type",        "order_processing");
+                            notif.put("referenceId", existingOrderId);
+                            notif.put("isRead",      false);
+                            notif.put("createdAt",   System.currentTimeMillis());
+                            db.collection("notifications").add(notif);
+                        }
+
+                        Intent intent = new Intent(this, OrderTrackingActivity.class);
+                        intent.putExtra("orderId", existingOrderId);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnPlaceOrder.setEnabled(true);
+                        btnPlaceOrder.setText("Place order");
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            return;
         }
 
         String uid     = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";

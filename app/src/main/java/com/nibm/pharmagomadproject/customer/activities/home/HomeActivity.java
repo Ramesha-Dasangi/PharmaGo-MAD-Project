@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -323,8 +326,19 @@ public class HomeActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Location location) {
                         if (location != null) {
-                            userLatitude = location.getLatitude();
+                            userLatitude  = location.getLatitude();
                             userLongitude = location.getLongitude();
+
+                            // Save location to Firestore users doc
+                            String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                                    ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                            if (uid != null) {
+                                Map<String, Object> locData = new HashMap<>();
+                                locData.put("latitude",  userLatitude);
+                                locData.put("longitude", userLongitude);
+                                FirebaseFirestore.getInstance().collection("users")
+                                        .document(uid).update(locData);
+                            }
                         }
                         loadPharmacies();
                     }

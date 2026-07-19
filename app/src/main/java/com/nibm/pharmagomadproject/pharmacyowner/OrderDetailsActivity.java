@@ -52,6 +52,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
 
     private com.google.firebase.firestore.FirebaseFirestore db;
     private String currentOrderId;
+    private boolean isPrescriptionOrder = false;
 
     private final ActivityResultLauncher<Intent> galleryLauncher =
             registerForActivityResult(
@@ -161,7 +162,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
                             java.util.List<java.util.Map<String, Object>> items =
-                                    (java.util.List<java.util.Map<String, Object>>) doc.get("items");
+                                     (java.util.List<java.util.Map<String, Object>>) doc.get("items");
                             if (items != null) {
                                 StringBuilder desc = new StringBuilder();
                                 for (java.util.Map<String, Object> item : items) {
@@ -171,13 +172,14 @@ public class OrderDetailsActivity extends AppCompatActivity {
                                         .append("  —  Rs. ")
                                         .append(String.format("%.0f", ((Number) item.getOrDefault("price", 0)).doubleValue()));
                                 }
-                                // Show items in txtDate as a secondary display if available
-                                // (txtDate already has time, so only update if customer/amount not yet set)
                             }
                             // Show prescription if present
                             String presUrl = doc.getString("prescriptionUrl");
-                            if (presUrl != null && !presUrl.isEmpty() && txtFileName != null) {
-                                txtFileName.setText("Prescription attached — tap to view");
+                            if (presUrl != null && !presUrl.isEmpty()) {
+                                isPrescriptionOrder = true;
+                                if (txtFileName != null) {
+                                    txtFileName.setText("Prescription attached — tap to view");
+                                }
                             }
                             Double total = doc.getDouble("total");
                             if (total != null) txtTotal.setText("Total : Rs. " + total.intValue());
@@ -187,27 +189,36 @@ public class OrderDetailsActivity extends AppCompatActivity {
 
         btnUploadPrescription.setOnClickListener(v -> showImagePickerDialog());
 
-        // Approve — set status to 'processing'
+        // Approve — set status to 'approved_pending_payment' for Rx orders or 'processing' for OTC
         btnApprove.setOnClickListener(v -> {
             if (currentOrderId == null) return;
             btnApprove.setEnabled(false);
+
+            String nextStatus = isPrescriptionOrder ? "approved_pending_payment" : "processing";
+
             db.collection("orders").document(currentOrderId)
-                    .update("status", "processing")
+                    .update("status", nextStatus)
                     .addOnSuccessListener(unused -> {
                         // Notify customer
                         if (customerId != null && !customerId.isEmpty()) {
                             java.util.Map<String, Object> notif = new java.util.HashMap<>();
                             notif.put("userId",      customerId);
-                            notif.put("title",       "Pharmacy preparing your order 💊");
-                            notif.put("message",     "Order " + currentOrderId + " has been approved and is being prepared.");
-                            notif.put("type",        "order_processing");
+                            if (isPrescriptionOrder) {
+                                notif.put("title",       "Prescription Approved 💊");
+                                notif.put("message",     "Order " + currentOrderId + " prescription approved. Tap to pay now.");
+                                notif.put("type",        "prescription_approved");
+                            } else {
+                                notif.put("title",       "Pharmacy preparing your order 💊");
+                                notif.put("message",     "Order " + currentOrderId + " has been approved and is being prepared.");
+                                notif.put("type",        "order_processing");
+                            }
                             notif.put("referenceId", currentOrderId);
                             notif.put("isRead",      false);
                             notif.put("createdAt",   System.currentTimeMillis());
                             db.collection("notifications").add(notif);
                         }
-                        Toast.makeText(OrderDetailsActivity.this,
-                                "Order approved — now processing!", Toast.LENGTH_SHORT).show();
+                        String msg = isPrescriptionOrder ? "Order approved — awaiting payment!" : "Order approved — now processing!";
+                        Toast.makeText(OrderDetailsActivity.this, msg, Toast.LENGTH_SHORT).show();
                         finish();
                     })
                     .addOnFailureListener(e -> {

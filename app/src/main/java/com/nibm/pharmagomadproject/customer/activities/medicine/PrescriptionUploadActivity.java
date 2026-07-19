@@ -170,7 +170,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                             order.put("deliveryFee", 100);
                             order.put("total", price + 100);
                             order.put("paymentMethod", "cod");
-                            order.put("status", "pending");
+                            order.put("status", "awaiting_approval");  // awaiting pharmacy prescription review
                             order.put("createdAt", System.currentTimeMillis());
                             order.put("prescriptionUrl", publicUrl);
 

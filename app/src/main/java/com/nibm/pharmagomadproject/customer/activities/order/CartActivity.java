@@ -106,8 +106,12 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
                     .addOnSuccessListener(document -> {
                         if (document.exists()) {
                             String address = document.getString("address");
+                            String label   = document.getString("addressLabel");
                             if (address != null && !address.trim().isEmpty()) {
-                                tvDeliveryAddress.setText(address);
+                                String display = (label != null && !label.isEmpty())
+                                        ? label + "  ·  " + address
+                                        : address;
+                                tvDeliveryAddress.setText(display);
                             } else {
                                 tvDeliveryAddress.setText("Tap to add delivery address");
                             }

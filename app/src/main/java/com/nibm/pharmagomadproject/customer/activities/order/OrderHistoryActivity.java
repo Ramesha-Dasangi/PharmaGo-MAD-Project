@@ -97,7 +97,9 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
 
                     for (QueryDocumentSnapshot doc : query) {
                         Order o = new Order();
-                        o.setOrderId(doc.getId());
+                        // Use the stored orderId field (PG-timestamp) rather than Firestore doc ID
+                        String storedId = doc.getString("orderId");
+                        o.setOrderId(storedId != null && !storedId.isEmpty() ? storedId : doc.getId());
                         o.setPharmacyName(doc.getString("pharmacyName") != null
                                 ? doc.getString("pharmacyName") : "");
                         o.setStatus(doc.getString("status") != null
@@ -145,6 +147,8 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
             switch (currentTab) {
                 case "active":
                     include = "pending".equals(s) || "processing".equals(s)
+                            || "awaiting_approval".equals(s)
+                            || "approved_pending_payment".equals(s)
                             || "picked_up".equals(s) || "out_for_delivery".equals(s);
                     break;
                 case "delivered":
@@ -173,9 +177,15 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
 
     @Override
     public void onTrackOrder(Order order) {
-        Intent i = new Intent(this, OrderTrackingActivity.class);
-        i.putExtra("orderId", order.getOrderId());
-        startActivity(i);
+        if ("approved_pending_payment".equalsIgnoreCase(order.getStatus())) {
+            Intent i = new Intent(this, PaymentActivity.class);
+            i.putExtra("orderId", order.getOrderId());
+            startActivity(i);
+        } else {
+            Intent i = new Intent(this, OrderTrackingActivity.class);
+            i.putExtra("orderId", order.getOrderId());
+            startActivity(i);
+        }
     }
 
     @Override

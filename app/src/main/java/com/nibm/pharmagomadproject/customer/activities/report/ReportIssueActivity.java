@@ -48,13 +48,30 @@ public class ReportIssueActivity extends AppCompatActivity {
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
                             String pharmacyName = doc.getString("pharmacyName");
-                            String riderId = doc.getString("riderId");
+                            String riderId      = doc.getString("riderId");
+
+                            String pharmacyText = (pharmacyName != null && !pharmacyName.isEmpty())
+                                    ? pharmacyName : "Pharmacy";
 
                             TextView tvSummary = findViewById(R.id.tvOrderSummary);
-                            if (tvSummary != null) {
-                                String riderText = (riderId != null && !riderId.trim().isEmpty()) ? "1 rider" : "No rider assigned";
-                                String pharmacyText = (pharmacyName != null) ? pharmacyName : "Pharmacy";
-                                tvSummary.setText(pharmacyText + " · " + riderText);
+
+                            if (riderId != null && !riderId.trim().isEmpty()) {
+                                // Fetch rider name
+                                FirebaseFirestore.getInstance().collection("users")
+                                        .document(riderId).get()
+                                        .addOnSuccessListener(riderDoc -> {
+                                            String riderName = riderDoc.getString("name");
+                                            String display = pharmacyText + "  ·  Rider: "
+                                                    + (riderName != null ? riderName : "Assigned");
+                                            if (tvSummary != null) tvSummary.setText(display);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            if (tvSummary != null)
+                                                tvSummary.setText(pharmacyText + "  ·  Rider assigned");
+                                        });
+                            } else {
+                                if (tvSummary != null)
+                                    tvSummary.setText(pharmacyText + "  ·  No rider assigned yet");
                             }
                         }
                     });

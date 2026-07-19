@@ -1,5 +1,6 @@
 package com.nibm.pharmagomadproject.customer.activities.notification;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.activities.order.PaymentActivity;
 import com.nibm.pharmagomadproject.customer.adapter.NotificationAdapter;
 import com.nibm.pharmagomadproject.customer.models.Notification;
 
@@ -51,6 +53,13 @@ public class NotificationsActivity extends AppCompatActivity {
                                 .update("isRead", true);
                     }
                     adapter.notifyDataSetChanged();
+                }
+                
+                // If it is prescription approved, click navigates to payment
+                if ("prescription_approved".equalsIgnoreCase(notif.getType()) && notif.getReferenceId() != null && !notif.getReferenceId().isEmpty()) {
+                    Intent intent = new Intent(this, PaymentActivity.class);
+                    intent.putExtra("orderId", notif.getReferenceId());
+                    startActivity(intent);
                 }
             });
             rvNotifications.setLayoutManager(new LinearLayoutManager(this));

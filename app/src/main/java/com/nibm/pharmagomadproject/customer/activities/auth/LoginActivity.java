@@ -118,83 +118,74 @@ public class LoginActivity extends AppCompatActivity {
                         .toString()
                         .trim();
 
+        MaterialButton btnLogin = findViewById(R.id.btnLogin);
+
         if(TextUtils.isEmpty(email)){
             etEmail.setError("Enter email");
-            MaterialButton btnLogin = findViewById(R.id.btnLogin);
-            if (btnLogin != null) {
-                btnLogin.setEnabled(true);
-            }
+            if (btnLogin != null) btnLogin.setEnabled(true);
             return;
         }
 
         if(TextUtils.isEmpty(password)){
             etPassword.setError("Enter password");
-            MaterialButton btnLogin = findViewById(R.id.btnLogin);
-            if (btnLogin != null) {
-                btnLogin.setEnabled(true);
-            }
+            if (btnLogin != null) btnLogin.setEnabled(true);
             return;
         }
 
-        mAuth.signInWithEmailAndPassword(
-                        email,
-                        password
-                )
+        // Show loading state
+        if (btnLogin != null) {
+            btnLogin.setEnabled(false);
+            btnLogin.setText("Logging in...");
+        }
 
+        mAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    String uid =
-                            mAuth.getCurrentUser()
-                                    .getUid();
-                    checkUser(uid);
-                })
-
-
-                .addOnFailureListener(e -> {
-                    MaterialButton btnLogin = findViewById(R.id.btnLogin);
-                    if (btnLogin != null) {
-                        btnLogin.setEnabled(true);
+                    String uid = mAuth.getCurrentUser() != null
+                            ? mAuth.getCurrentUser().getUid() : null;
+                    if (uid != null) {
+                        checkUser(uid);
+                    } else {
+                        Toast.makeText(this, "Login error: could not get user ID", Toast.LENGTH_SHORT).show();
+                        if (btnLogin != null) { btnLogin.setEnabled(true); btnLogin.setText("Login"); }
                     }
-                    Toast.makeText(
-                            this,
-                            "Login failed: "+e.getMessage(),
-                            Toast.LENGTH_SHORT
-                    ).show();
+                })
+                .addOnFailureListener(e -> {
+                    if (btnLogin != null) { btnLogin.setEnabled(true); btnLogin.setText("Login"); }
+                    String msg = e.getMessage();
+                    if (msg != null && msg.contains("no user record")) {
+                        Toast.makeText(this, "No account found with this email.", Toast.LENGTH_LONG).show();
+                    } else if (msg != null && msg.contains("password is invalid")) {
+                        Toast.makeText(this, "Incorrect password. Please try again.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Login failed: " + msg, Toast.LENGTH_LONG).show();
+                    }
                 });
+    }
+
+    private void resetLoginButton() {
+        MaterialButton btnLogin = findViewById(R.id.btnLogin);
+        if (btnLogin != null) {
+            btnLogin.setEnabled(true);
+            btnLogin.setText("Login");
+        }
     }
 
     private void checkUser(String uid){
         db.collection("users")
                 .document(uid)
                 .get()
-
                 .addOnSuccessListener(document -> {
                     if(!document.exists()){
-                        Toast.makeText(
-                                this,
-                                "User data not found",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
+                        Toast.makeText(this, "User data not found. Please register.", Toast.LENGTH_LONG).show();
                         mAuth.signOut();
-
-                        MaterialButton btnLogin = findViewById(R.id.btnLogin);
-                        if (btnLogin != null) {
-                            btnLogin.setEnabled(true);
-                        }
+                        resetLoginButton();
                         return;
                     }
 
                     String role = document.getString("role");
-
                     Boolean approved = document.getBoolean("isApproved");
-
-                    if (approved == null) {
-                        approved = false; // Default to false if not set
-                    }
-
-                    if(role==null){
-                        role="customer";
-                    }
+                    if (approved == null) approved = false;
+                    if (role == null) role = "customer";
 
                     switch(role){
                         case "customer":
@@ -207,12 +198,11 @@ public class LoginActivity extends AppCompatActivity {
                                 if (approvalSeen != null && approvalSeen) {
                                     openPharmacy();
                                 } else {
-                                    // Update Firestore flag so they only see it once
                                     db.collection("users").document(uid).update("approvalSeen", true);
                                     startActivity(new Intent(LoginActivity.this, ApprovalSuccessActivity.class));
                                     finish();
                                 }
-                            }else{
+                            } else {
                                 openPending();
                             }
                             break;
@@ -220,37 +210,20 @@ public class LoginActivity extends AppCompatActivity {
                         case "rider":
                             if(Boolean.TRUE.equals(approved)){
                                 openRider();
-                            }else{
+                            } else {
                                 openPending();
                             }
                             break;
 
                         default:
-                            Toast.makeText(
-                                    this,
-                                    "Invalid account type",
-                                    Toast.LENGTH_SHORT
-                            ).show();
-
+                            Toast.makeText(this, "Invalid account type: " + role, Toast.LENGTH_LONG).show();
                             mAuth.signOut();
-
-                            MaterialButton btnLogin = findViewById(R.id.btnLogin);
-                            if (btnLogin != null) {
-                                btnLogin.setEnabled(true);
-                            }
+                            resetLoginButton();
                     }
                 })
-
                 .addOnFailureListener(e -> {
-                    MaterialButton btnLogin = findViewById(R.id.btnLogin);
-                    if (btnLogin != null) {
-                        btnLogin.setEnabled(true);
-                    }
-                    Toast.makeText(
-                            this,
-                            "Error: " + e.getMessage(),
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    resetLoginButton();
+                    Toast.makeText(this, "Error loading account: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 

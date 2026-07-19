@@ -5,11 +5,13 @@ import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.models.Medicine;
 
@@ -75,18 +77,17 @@ public class MedicineAdapter
         // Medicine name
         if (holder.name != null) {
             if (m.getBrandName() != null && !m.getBrandName().isEmpty() && holder.brand == null) {
-                // If there's no separate brand textview, combine brand and name
-                holder.name.setText(m.getBrandName() + "\n" + m.getMedicineName());
+                holder.name.setText(m.getBrandName() + " " + m.getMedicineName());
             } else {
                 holder.name.setText(m.getMedicineName());
             }
         }
 
-        // Category + type + pharmacy (subtitle)
+        // Category subtitle
         if (holder.subtitle != null) {
-            holder.subtitle.setText(
-                    m.getCategory() + " · " + m.getType() + "\n" + m.getPharmacy()
-            );
+            String cat  = m.getCategory()  != null ? m.getCategory()  : "";
+            String phm  = m.getPharmacy()  != null ? m.getPharmacy()  : "";
+            holder.subtitle.setText(cat.isEmpty() ? phm : cat + " · " + phm);
         }
 
         // Price + best price badge
@@ -98,28 +99,42 @@ public class MedicineAdapter
 
         if (holder.price != null) {
             if (isBest) {
-                holder.price.setText("Rs. " + (int) m.getPrice() + " ✓ Best");
+                holder.price.setText("Rs. " + (int) m.getPrice() + "  ✓ Best");
                 holder.price.setTextColor(context.getResources()
                         .getColor(R.color.pg_primary, null));
                 holder.price.setTypeface(null, Typeface.BOLD);
             } else {
                 holder.price.setText("Rs. " + (int) m.getPrice());
                 holder.price.setTextColor(context.getResources()
-                        .getColor(R.color.pg_text, null));
+                        .getColor(R.color.pg_primary, null));
                 holder.price.setTypeface(null, Typeface.NORMAL);
             }
         }
 
-        // Prescription badge (if exists)
-        if (holder.typeBadge != null) {
-            if ("Prescription".equals(m.getType())) {
-                holder.typeBadge.setVisibility(View.VISIBLE);
-                holder.typeBadge.setText("Rx");
-                holder.typeBadge.setBackgroundResource(R.drawable.bg_tag_amber);
+        // RX Badge — show for Prescription/Rx type or category
+        if (holder.rxBadge != null) {
+            boolean isRx = "Prescription".equalsIgnoreCase(m.getType())
+                    || "Rx".equalsIgnoreCase(m.getType())
+                    || "Prescription".equalsIgnoreCase(m.getCategory())
+                    || "Rx".equalsIgnoreCase(m.getCategory());
+            holder.rxBadge.setVisibility(isRx ? View.VISIBLE : View.GONE);
+        }
+
+        // Load medicine image with Glide (show real image, hide pill icon; fallback to icon)
+        String imageUrl = m.getImageUrl();
+        if (holder.medicineImage != null && holder.medicineIcon != null) {
+            if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                holder.medicineIcon.setVisibility(View.GONE);
+                holder.medicineImage.setVisibility(View.VISIBLE);
+                Glide.with(context)
+                        .load(imageUrl.trim())
+                        .placeholder(R.drawable.ic_pill)
+                        .error(R.drawable.ic_pill)
+                        .centerCrop()
+                        .into(holder.medicineImage);
             } else {
-                holder.typeBadge.setVisibility(View.VISIBLE);
-                holder.typeBadge.setText("OTC");
-                holder.typeBadge.setBackgroundResource(R.drawable.bg_tag_green);
+                holder.medicineImage.setVisibility(View.GONE);
+                holder.medicineIcon.setVisibility(View.VISIBLE);
             }
         }
 
@@ -139,17 +154,20 @@ public class MedicineAdapter
     public int getItemCount() { return medicineList.size(); }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView brand, name, price, subtitle, typeBadge;
-        View     addCart;
+        TextView  brand, name, price, subtitle, rxBadge;
+        ImageView medicineImage, medicineIcon;
+        View      addCart;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            brand     = itemView.findViewById(R.id.tvBrand);
-            name      = itemView.findViewById(R.id.tvMedicineName);
-            price     = itemView.findViewById(R.id.tvMedicinePrice);
-            subtitle  = itemView.findViewById(R.id.tvMedicineCategory);
-            typeBadge = itemView.findViewById(R.id.tvTypeBadge);
-            addCart   = itemView.findViewById(R.id.btnAddToCartCard);
+            brand         = itemView.findViewById(R.id.tvBrand);
+            name          = itemView.findViewById(R.id.tvMedicineName);
+            price         = itemView.findViewById(R.id.tvMedicinePrice);
+            subtitle      = itemView.findViewById(R.id.tvMedicineCategory);
+            rxBadge       = itemView.findViewById(R.id.tvRxBadge);
+            medicineImage = itemView.findViewById(R.id.ivMedicineImage);
+            medicineIcon  = itemView.findViewById(R.id.ivMedicineIcon);
+            addCart       = itemView.findViewById(R.id.btnAddToCartCard);
         }
     }
 }
