@@ -48,34 +48,43 @@ public class RegisterActivity extends AppCompatActivity {
         roleRider    = findViewById(R.id.roleRider);
 
         // Back
-        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnBack).setOnClickListener(
+                v -> finish()
+        );
 
-        // Default: Customer selected
+        // Default - Customer selected
         updateRoleUI();
 
         // Role selection
-        roleCustomer.setOnClickListener(v -> {
-            selectedRole = "customer";
-            updateRoleUI();
+        roleCustomer.setOnClickListener(
+                v -> {
+                    selectedRole = "customer";
+                    updateRoleUI();
         });
-        rolePharmacy.setOnClickListener(v -> {
-            selectedRole = "pharmacy";
-            updateRoleUI();
-            startActivity(new Intent(this, RegisterPharmacyActivity.class));
+        rolePharmacy.setOnClickListener(
+                v -> {
+                    selectedRole = "pharmacy";
+                    updateRoleUI();
+                    startActivity(new Intent(this, RegisterPharmacyActivity.class));
         });
-        roleRider.setOnClickListener(v -> {
-            selectedRole = "rider";
-            updateRoleUI();
-            startActivity(new Intent(this, RegisterRiderActivity.class));
+        roleRider.setOnClickListener(
+                v -> {
+                    selectedRole = "rider";
+                    updateRoleUI();
+                    startActivity(new Intent(this, RegisterRiderActivity.class));
         });
 
         // Already have account
         TextView tvLogin = findViewById(R.id.tvLogin);
-        tvLogin.setOnClickListener(v -> finish());
+        tvLogin.setOnClickListener(
+                v -> finish()
+        );
 
         // Register button
         MaterialButton btnRegister = findViewById(R.id.btnRegister);
-        btnRegister.setOnClickListener(v -> attemptRegister());
+        btnRegister.setOnClickListener(
+                v -> attemptRegister()
+        );
     }
 
     private void updateRoleUI() {
@@ -162,19 +171,21 @@ public class RegisterActivity extends AppCompatActivity {
                                 .addOnSuccessListener(v -> {
                                     Toast.makeText(this,
                                             "Registered successfully!", Toast.LENGTH_SHORT).show();
+                                    mAuth.signOut(); // sign out so user logs in cleanly
                                     startActivity(new Intent(this, LoginActivity.class));
                                     finish();
                                 })
                                 .addOnFailureListener(e -> {
-                                    // Auth success but Firestore fail
+                                    // Auth success but Firestore fail: clean up auth user
+                                    if (mAuth.getCurrentUser() != null) {
+                                        mAuth.getCurrentUser().delete();
+                                    }
                                     Toast.makeText(this,
-                                            "Registered!", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(this, LoginActivity.class));
-                                    finish();
+                                            "Failed to save profile data: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                 });
                     } else {
                         Toast.makeText(this,
-                                "Error: " + task.getException().getMessage(),
+                                "Error: " + (task.getException() != null ? task.getException().getMessage() : "Registration failed"),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });

@@ -37,7 +37,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
 
     private static final int DELIVERY_FEE = 100;
 
-    // ✅ Static cart store — singleton list (activity restart survive karanawa)
+    // Static cart store — singleton list (activity restart survive)
     public static final List<Cart> CART_STORE = new ArrayList<>();
 
     @Override
@@ -65,7 +65,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
             });
         }
 
-        // ✅ Use global cart store
+        // Use global cart store
         cartItems = CART_STORE;
 
         adapter = new CartAdapter(cartItems, this);
@@ -87,6 +87,26 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
             intent.putExtra("deliveryFee", DELIVERY_FEE);
             startActivity(intent);
         });
+
+        setupBottomNav();
+    }
+
+    private void setupBottomNav() {
+        View navHome    = findViewById(R.id.navHome);
+        View navSearch  = findViewById(R.id.navSearch);
+        View navOrders  = findViewById(R.id.navOrders);
+        View navProfile = findViewById(R.id.navProfile);
+
+        if (navHome != null) navHome.setOnClickListener(v -> {
+            startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.home.HomeActivity.class));
+            finish();
+        });
+        if (navSearch != null) navSearch.setOnClickListener(v ->
+                startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.medicine.MedicineListActivity.class)));
+        if (navOrders != null) navOrders.setOnClickListener(v ->
+                startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.order.OrderHistoryActivity.class)));
+        if (navProfile != null) navProfile.setOnClickListener(v ->
+                startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.profile.ProfileActivity.class)));
     }
 
     @Override
@@ -106,8 +126,12 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartL
                     .addOnSuccessListener(document -> {
                         if (document.exists()) {
                             String address = document.getString("address");
+                            String label   = document.getString("addressLabel");
                             if (address != null && !address.trim().isEmpty()) {
-                                tvDeliveryAddress.setText(address);
+                                String display = (label != null && !label.isEmpty())
+                                        ? label + "  ·  " + address
+                                        : address;
+                                tvDeliveryAddress.setText(display);
                             } else {
                                 tvDeliveryAddress.setText("Tap to add delivery address");
                             }

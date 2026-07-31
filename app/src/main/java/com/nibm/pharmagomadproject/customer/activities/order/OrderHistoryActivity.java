@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.home.HomeActivity;
@@ -27,6 +27,7 @@ import com.nibm.pharmagomadproject.customer.models.Order;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class OrderHistoryActivity extends AppCompatActivity implements OrderAdapter.OrderListener {
 
@@ -81,39 +82,66 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
         selectTab("all");
     }
 
+    private com.google.firebase.firestore.ListenerRegistration ordersListener;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadOrders();
+    }
+
     private void loadOrders() {
         if (mAuth.getCurrentUser() == null) return;
         String userId = mAuth.getCurrentUser().getUid();
 
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        db.collection("orders")
-                .whereEqualTo("customerId", userId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(query -> {
-                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    allOrders.clear();
+        if (ordersListener != null) ordersListener.remove();
 
+        ordersListener = db.collection("orders")
+                .whereEqualTo("customerId", userId)
+                .addSnapshotListener((query, error) -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    if (error != null || query == null) return;
+
+                    allOrders.clear();
                     for (QueryDocumentSnapshot doc : query) {
                         Order o = new Order();
-                        o.setOrderId(doc.getId());
-                        o.setPharmacyName(doc.getString("pharmacyName") != null
-                                ? doc.getString("pharmacyName") : "");
+                        String storedId = doc.getString("orderId");
+                        o.setOrderId(storedId != null && !storedId.isEmpty() ? storedId : doc.getId());
+
+                        String phName = doc.getString("pharmacyName");
+                        if (phName == null || phName.trim().isEmpty()) {
+                            Object raw = doc.get("items");
+                            if (raw instanceof List) {
+                                @SuppressWarnings("unchecked")
+                                List<Map<String, Object>> items = (List<Map<String, Object>>) raw;
+                                if (!items.isEmpty()) {
+                                    Object pn = items.get(0).get("pharmacyName");
+                                    if (pn instanceof String) phName = (String) pn;
+                                }
+                            }
+                        }
+                        o.setPharmacyName(phName != null ? phName : "Pharmacy");
+
                         o.setStatus(doc.getString("status") != null
                                 ? doc.getString("status") : "pending");
-                        o.setTotal(doc.getDouble("total") != null
-                                ? doc.getDouble("total") : 0);
+                        Double totalVal = doc.getDouble("total");
+                        o.setTotal(totalVal != null ? totalVal : 0.0);
                         allOrders.add(o);
                     }
 
+                    // Sort newest orders first
+                    allOrders.sort((o1, o2) -> o2.getOrderId().compareTo(o1.getOrderId()));
+
                     applyTabFilter();
-                })
-                .addOnFailureListener(e -> {
-                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Failed to load orders: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (ordersListener != null) ordersListener.remove();
     }
 
     private void selectTab(String tab) {
@@ -140,21 +168,20 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
         filteredOrders.clear();
 
         for (Order o : allOrders) {
-            String s = o.getStatus();
+            String s = o.getStatus() != null ? o.getStatus().toLowerCase().trim() : "pending";
             boolean include;
             switch (currentTab) {
-                case "active":
-                    include = "pending".equals(s) || "processing".equals(s)
-                            || "assigned".equals(s)
-                            || "picked_up".equals(s) || "out_for_delivery".equals(s);
-                    break;
                 case "delivered":
                     include = "delivered".equals(s);
                     break;
                 case "cancelled":
                     include = "cancelled".equals(s);
                     break;
-                default:
+                case "active":
+                    // Everything that is NOT delivered or cancelled goes here
+                    include = !"delivered".equals(s) && !"cancelled".equals(s);
+                    break;
+                default: // "all"
                     include = true;
             }
             if (include) filteredOrders.add(o);
@@ -165,18 +192,24 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
         boolean empty = filteredOrders.isEmpty();
         if (tvEmpty != null) {
             tvEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
-            tvEmpty.setText("No " + currentTab + " orders");
         }
         if (rvOrders != null) rvOrders.setVisibility(empty ? View.GONE : View.VISIBLE);
     }
 
-    // ─── OrderAdapter.OrderListener ──────────────────
+
+    // OrderAdapter.OrderListener
 
     @Override
     public void onTrackOrder(Order order) {
-        Intent i = new Intent(this, OrderTrackingActivity.class);
-        i.putExtra("orderId", order.getOrderId());
-        startActivity(i);
+        if ("approved_pending_payment".equalsIgnoreCase(order.getStatus())) {
+            Intent i = new Intent(this, PaymentActivity.class);
+            i.putExtra("orderId", order.getOrderId());
+            startActivity(i);
+        } else {
+            Intent i = new Intent(this, OrderTrackingActivity.class);
+            i.putExtra("orderId", order.getOrderId());
+            startActivity(i);
+        }
     }
 
     @Override

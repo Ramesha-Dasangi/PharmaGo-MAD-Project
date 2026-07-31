@@ -71,12 +71,7 @@ public class SupabaseStorageHelper {
 
     }
 
-
-
-
-    // ============================
     // UPLOAD FILE
-    // ============================
 
     public void uploadFile(
             String bucket,
@@ -85,10 +80,7 @@ public class SupabaseStorageHelper {
             UploadCallback callback
     ){
 
-
         executor.execute(() -> {
-
-
             try{
 
                 Log.d(TAG, "Starting upload to bucket: " + bucket + ", path: " + filePath);
@@ -122,103 +114,59 @@ public class SupabaseStorageHelper {
                 URL url =
                         new URL(uploadUrl);
 
-
-
                 HttpURLConnection conn =
                         (HttpURLConnection)
                                 url.openConnection();
 
-                conn.setConnectTimeout(30000);  // FIX: Add timeout
-                conn.setReadTimeout(30000);     // FIX: Add timeout
+                conn.setConnectTimeout(30000);
+                conn.setReadTimeout(30000);
 
-                // FIX #1: Use PUT instead of POST for Supabase
-                conn.setRequestMethod("PUT");
-
+                // Use POST with x-upsert: true for Supabase Storage object upload
+                conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
-
                 conn.setUseCaches(false);
-
-
 
                 conn.setRequestProperty(
                         "Authorization",
                         "Bearer " + SUPABASE_ANON_KEY
                 );
 
-
                 conn.setRequestProperty(
                         "apikey",
                         SUPABASE_ANON_KEY
                 );
-
 
                 conn.setRequestProperty(
                         "Content-Type",
                         mimeType
                 );
 
-
                 conn.setRequestProperty(
                         "x-upsert",
                         "true"
                 );
 
-                // FIX: Set Content-Length header properly
+                // Read ALL bytes first to get the exact byte count
+                // (ContentResolver metadata size can differ from actual bytes read)
                 InputStream inputStream =
-                        context.getContentResolver()
-                                .openInputStream(fileUri);
+                        context.getContentResolver().openInputStream(fileUri);
+                if (inputStream == null) throw new Exception("Cannot open input stream for URI");
 
-                long fileSize = getFileSize(fileUri);
-                Log.d(TAG, "File size: " + fileSize + " bytes");
-
-                if(fileSize > 0) {
-                    conn.setRequestProperty("Content-Length", String.valueOf(fileSize));
-                }
-
-
-                OutputStream outputStream =
-                        conn.getOutputStream();
-
-
-
-
-                byte[] buffer =
-                        new byte[8192];  // Increased buffer size
-
-
-                int bytesRead;
-                long totalWritten = 0;
-
-
-
-                while(
-                        (bytesRead =
-                                inputStream.read(buffer))
-                                != -1
-                ){
-
-                    outputStream.write(
-                            buffer,
-                            0,
-                            bytesRead
-                    );
-
-                    totalWritten += bytesRead;
-
-                }
-
-                Log.d(TAG, "Uploaded " + totalWritten + " bytes");
-
-
-
-                outputStream.flush();
-
-                outputStream.close();
-
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = inputStream.read(buf)) != -1) bos.write(buf, 0, n);
                 inputStream.close();
+                byte[] fileBytes = bos.toByteArray();
 
+                Log.d(TAG, "File bytes to upload: " + fileBytes.length);
+                conn.setFixedLengthStreamingMode(fileBytes.length);
 
-
+                OutputStream outputStream = conn.getOutputStream();
+                outputStream.write(fileBytes);
+                outputStream.flush();
+                outputStream.close();
+                Log.d(TAG, "Uploaded " + fileBytes.length + " bytes");
 
                 int responseCode =
                         conn.getResponseCode();
@@ -259,14 +207,9 @@ public class SupabaseStorageHelper {
 
 
 
-                }else{
-
-
-
-                    int code =
-                            responseCode;
-
-                    String msg = "Upload failed HTTP " + code;
+                } else {
+                    String errorBody = readErrorResponse(conn);
+                    String msg = "Upload failed HTTP " + responseCode + ": " + errorBody;
                     Log.e(TAG, msg);
 
                     new android.os.Handler(
@@ -274,7 +217,6 @@ public class SupabaseStorageHelper {
                     ).post(() ->
                             callback.onFailure(msg)
                     );
-
                 }
 
 
@@ -284,7 +226,16 @@ public class SupabaseStorageHelper {
 
 
 
-            }catch(Exception e){
+            } catch (java.net.UnknownHostException uhe) {
+                Log.e(TAG, "Network host resolution failed", uhe);
+                new android.os.Handler(
+                        android.os.Looper.getMainLooper()
+                ).post(() ->
+                        callback.onFailure(
+                                "No internet connection. Please check your network and try again."
+                        )
+                );
+            } catch(Exception e){
 
                 Log.e(TAG, "Exception during upload", e);
 
@@ -305,14 +256,19 @@ public class SupabaseStorageHelper {
 
     }
 
-    // FIX: Helper method to read error response from server
+    // Helper method to read full error response from server
     private String readErrorResponse(HttpURLConnection conn) {
         try {
             InputStream errorStream = conn.getErrorStream();
+            if (errorStream == null) errorStream = conn.getInputStream();
             if (errorStream != null) {
-                byte[] buffer = new byte[1024];
-                int read = errorStream.read(buffer);
-                return new String(buffer, 0, read);
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(errorStream));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+                reader.close();
+                return sb.toString();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error reading error response", e);
@@ -366,13 +322,7 @@ public class SupabaseStorageHelper {
         return -1;
     }
 
-
-
-
-    // ============================
     // PRESCRIPTION UPLOAD
-    // ============================
-
     public void uploadPrescription(
             String userId,
             Uri fileUri,
@@ -397,13 +347,7 @@ public class SupabaseStorageHelper {
 
     }
 
-
-
-
-    // ============================
     // DELETE FILE
-    // ============================
-
     public void deleteFile(
             String bucket,
             String filePath,
@@ -510,14 +454,7 @@ public class SupabaseStorageHelper {
 
     }
 
-
-
-
-    // ============================
     // PUBLIC URL
-    // ============================
-
-
     public String getPublicUrl(
             String bucket,
             String filePath
@@ -531,13 +468,7 @@ public class SupabaseStorageHelper {
 
     }
 
-
-
-
-    // ============================
     // MIME TYPE
-    // ============================
-
     private String getMimeType(Uri uri){
 
 

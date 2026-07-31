@@ -16,6 +16,7 @@ public class DeliveryAddressActivity extends AppCompatActivity {
 
     private TextInputEditText etAddress, etCity;
     private android.widget.TextView tvCurrentAddress;
+    private android.widget.TextView tvCurrentLabel;
     private android.widget.TextView labelHomeView, labelWorkView, labelOtherView;
     private String selectedLabel = "Home";
 
@@ -31,6 +32,7 @@ public class DeliveryAddressActivity extends AppCompatActivity {
         etAddress        = findViewById(R.id.etAddress);
         etCity           = findViewById(R.id.etCity);
         tvCurrentAddress = findViewById(R.id.tvCurrentAddress);
+        tvCurrentLabel   = findViewById(R.id.tvCurrentLabel);
         labelHomeView    = findViewById(R.id.labelHome);
         labelWorkView    = findViewById(R.id.labelWork);
         labelOtherView   = findViewById(R.id.labelOther);
@@ -68,11 +70,16 @@ public class DeliveryAddressActivity extends AppCompatActivity {
                             selectLabel("Home");
                         }
 
+                        // Update top card label
+                        if (tvCurrentLabel != null) {
+                            tvCurrentLabel.setText(selectedLabel);
+                        }
+
                         // Restore address fields
                         String fullAddress = documentSnapshot.getString("address");
                         if (fullAddress != null && !fullAddress.isEmpty()) {
                             if (tvCurrentAddress != null) {
-                                tvCurrentAddress.setText(selectedLabel + " · " + fullAddress);
+                                tvCurrentAddress.setText(fullAddress);
                             }
                             int commaIndex = fullAddress.lastIndexOf(",");
                             if (commaIndex != -1) {
@@ -108,6 +115,9 @@ public class DeliveryAddressActivity extends AppCompatActivity {
         labelHomeView.setTextColor("Home".equals(label)  ? primary : sub);
         labelWorkView.setTextColor("Work".equals(label)  ? primary : sub);
         labelOtherView.setTextColor("Other".equals(label)? primary : sub);
+
+        // Update top card label
+        if (tvCurrentLabel != null) tvCurrentLabel.setText(label);
     }
 
     private void saveAddress() {

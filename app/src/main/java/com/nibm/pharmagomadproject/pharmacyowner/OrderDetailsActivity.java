@@ -47,8 +47,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
     // ──────────────── Firebase ────────────────
     private FirebaseFirestore db;
     private String currentOrderId;
-    private String customerId;
-    private String currentStatus = "pending";
+    private boolean isPrescriptionOrder = false;
 
     // ──────────────── Camera / Gallery ────────────────
     private final ActivityResultLauncher<Intent> galleryLauncher =
@@ -134,204 +133,68 @@ public class OrderDetailsActivity extends AppCompatActivity {
 
         // ── Load full order from Firestore ──
         if (currentOrderId != null) {
-            loadOrderDetails();
+            db.collection("orders").document(currentOrderId).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            java.util.List<java.util.Map<String, Object>> items =
+                                     (java.util.List<java.util.Map<String, Object>>) doc.get("items");
+                            if (items != null) {
+                                StringBuilder desc = new StringBuilder();
+                                for (java.util.Map<String, Object> item : items) {
+                                    if (desc.length() > 0) desc.append("\n");
+                                    desc.append(item.get("medicineName"))
+                                        .append(" x").append(item.get("quantity"))
+                                        .append("  —  Rs. ")
+                                        .append(String.format("%.0f", ((Number) item.getOrDefault("price", 0)).doubleValue()));
+                                }
+                            }
+                            // Show prescription if present
+                            String presUrl = doc.getString("prescriptionUrl");
+                            if (presUrl != null && !presUrl.isEmpty()) {
+                                isPrescriptionOrder = true;
+                                if (txtFileName != null) {
+                                    txtFileName.setText("Prescription attached — tap to view");
+                                }
+                            }
+                            Double total = doc.getDouble("total");
+                            if (total != null) txtTotal.setText("Total : Rs. " + total.intValue());
+                        }
+                    });
         }
 
         btnUploadPrescription.setOnClickListener(v -> showImagePickerDialog());
 
-        // ── Action buttons ──
-        btnApprove.setOnClickListener(v -> handleApproveAction());
-        btnReject.setOnClickListener(v -> handleRejectAction());
-    }
+        // Approve — set status to 'approved_pending_payment' for Rx orders or 'processing' for OTC
+        btnApprove.setOnClickListener(v -> {
+            if (currentOrderId == null) return;
+            btnApprove.setEnabled(false);
 
-    // ═══════════════════════════════════════════════════
-    //  Load Order — items, status, prescription, total
-    // ═══════════════════════════════════════════════════
-    private void loadOrderDetails() {
-        db.collection("orders").document(currentOrderId).get()
-                .addOnSuccessListener(doc -> {
-                    if (!doc.exists()) return;
+            String nextStatus = isPrescriptionOrder ? "approved_pending_payment" : "processing";
 
-                    currentStatus = doc.getString("status");
-                    if (currentStatus == null) currentStatus = "pending";
-
-                    // Render current status
-                    updateStatusBadge(currentStatus);
-
-                    // Update action buttons based on status
-                    refreshActionButtons(currentStatus);
-
-                    // Build items text
-                    List<Map<String, Object>> items =
-                            (List<Map<String, Object>>) doc.get("items");
-                    if (items != null && !items.isEmpty()) {
-                        StringBuilder sb = new StringBuilder();
-                        for (Map<String, Object> item : items) {
-                            if (sb.length() > 0) sb.append("\n");
-                            Object name = item.get("medicineName");
-                            Object qty  = item.get("quantity");
-                            Object price = item.get("price");
-                            sb.append(name != null ? name : "—")
-                              .append("  ×")
-                              .append(qty != null ? qty : "?")
-                              .append("   Rs. ")
-                              .append(price != null
-                                      ? String.format("%.0f", ((Number) price).doubleValue())
-                                      : "0");
-                        }
-                        txtItems.setText(sb.toString());
-                    }
-
-                    // Prescription
-                    String presUrl = doc.getString("prescriptionUrl");
-                    if (presUrl != null && !presUrl.isEmpty()) {
-                        txtFileName.setText("Customer's prescription:");
-                        com.bumptech.glide.Glide.with(OrderDetailsActivity.this)
-                                .load(presUrl)
-                                .placeholder(android.R.drawable.ic_menu_gallery)
-                                .error(android.R.drawable.stat_notify_error)
-                                .into(imgPrescription);
-                        btnUploadPrescription.setVisibility(View.GONE);
-                    } else {
-                        txtFileName.setText("No prescription uploaded by customer");
-                        btnUploadPrescription.setVisibility(View.GONE);
-                    }
-
-                    // Total
-                    Double total = doc.getDouble("total");
-                    if (total != null) txtTotal.setText("Total : Rs. " + String.format("%.2f", total));
-                })
-                .addOnFailureListener(e ->
-                        Log.e(TAG, "Failed to load order: " + e.getMessage()));
-    }
-
-    // ═══════════════════════════════════════════════════
-    //  Status Badge display (optional view)
-    // ═══════════════════════════════════════════════════
-    private void updateStatusBadge(String status) {
-        if (txtStatus == null) return;
-        txtStatus.setVisibility(View.VISIBLE);
-        switch (status.toLowerCase()) {
-            case "pending":
-                txtStatus.setText("⏳ Pending");
-                txtStatus.setTextColor(getColor(android.R.color.holo_orange_dark));
-                break;
-            case "processing":
-                txtStatus.setText("⚙️ Processing");
-                txtStatus.setTextColor(getColor(android.R.color.holo_blue_dark));
-                break;
-            case "ready":
-                txtStatus.setText("✅ Ready for Pickup");
-                txtStatus.setTextColor(getColor(android.R.color.holo_green_dark));
-                break;
-            case "completed":
-                txtStatus.setText("🎉 Completed");
-                txtStatus.setTextColor(getColor(android.R.color.holo_green_dark));
-                break;
-            case "rejected":
-            case "cancelled":
-                txtStatus.setText("❌ Cancelled / Rejected");
-                txtStatus.setTextColor(getColor(android.R.color.holo_red_dark));
-                break;
-            default:
-                txtStatus.setText(status);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════
-    //  Adjust button labels based on current order state
-    // ═══════════════════════════════════════════════════
-    private void refreshActionButtons(String status) {
-        switch (status.toLowerCase()) {
-            case "pending":
-                btnApprove.setText("APPROVE");
-                btnApprove.setEnabled(true);
-                btnReject.setText("REJECT");
-                btnReject.setEnabled(true);
-                break;
-            case "processing":
-                btnApprove.setText("DONE");
-                btnApprove.setEnabled(true);
-                btnReject.setText("CANCEL");
-                btnReject.setEnabled(true);
-                break;
-            case "ready":
-                btnApprove.setText("MARK COMPLETED");
-                btnApprove.setEnabled(true);
-                btnReject.setText("CANCEL");
-                btnReject.setEnabled(true);
-                break;
-            case "completed":
-            case "rejected":
-            case "cancelled":
-                btnApprove.setEnabled(true);
-                btnReject.setEnabled(true);
-                btnApprove.setText("DONE ✓");
-                btnReject.setText("CLOSE");
-                break;
-        }
-    }
-
-    // ═══════════════════════════════════════════════════
-    //  APPROVE  →  Pending → Processing → Completed
-    // ═══════════════════════════════════════════════════
-    private void handleApproveAction() {
-        if (currentOrderId == null) return;
-
-        String nextStatus;
-        String toastMsg;
-        String notifTitle;
-        String notifBody;
-
-        switch (currentStatus.toLowerCase()) {
-            case "pending":
-                nextStatus  = "processing";
-                toastMsg    = "Order approved — now processing!";
-                notifTitle  = "Pharmacy is preparing your order 💊";
-                notifBody   = "Order " + currentOrderId + " has been approved and is being prepared.";
-                break;
-            case "processing":
-                nextStatus  = "completed";
-                toastMsg    = "Order marked as completed!";
-                notifTitle  = "Order Completed ✅";
-                notifBody   = "Order " + currentOrderId + " has been marked as completed. Thank you!";
-                break;
-            case "ready":
-                nextStatus  = "completed";
-                toastMsg    = "Order marked as completed!";
-                notifTitle  = "Order Completed ✅";
-                notifBody   = "Order " + currentOrderId + " has been marked as completed. Thank you!";
-                break;
-            case "completed":
-            case "rejected":
-            case "cancelled":
-                // Tap DONE to simply close the detail screen
-                finish();
-                return;
-            default:
-                return;
-        }
-
-        final String finalNextStatus = nextStatus;
-        final String finalToastMsg   = toastMsg;
-        final String finalNotifTitle = notifTitle;
-        final String finalNotifBody  = notifBody;
-
-        btnApprove.setEnabled(false);
-
-        if ("completed".equals(finalNextStatus)) {
-            // Atomic stock deduction on completion
-            deductStockAndComplete(finalToastMsg, finalNotifTitle, finalNotifBody);
-        } else {
             db.collection("orders").document(currentOrderId)
-                    .update("status", finalNextStatus)
+                    .update("status", nextStatus)
                     .addOnSuccessListener(unused -> {
-                        sendCustomerNotification(finalNotifTitle, finalNotifBody, finalNextStatus);
-                        Toast.makeText(this, finalToastMsg, Toast.LENGTH_SHORT).show();
-                        currentStatus = finalNextStatus;
-                        refreshActionButtons(currentStatus);
-                        updateStatusBadge(currentStatus);
-                        btnApprove.setEnabled(true);
+                        // Notify customer
+                        if (customerId != null && !customerId.isEmpty()) {
+                            java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                            notif.put("userId",      customerId);
+                            if (isPrescriptionOrder) {
+                                notif.put("title",       "Prescription Approved 💊");
+                                notif.put("message",     "Order " + currentOrderId + " prescription approved. Tap to pay now.");
+                                notif.put("type",        "prescription_approved");
+                            } else {
+                                notif.put("title",       "Pharmacy preparing your order 💊");
+                                notif.put("message",     "Order " + currentOrderId + " has been approved and is being prepared.");
+                                notif.put("type",        "order_processing");
+                            }
+                            notif.put("referenceId", currentOrderId);
+                            notif.put("isRead",      false);
+                            notif.put("createdAt",   System.currentTimeMillis());
+                            db.collection("notifications").add(notif);
+                        }
+                        String msg = isPrescriptionOrder ? "Order approved — awaiting payment!" : "Order approved — now processing!";
+                        Toast.makeText(OrderDetailsActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        finish();
                     })
                     .addOnFailureListener(e -> {
                         btnApprove.setEnabled(true);

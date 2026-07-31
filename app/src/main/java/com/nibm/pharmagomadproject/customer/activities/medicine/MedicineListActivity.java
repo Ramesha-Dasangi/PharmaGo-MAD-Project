@@ -46,6 +46,7 @@ public class MedicineListActivity extends AppCompatActivity {
 
     // Views
     private DrawerLayout drawerLayout;
+    private android.widget.ProgressBar progressBarMedicine;
     private androidx.recyclerview.widget.RecyclerView medicineRecyclerView;
     private com.nibm.pharmagomadproject.customer.adapter.MedicineAdapter medicineAdapter;
     private LinearLayout typeChipsContainer, pharmacyCheckboxContainer,
@@ -88,6 +89,7 @@ public class MedicineListActivity extends AppCompatActivity {
 
         // Bind views
         drawerLayout              = findViewById(R.id.drawerLayout);
+        progressBarMedicine       = findViewById(R.id.progressBarMedicine);
         medicineRecyclerView      = findViewById(R.id.medicineRecyclerView);
         typeChipsContainer        = findViewById(R.id.typeChipsContainer);
         pharmacyCheckboxContainer = findViewById(R.id.pharmacyCheckboxContainer);
@@ -119,7 +121,7 @@ public class MedicineListActivity extends AppCompatActivity {
 
             @Override
             public void onAddToCartClick(Medicine medicine) {
-                CartActivity.addToCart(new Cart(
+                Cart cartItem = new Cart(
                         medicine.getMedicineId(),
                         medicine.getMedicineName(),
                         medicine.getBrandName(),
@@ -127,8 +129,12 @@ public class MedicineListActivity extends AppCompatActivity {
                         medicine.getPharmacy(),
                         medicine.getPrice(),
                         1
-                ));
-                Toast.makeText(MedicineListActivity.this, medicine.getMedicineName() + " added to cart!", Toast.LENGTH_SHORT).show();
+                );
+                cartItem.setMedicineType(medicine.getType());
+                CartActivity.addToCart(cartItem);
+                Toast.makeText(MedicineListActivity.this,
+                        medicine.getMedicineName() + " added to cart!",
+                        Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -252,6 +258,25 @@ public class MedicineListActivity extends AppCompatActivity {
         buildTypeChips();
         buildPharmacyCheckboxes();
         refreshList();
+        setupBottomNav();
+    }
+
+    private void setupBottomNav() {
+        View navHome    = findViewById(R.id.navHome);
+        View navCart    = findViewById(R.id.navCart);
+        View navOrders  = findViewById(R.id.navOrders);
+        View navProfile = findViewById(R.id.navProfile);
+
+        if (navHome != null) navHome.setOnClickListener(v -> {
+            startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.home.HomeActivity.class));
+            finish();
+        });
+        if (navCart != null) navCart.setOnClickListener(v ->
+                startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.order.CartActivity.class)));
+        if (navOrders != null) navOrders.setOnClickListener(v ->
+                startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.order.OrderHistoryActivity.class)));
+        if (navProfile != null) navProfile.setOnClickListener(v ->
+                startActivity(new Intent(this, com.nibm.pharmagomadproject.customer.activities.profile.ProfileActivity.class)));
     }
 
     // TYPE CHIPS (horizontal row)
@@ -370,9 +395,10 @@ public class MedicineListActivity extends AppCompatActivity {
             // Mode filter
             boolean modeMatch = true;
             if ("category".equals(mode)) {
-                String catFieldClean = m.getCategory() != null ? m.getCategory().replace(" ", "").toLowerCase() : "";
-                String queryClean = query.replace(" ", "").toLowerCase();
-                modeMatch = catFieldClean.equals(queryClean);
+                String catClean  = m.getCategory() != null ? m.getCategory().replace(" ", "").toLowerCase() : "";
+                String typeClean = m.getType()     != null ? m.getType().replace(" ", "").toLowerCase()     : "";
+                String qClean    = query.replace(" ", "").toLowerCase();
+                modeMatch = catClean.contains(qClean) || typeClean.contains(qClean);
             } else if ("pharmacy".equals(mode)) {
                 modeMatch = (m.getPharmacyId() != null && m.getPharmacyId().equalsIgnoreCase(query))
                         || (m.getPharmacy() != null && m.getPharmacy().equalsIgnoreCase(query));
@@ -380,14 +406,16 @@ public class MedicineListActivity extends AppCompatActivity {
 
             // Search text
             boolean searchMatch = q.isEmpty()
-                    || m.getMedicineName().toLowerCase().contains(q)
-                    || m.getCategory().toLowerCase().contains(q)
-                    || m.getPharmacy().toLowerCase().contains(q);
+                    || (m.getMedicineName() != null && m.getMedicineName().toLowerCase().contains(q))
+                    || (m.getCategory() != null && m.getCategory().toLowerCase().contains(q))
+                    || (m.getPharmacy() != null && m.getPharmacy().toLowerCase().contains(q));
 
-            // Type chip
-            boolean typeMatch = "All".equals(activeType)
-                    || m.getType().equalsIgnoreCase(activeType)
-                    || m.getCategory().equalsIgnoreCase(activeType);
+            // Type chip filter — "All" shows all items under mode
+            boolean typeMatch = "All".equalsIgnoreCase(activeType)
+                    || (m.getType() != null && m.getType().equalsIgnoreCase(activeType))
+                    || (m.getCategory() != null && m.getCategory().equalsIgnoreCase(activeType))
+                    || (m.getType() != null && activeType.replace(" ", "").equalsIgnoreCase(m.getType().replace(" ", "")))
+                    || (m.getCategory() != null && activeType.replace(" ", "").equalsIgnoreCase(m.getCategory().replace(" ", "")));
 
             // Price range
             boolean priceMatch = m.getPrice() >= filterMinPrice && m.getPrice() <= filterMaxPrice;
@@ -437,12 +465,22 @@ public class MedicineListActivity extends AppCompatActivity {
     }
 
     private void loadMedicinesFromFirestore() {
-        // Step 1: build a map of approved pharmacy ownerId -> pharmacy display name
-        db.collection("pharmacies")
-                .whereEqualTo("status", "approved")
-                .get()
-                .addOnSuccessListener(pharmacySnaps -> {
+        // Show progress bar while loading
+        if (progressBarMedicine != null) progressBarMedicine.setVisibility(View.VISIBLE);
+        if (medicineRecyclerView != null) medicineRecyclerView.setVisibility(View.GONE);
+
+        // Run pharmacy + medicine queries in PARALLEL for faster loading
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> pharmacyTask =
+                db.collection("pharmacies").whereEqualTo("status", "approved").get();
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> medicineTask =
+                db.collection("medicines").get();
+
+        com.google.android.gms.tasks.Tasks.whenAllSuccess(pharmacyTask, medicineTask)
+                .addOnSuccessListener(results -> {
+                    // Build pharmacy name map
                     pharmacyNameById.clear();
+                    com.google.firebase.firestore.QuerySnapshot pharmacySnaps =
+                            (com.google.firebase.firestore.QuerySnapshot) results.get(0);
                     for (DocumentSnapshot doc : pharmacySnaps) {
                         String ownerId = doc.getString("ownerId");
                         String name    = doc.getString("name");
@@ -450,32 +488,17 @@ public class MedicineListActivity extends AppCompatActivity {
                             pharmacyNameById.put(ownerId, name != null ? name : "Pharmacy");
                         }
                     }
-                    loadMedicineDocs();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load pharmacies: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                    loadMedicineDocs();
-                });
-    }
 
-    private void loadMedicineDocs() {
-        db.collection("medicines")
-                .get()
-                .addOnSuccessListener(query -> {
+                    // Process medicines
+                    com.google.firebase.firestore.QuerySnapshot medicineSnaps =
+                            (com.google.firebase.firestore.QuerySnapshot) results.get(1);
                     allMedicines.clear();
-                    for (QueryDocumentSnapshot doc : query) {
+                    for (DocumentSnapshot rawDoc : medicineSnaps.getDocuments()) {
+                        QueryDocumentSnapshot doc = (QueryDocumentSnapshot) rawDoc;
                         String pharmacyId = doc.getString("pharmacyId");
-                        String pharmacyName = null;
-                        if (pharmacyId != null) {
-                            pharmacyName = pharmacyNameById.get(pharmacyId);
-                        }
-                        if (pharmacyName == null) {
-                            pharmacyName = doc.getString("pharmacy");
-                        }
-                        if (pharmacyName == null) {
-                            pharmacyName = "Pharmacy";
-                        }
+                        String pharmacyName = pharmacyId != null ? pharmacyNameById.get(pharmacyId) : null;
+                        if (pharmacyName == null) pharmacyName = doc.getString("pharmacy");
+                        if (pharmacyName == null) pharmacyName = "Pharmacy";
 
                         double price = doc.getDouble("price") != null ? doc.getDouble("price") : 0;
                         Long stockLong = doc.getLong("stock");
@@ -498,11 +521,51 @@ public class MedicineListActivity extends AppCompatActivity {
 
                     buildTypeChips();
                     buildPharmacyCheckboxes();
+                    // Hide progress, show list
+                    if (progressBarMedicine != null) progressBarMedicine.setVisibility(View.GONE);
+                    if (medicineRecyclerView != null) medicineRecyclerView.setVisibility(View.VISIBLE);
                     refreshList();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load medicines: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    // Fallback: load sequentially if parallel fails
+                    Toast.makeText(this, "Loading medicines...", Toast.LENGTH_SHORT).show();
+                    loadMedicinesSequential();
+                });
+    }
+
+    // Fallback sequential load
+    private void loadMedicinesSequential() {
+        db.collection("pharmacies").whereEqualTo("status", "approved").get()
+                .addOnSuccessListener(pharmacySnaps -> {
+                    pharmacyNameById.clear();
+                    for (DocumentSnapshot doc : pharmacySnaps) {
+                        String ownerId = doc.getString("ownerId");
+                        String name    = doc.getString("name");
+                        if (ownerId != null) pharmacyNameById.put(ownerId, name != null ? name : "Pharmacy");
+                    }
+                    db.collection("medicines").get()
+                            .addOnSuccessListener(query -> {
+                                allMedicines.clear();
+                                for (QueryDocumentSnapshot doc : query) {
+                                    String pharmacyId = doc.getString("pharmacyId");
+                                    String pharmacyName = pharmacyId != null ? pharmacyNameById.get(pharmacyId) : null;
+                                    if (pharmacyName == null) pharmacyName = doc.getString("pharmacy");
+                                    if (pharmacyName == null) pharmacyName = "Pharmacy";
+                                    double price = doc.getDouble("price") != null ? doc.getDouble("price") : 0;
+                                    Long stockLong = doc.getLong("stock");
+                                    int stock = stockLong != null ? stockLong.intValue() : 0;
+                                    Medicine m = new Medicine(doc.getId(), doc.getString("brand"),
+                                            doc.getString("medicineName"), doc.getString("category"),
+                                            doc.getString("type"), price, stock, pharmacyName);
+                                    m.setPharmacyId(pharmacyId);
+                                    m.setImageUrl(doc.getString("imageUrl"));
+                                    allMedicines.add(m);
+                                }
+                                buildTypeChips();
+                                buildPharmacyCheckboxes();
+                                refreshList();
+                            });
+                });
     }
 
     private int dp(int dp) {

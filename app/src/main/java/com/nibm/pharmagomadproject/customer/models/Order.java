@@ -38,13 +38,15 @@ public class Order {
     public String getStatusDisplay() {
         if (status == null) return "Pending";
         switch (status) {
-            case "pending":          return "Order confirmed";
-            case "processing":       return "Processing";
-            case "picked_up":        return "Picked up";
-            case "out_for_delivery": return "Out for delivery";
-            case "delivered":        return "Delivered";
-            case "cancelled":        return "Cancelled";
-            default:                 return status;
+            case "pending":                   return "Order confirmed";
+            case "awaiting_approval":          return "Awaiting approval";
+            case "approved_pending_payment":  return "Approved (Pay Now)";
+            case "processing":                return "Processing";
+            case "picked_up":                 return "Picked up";
+            case "out_for_delivery":          return "Out for delivery";
+            case "delivered":                 return "Delivered";
+            case "cancelled":                 return "Cancelled";
+            default:                          return status;
         }
     }
 
@@ -52,10 +54,12 @@ public class Order {
     public int getStatusColorRes() {
         if (status == null) return android.R.color.darker_gray;
         switch (status) {
-            case "out_for_delivery": return com.nibm.pharmagomadproject.R.color.pg_primary;
-            case "delivered":        return com.nibm.pharmagomadproject.R.color.pg_primary;
-            case "cancelled":        return com.nibm.pharmagomadproject.R.color.pg_accent;
-            default:                 return android.R.color.darker_gray;
+            case "out_for_delivery":         return com.nibm.pharmagomadproject.R.color.pg_primary;
+            case "delivered":                return com.nibm.pharmagomadproject.R.color.pg_primary;
+            case "cancelled":                return com.nibm.pharmagomadproject.R.color.pg_accent;
+            case "approved_pending_payment": return com.nibm.pharmagomadproject.R.color.pg_primary;
+            case "awaiting_approval":        return com.nibm.pharmagomadproject.R.color.pg_sub;
+            default:                         return android.R.color.darker_gray;
         }
     }
 }
