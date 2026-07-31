@@ -138,6 +138,25 @@ public class MedicineDetailsActivity extends AppCompatActivity {
             CartActivity.addToCart(cartItem);
             startActivity(new Intent(this, CartActivity.class));
         });
+
+        // Fetch description dynamically from Firestore
+        if (id != null && !id.isEmpty()) {
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("medicines")
+                    .document(id)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            String desc = doc.getString("description");
+                            if (desc != null && !desc.trim().isEmpty()) {
+                                TextView tvDesc = findViewById(R.id.tvDescription);
+                                CardView cardDesc = findViewById(R.id.cardDescription);
+                                if (tvDesc != null) tvDesc.setText(desc);
+                                if (cardDesc != null) cardDesc.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    });
+        }
     }
 
     private void loadPriceComparisons(String medicineName, int basePrice, String sourcePharmacy) {

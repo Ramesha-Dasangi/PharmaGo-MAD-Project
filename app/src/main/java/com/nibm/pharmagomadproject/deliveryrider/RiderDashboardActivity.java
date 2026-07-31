@@ -4,13 +4,30 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 
 public class RiderDashboardActivity extends AppCompatActivity {
+
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+
+    private TextView tvNewOrderId, tvNewOrderDetails;
+    private TextView tvActiveOrderId, tvActiveOrderDetails;
+    private TextView tvRiderName;
+    private ConstraintLayout cardNewAssignment, cardInProgress;
+    private Button btnAcceptAssignment;
+
+    private String currentNewOrderId = null;
+    private String currentActiveOrderId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,25 +37,50 @@ public class RiderDashboardActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        Button btnAcceptAssignment = findViewById(R.id.btnAcceptAssignment);
-        if (btnAcceptAssignment != null) {
-            btnAcceptAssignment.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(RiderDashboardActivity.this, AssignmentDetailsActivity.class);
-                    startActivity(intent);
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
+        tvNewOrderId = findViewById(R.id.tvNewOrderId);
+        tvNewOrderDetails = findViewById(R.id.tvNewOrderDetails);
+        tvActiveOrderId = findViewById(R.id.tvActiveOrderId);
+        tvActiveOrderDetails = findViewById(R.id.tvActiveOrderDetails);
+        tvRiderName = findViewById(R.id.tvRiderName);
+        cardNewAssignment = findViewById(R.id.cardNewAssignment);
+        cardInProgress = findViewById(R.id.cardInProgress);
+        btnAcceptAssignment = findViewById(R.id.btnAcceptAssignment);
+
+        if (mAuth.getCurrentUser() != null) {
+            String uid = mAuth.getCurrentUser().getUid();
+            db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
+                if (doc.exists() && doc.getString("name") != null) {
+                    if (tvRiderName != null) {
+                        tvRiderName.setText(doc.getString("name"));
+                    }
                 }
             });
         }
-        
-        ConstraintLayout cardInProgress = findViewById(R.id.cardInProgress);
-        if (cardInProgress != null) {
-            cardInProgress.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(RiderDashboardActivity.this, DeliveryProgressActivity.class);
-                    startActivity(intent);
+
+        // Hide cards initially until we fetch data
+        if (cardNewAssignment != null) cardNewAssignment.setVisibility(View.GONE);
+        if (cardInProgress != null) cardInProgress.setVisibility(View.GONE);
+
+        if (btnAcceptAssignment != null) {
+            btnAcceptAssignment.setOnClickListener(v -> {
+                Intent intent = new Intent(RiderDashboardActivity.this, AssignmentDetailsActivity.class);
+                if (currentNewOrderId != null) {
+                    intent.putExtra("orderId", currentNewOrderId);
                 }
+                startActivity(intent);
+            });
+        }
+        
+        if (cardInProgress != null) {
+            cardInProgress.setOnClickListener(v -> {
+                Intent intent = new Intent(RiderDashboardActivity.this, DeliveryProgressActivity.class);
+                if (currentActiveOrderId != null) {
+                    intent.putExtra("orderId", currentActiveOrderId);
+                }
+                startActivity(intent);
             });
         }
         
@@ -59,5 +101,63 @@ public class RiderDashboardActivity extends AppCompatActivity {
             navProfile.setOnClickListener(v ->
                     startActivity(new Intent(RiderDashboardActivity.this, RiderProfileActivity.class)));
         }
+
+        fetchOrders();
+    }
+
+    private void fetchOrders() {
+        db.collection("orders").get().addOnSuccessListener(queryDocumentSnapshots -> {
+            boolean hasNew = false;
+            boolean hasActive = false;
+
+            for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                String status = doc.getString("status");
+                if (status == null) continue;
+
+                // Simple logic to show a new assignment or active assignment
+                if (!hasNew && (status.equalsIgnoreCase("processing") || status.equalsIgnoreCase("ready"))) {
+                    if (cardNewAssignment != null) cardNewAssignment.setVisibility(View.VISIBLE);
+                    if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
+                    
+                    if (tvNewOrderDetails != null) {
+                        java.util.List<java.util.Map<String, Object>> items = (java.util.List<java.util.Map<String, Object>>) doc.get("items");
+                        int stops = (items != null) ? items.size() : 1;
+                        tvNewOrderDetails.setText(stops + " items · 1 customer drop-off");
+                    }
+                    
+                    currentNewOrderId = doc.getId();
+                    hasNew = true;
+                } else if (!hasActive && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("out_for_delivery") || status.equalsIgnoreCase("picked_up"))) {
+                    if (cardInProgress != null) cardInProgress.setVisibility(View.VISIBLE);
+                    if (tvActiveOrderId != null) tvActiveOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
+                    
+                    if (tvActiveOrderDetails != null) {
+                        String displayStatus = status.substring(0, 1).toUpperCase() + status.substring(1).replace("_", " ");
+                        tvActiveOrderDetails.setText(displayStatus);
+                    }
+                    
+                    currentActiveOrderId = doc.getId();
+                    hasActive = true;
+                }
+            }
+
+            // Fallback for visual demo if no orders match exactly but we want to show something from DB
+            if (!hasNew && !queryDocumentSnapshots.isEmpty() && cardNewAssignment != null) {
+                DocumentSnapshot firstDoc = queryDocumentSnapshots.getDocuments().get(0);
+                cardNewAssignment.setVisibility(View.VISIBLE);
+                if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + firstDoc.getId().substring(0, Math.min(6, firstDoc.getId().length())).toUpperCase());
+                
+                if (tvNewOrderDetails != null) {
+                    java.util.List<java.util.Map<String, Object>> items = (java.util.List<java.util.Map<String, Object>>) firstDoc.get("items");
+                    int stops = (items != null) ? items.size() : 1;
+                    tvNewOrderDetails.setText(stops + " items · 1 customer drop-off");
+                }
+                
+                currentNewOrderId = firstDoc.getId();
+            }
+
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Failed to load orders: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
     }
 }

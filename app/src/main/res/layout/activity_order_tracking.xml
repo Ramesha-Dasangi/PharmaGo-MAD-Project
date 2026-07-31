@@ -437,7 +437,23 @@
                 android:textSize="13sp"
                 app:cornerRadius="10dp"
                 app:strokeColor="#EF4444"
-                android:textColor="#EF4444"/>
+                android:textColor="#EF4444"
+                android:layout_marginBottom="8dp"/>
+                
+            <!-- Cancel Order button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelOrder"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Cancel Order"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                app:cornerRadius="10dp"
+                app:strokeColor="#EF4444"
+                android:textColor="#EF4444"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
 
             <!-- Leave review button (hidden until delivered) -->
             <com.google.android.material.button.MaterialButton
