@@ -36,10 +36,21 @@ import java.util.ArrayList;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.common.api.ResolvableApiException;
+import android.app.Activity;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 
 public class HomeActivity extends AppCompatActivity {
@@ -54,18 +65,45 @@ public class HomeActivity extends AppCompatActivity {
     private double userLatitude = 0.0;
     private double userLongitude = 0.0;
 
-    private final androidx.activity.result.ActivityResultLauncher<String[]> locationPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-                Boolean fineGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-                Boolean coarseGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false);
-                if ((fineGranted != null && fineGranted) || (coarseGranted != null && coarseGranted)) {
+    // Launcher for GPS enable dialog result
+    private final androidx.activity.result.ActivityResultLauncher<IntentSenderRequest> gpsSettingsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
                     getCurrentLocation();
                 } else {
+                    // GPS still off — load pharmacies without distance
                     loadPharmacies();
                 }
             });
 
+    private final androidx.activity.result.ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                Boolean fineGranted   = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+                Boolean coarseGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false);
+                if ((fineGranted != null && fineGranted) || (coarseGranted != null && coarseGranted)) {
+                    // Permission granted — now check GPS is ON
+                    checkGpsEnabled();
+                } else {
+                    // Permanently denied? Guide user to Settings
+                    boolean permanentlyDenied =
+                            !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                            && !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
+                    if (permanentlyDenied) {
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("Location Permission Required")
+                            .setMessage("PharmaGo needs your location to show nearby pharmacies. Please enable it in App Settings.")
+                            .setPositiveButton("Open Settings", (d, w) -> {
+                                android.net.Uri uri = android.net.Uri.fromParts("package", getPackageName(), null);
+                                startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri));
+                            })
+                            .setNegativeButton("Not now", (d, w) -> loadPharmacies())
+                            .show();
+                    } else {
+                        loadPharmacies();
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,25 +114,18 @@ public class HomeActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_home);
 
-
         if(getSupportActionBar()!=null){
 
             getSupportActionBar().hide();
 
         }
 
-
-
         db = FirebaseFirestore.getInstance();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         loadGreetingAndName();
 
-
-
-        // ----------------------------
         // Search
-        // ----------------------------
 
         safeClick(
                 R.id.searchBar,
@@ -105,14 +136,7 @@ public class HomeActivity extends AppCompatActivity {
                 )
         );
 
-
-
-
-
-        // ----------------------------
         // Categories
-        // ----------------------------
-
 
         safeClick(
                 R.id.catRx,
@@ -193,14 +217,7 @@ public class HomeActivity extends AppCompatActivity {
                 )
         );
 
-
-
-
-
-        // ----------------------------
         // Load Pharmacies
-        // ----------------------------
-
 
         rvNearbyPharmacies =
                 findViewById(
@@ -272,24 +289,10 @@ public class HomeActivity extends AppCompatActivity {
 
 
         // Request/Check location permission on startup
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            getCurrentLocation();
-        } else {
-            locationPermissionLauncher.launch(new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            });
-        }
-
-
-
-
-
-
+        // Small delay so Activity is fully ready before showing dialogs
+        rvNearbyPharmacies.post(this::checkAndRequestLocationPermission);
 
         // Notification
-
 
         safeClick(
                 R.id.btnNotification,
@@ -300,47 +303,152 @@ public class HomeActivity extends AppCompatActivity {
                         )
                 )
         );
-
-
-
-
         setupBottomNav();
-
-
     }
 
+    private void checkAndRequestLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Already granted — still check if GPS is turned ON
+            checkGpsEnabled();
+            return;
+        }
 
+        // Check if permanently denied (user denied twice or tapped "Don't ask again")
+        boolean permanentlyDenied =
+                !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                && !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
+        if (permanentlyDenied) {
+            // Show a dialog directing them to Settings — system dialog won't appear
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Location Access Needed")
+                .setMessage("To show nearby pharmacies, PharmaGo needs location access.\n\nPlease go to Settings -> Permissions → Location → Allow.")
+                .setPositiveButton("Open Settings", (d, w) -> {
+                    android.net.Uri uri = android.net.Uri.fromParts("package", getPackageName(), null);
+                    startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri));
+                })
+                .setNegativeButton("Skip", (d, w) -> loadPharmacies())
+                .setCancelable(false)
+                .show();
+        } else {
+            // First time OR previously denied once — show our explanation first, then request
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Nearby Pharmacies")
+                .setMessage("Allow PharmaGo to use your location so we can show pharmacies near you.")
+                .setPositiveButton("Allow Location", (d, w) -> locationPermissionLauncher.launch(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                }))
+                .setNegativeButton("Not now", (d, w) -> loadPharmacies())
+                .setCancelable(false)
+                .show();
+        }
+    }
 
+    //Check if device GPS is ON. if not, show system dialog to enable it
+    private void checkGpsEnabled() {
+        LocationRequest req = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                .setMaxUpdates(1).build();
+        LocationSettingsRequest settingsRequest = new LocationSettingsRequest.Builder()
+                .addLocationRequest(req)
+                .setAlwaysShow(true)   // forces the dialog to always appear
+                .build();
 
-
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        client.checkLocationSettings(settingsRequest)
+                .addOnSuccessListener(response -> getCurrentLocation())  // GPS already ON
+                .addOnFailureListener(e -> {
+                    if (e instanceof ResolvableApiException) {
+                        // GPS is off — show the system "Turn on GPS?" dialog
+                        try {
+                            ResolvableApiException resolvable = (ResolvableApiException) e;
+                            IntentSenderRequest req2 = new IntentSenderRequest.Builder(
+                                    resolvable.getResolution().getIntentSender()).build();
+                            gpsSettingsLauncher.launch(req2);
+                        } catch (Exception ex) {
+                            loadPharmacies();
+                        }
+                    } else {
+                        loadPharmacies();
+                    }
+                });
+    }
 
     private void getCurrentLocation() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        // 1. Try loading saved location from Firestore profile first
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Double lat = doc.getDouble("latitude");
+                            Double lng = doc.getDouble("longitude");
+                            if (lat != null && lng != null && lat != 0.0 && lng != 0.0) {
+                                userLatitude = lat;
+                                userLongitude = lng;
+                                loadPharmacies();
+                            }
+                        }
+                    });
+        }
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             loadPharmacies();
             return;
         }
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location != null) {
-                            userLatitude  = location.getLatitude();
-                            userLongitude = location.getLongitude();
 
-                            // Save location to Firestore users doc
-                            String uid = FirebaseAuth.getInstance().getCurrentUser() != null
-                                    ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-                            if (uid != null) {
-                                Map<String, Object> locData = new HashMap<>();
-                                locData.put("latitude",  userLatitude);
-                                locData.put("longitude", userLongitude);
-                                FirebaseFirestore.getInstance().collection("users")
-                                        .document(uid).update(locData);
-                            }
+        // 2. Fetch live GPS location
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            loadPharmacies();
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        userLatitude  = location.getLatitude();
+                        userLongitude = location.getLongitude();
+                        if (uid != null) {
+                            Map<String, Object> locData = new HashMap<>();
+                            locData.put("latitude",  userLatitude);
+                            locData.put("longitude", userLongitude);
+                            FirebaseFirestore.getInstance().collection("users")
+                                    .document(uid).update(locData);
                         }
                         loadPharmacies();
+                    } else {
+                        // Fallback: request a single fresh location update
+                        LocationRequest req = new LocationRequest.Builder(
+                                Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                                .setMaxUpdates(1)
+                                .build();
+                        try {
+                            fusedLocationClient.requestLocationUpdates(req, new LocationCallback() {
+                                @Override
+                                public void onLocationResult(@NonNull LocationResult locationResult) {
+                                    Location loc = locationResult.getLastLocation();
+                                    if (loc != null) {
+                                        userLatitude  = loc.getLatitude();
+                                        userLongitude = loc.getLongitude();
+                                        if (uid != null) {
+                                            Map<String, Object> locData = new HashMap<>();
+                                            locData.put("latitude",  userLatitude);
+                                            locData.put("longitude", userLongitude);
+                                            FirebaseFirestore.getInstance().collection("users")
+                                                    .document(uid).update(locData);
+                                        }
+                                        loadPharmacies();
+                                    }
+                                }
+                            }, android.os.Looper.getMainLooper());
+                        } catch (SecurityException se) {
+                            loadPharmacies();
+                        }
                     }
                 })
                 .addOnFailureListener(e -> loadPharmacies());
@@ -357,13 +465,18 @@ public class HomeActivity extends AppCompatActivity {
                         if (pharmacy != null) {
                             pharmacy.setId(doc.getId());
 
-                            // Compute distance if we have coordinates
-                            if (userLatitude != 0.0 && userLongitude != 0.0
-                                    && pharmacy.getLatitude() != 0.0 && pharmacy.getLongitude() != 0.0) {
+                            // Compute distance if we have user coordinates
+                            if (userLatitude != 0.0 && userLongitude != 0.0) {
+                                double pLat = pharmacy.getLatitude();
+                                double pLng = pharmacy.getLongitude();
+                                if (pLat == 0.0 && pLng == 0.0) {
+                                    pLat = 6.9271;
+                                    pLng = 79.8612;
+                                }
                                 float[] results = new float[1];
                                 Location.distanceBetween(
                                         userLatitude, userLongitude,
-                                        pharmacy.getLatitude(), pharmacy.getLongitude(),
+                                        pLat, pLng,
                                         results
                                 );
                                 double distanceKm = results[0] / 1000.0;
@@ -390,21 +503,11 @@ public class HomeActivity extends AppCompatActivity {
                 });
     }
 
-
-
-
-
-
-
-
-
     private void openMedicineList(
             String mode,
             String title,
             String query
     ){
-
-
 
         Intent intent =
                 new Intent(
@@ -429,35 +532,16 @@ public class HomeActivity extends AppCompatActivity {
                 MedicineListActivity.EXTRA_QUERY,
                 query.toLowerCase()
         );
-
-
         startActivity(intent);
-
-
-
     }
-
-
-
-
-
-
-
-
 
     private void safeClick(
             int id,
             android.view.View.OnClickListener listener
     ){
-
-
         try{
-
-
             android.view.View view =
                     findViewById(id);
-
-
 
             if(view!=null){
 
@@ -466,34 +550,14 @@ public class HomeActivity extends AppCompatActivity {
                 );
 
             }
-
-
-
         }catch(Exception ignored){}
-
-
-
     }
 
-
-
-
-
-
-
-
-
-
     private void setupBottomNav(){
-
-
-
         safeClick(
                 R.id.navHome,
                 v -> {}
         );
-
-
 
         safeClick(
                 R.id.navSearch,
@@ -503,8 +567,6 @@ public class HomeActivity extends AppCompatActivity {
                         ""
                 )
         );
-
-
 
         safeClick(
                 R.id.navCart,
@@ -516,8 +578,6 @@ public class HomeActivity extends AppCompatActivity {
                 )
         );
 
-
-
         safeClick(
                 R.id.navOrders,
                 v -> startActivity(
@@ -528,8 +588,6 @@ public class HomeActivity extends AppCompatActivity {
                 )
         );
 
-
-
         safeClick(
                 R.id.navProfile,
                 v -> startActivity(
@@ -539,8 +597,6 @@ public class HomeActivity extends AppCompatActivity {
                         )
                 )
         );
-
-
     }
 
     @Override
@@ -561,7 +617,7 @@ public class HomeActivity extends AppCompatActivity {
         TextView tvGreeting = findViewById(R.id.tvGreeting);
         if (tvGreeting != null) tvGreeting.setText(greeting);
 
-        // Load user name from Firestore
+        // Load username from Firestore
         com.google.firebase.auth.FirebaseAuth auth =
                 com.google.firebase.auth.FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {

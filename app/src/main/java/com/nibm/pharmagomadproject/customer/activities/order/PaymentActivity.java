@@ -17,6 +17,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.activities.medicine.PrescriptionUploadActivity;
+import com.nibm.pharmagomadproject.customer.activities.profile.DeliveryAddressActivity;
 import com.nibm.pharmagomadproject.customer.models.Cart;
 
 import java.util.ArrayList;
@@ -35,6 +37,9 @@ public class PaymentActivity extends AppCompatActivity {
     private ImageView    radioCOD, radioCard;
     private TextInputEditText etCardNumber, etExpiry, etCvv;
     private TextView tvPaySubtotal, tvPayTotal;
+    private TextView tvPaymentAddress;
+    private CardView cardRxWarning;
+    private MaterialButton btnPlaceOrder;
 
     // Firebase
     private FirebaseAuth      mAuth;
@@ -45,6 +50,9 @@ public class PaymentActivity extends AppCompatActivity {
     private int deliveryFee = 100;
     private int total       = 100;
     private String existingOrderId = null;
+
+    // Rx state — true if cart has prescription items
+    private boolean cartHasRx = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,58 +75,153 @@ public class PaymentActivity extends AppCompatActivity {
         etCardNumber       = findViewById(R.id.etCardNumber);
         etExpiry           = findViewById(R.id.etExpiry);
         etCvv              = findViewById(R.id.etCvv);
+        tvPaymentAddress   = findViewById(R.id.tvPaymentAddress);
+        cardRxWarning      = findViewById(R.id.cardRxWarning);
+        btnPlaceOrder      = findViewById(R.id.btnPlaceOrder);
+
+        // Address card — tap to change
+        CardView cardPaymentAddress = findViewById(R.id.cardPaymentAddress);
+        if (cardPaymentAddress != null) {
+            cardPaymentAddress.setOnClickListener(v ->
+                    startActivity(new Intent(this, DeliveryAddressActivity.class)));
+        }
+
+        // Rx: Upload prescription button
+        MaterialButton btnUploadRx = findViewById(R.id.btnUploadRxFromPayment);
+        if (btnUploadRx != null) {
+            btnUploadRx.setOnClickListener(v -> {
+                // Find the first Rx cart item to pass pharmacy info
+                Cart rxItem = null;
+                for (Cart c : CartActivity.CART_STORE) {
+                    if (c.isRx()) { rxItem = c; break; }
+                }
+                Intent intent = new Intent(this, PrescriptionUploadActivity.class);
+                if (rxItem != null) {
+                    intent.putExtra("pharmacy_id",   rxItem.getPharmacyId());
+                    intent.putExtra("pharmacy_name", rxItem.getPharmacyName());
+                    intent.putExtra("medicine_name", rxItem.getMedicineName());
+                    intent.putExtra("medicine_price", (int) rxItem.getPrice());
+                    // Pass all cart items as Rx order
+                    intent.putExtra("is_cart_rx_order", true);
+                }
+                startActivity(intent);
+            });
+        }
 
         existingOrderId = getIntent().getStringExtra("orderId");
         if (existingOrderId != null && !existingOrderId.isEmpty()) {
+            // Prescription approved flow — load order from Firestore
             db.collection("orders").document(existingOrderId).get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
-                            Double orderSubtotal = doc.getDouble("subtotal");
-                            Double orderTotal = doc.getDouble("total");
-                            Double orderDeliveryFee = doc.getDouble("deliveryFee");
-                            if (orderSubtotal != null) subtotal = orderSubtotal.intValue();
-                            if (orderTotal != null) total = orderTotal.intValue();
+                            Double orderSubtotal   = doc.getDouble("subtotal");
+                            Double orderTotal      = doc.getDouble("total");
+                            Double orderDeliveryFee= doc.getDouble("deliveryFee");
+                            if (orderSubtotal    != null) subtotal    = orderSubtotal.intValue();
+                            if (orderTotal       != null) total       = orderTotal.intValue();
                             if (orderDeliveryFee != null) deliveryFee = orderDeliveryFee.intValue();
-
                             tvPaySubtotal.setText("Rs. " + subtotal);
                             tvPayTotal.setText("Rs. " + total);
+
+                            // Show delivery address from order
+                            String addr = doc.getString("deliveryAddress");
+                            if (tvPaymentAddress != null) {
+                                tvPaymentAddress.setText(addr != null && !addr.isEmpty()
+                                        ? addr : "Tap to set address");
+                            }
                         }
                     });
+            // Existing Rx-approved orders don't need Rx check again
+            cartHasRx = false;
         } else {
-            // Get totals from intent
+            // Normal cart flow
             subtotal    = getIntent().getIntExtra("subtotal",    0);
             deliveryFee = getIntent().getIntExtra("deliveryFee", 100);
             total       = getIntent().getIntExtra("total",       100);
-
             tvPaySubtotal.setText("Rs. " + subtotal);
             tvPayTotal.setText("Rs. " + total);
+
+            // Detect Rx items in cart
+            detectRxInCart();
         }
 
         // Back button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Payment method selection – Default: COD selected
+        // Payment method selection — Default - COD
         selectCOD();
-
-        optionCOD.setOnClickListener(v -> selectCOD());
+        optionCOD.setOnClickListener(v  -> selectCOD());
         optionCard.setOnClickListener(v -> selectCard());
 
         // Place order button
-        MaterialButton btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh address and Rx status every time we return
+        loadUserAddress();
+        if (existingOrderId == null) detectRxInCart();
+    }
+
+    // Helpers
+
+    private void loadUserAddress() {
+        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (uid == null) return;
+
+        TextView tvBottomAddress = findViewById(R.id.tvPaymentBottomAddress);
+
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String address = doc.getString("address");
+                        String label   = doc.getString("addressLabel");
+                        if (address != null && !address.trim().isEmpty()) {
+                            String display = (label != null && !label.isEmpty())
+                                    ? label + "  ·  " + address : address;
+                            if (tvPaymentAddress != null) tvPaymentAddress.setText(display);
+                            if (tvBottomAddress != null) tvBottomAddress.setText(display);
+                        } else {
+                            if (tvPaymentAddress != null) tvPaymentAddress.setText("Tap to set address");
+                            if (tvBottomAddress != null) tvBottomAddress.setText("Tap to set address");
+                        }
+                    }
+                });
+    }
+
+    private void detectRxInCart() {
+        cartHasRx = false;
+        for (Cart c : CartActivity.CART_STORE) {
+            if (c.isRx()) { cartHasRx = true; break; }
+        }
+
+        if (cardRxWarning != null) {
+            cardRxWarning.setVisibility(cartHasRx ? View.VISIBLE : View.GONE);
+        }
+        if (btnPlaceOrder != null) {
+            // Block payment button if cart has Rx items (need pharmacy approval first)
+            btnPlaceOrder.setEnabled(!cartHasRx);
+            btnPlaceOrder.setAlpha(cartHasRx ? 0.5f : 1.0f);
+            if (cartHasRx) {
+                btnPlaceOrder.setText("Awaiting prescription approval");
+            } else {
+                btnPlaceOrder.setText("Place order");
+            }
+        }
     }
 
     private void selectCOD() {
         selectedMethod = "cod";
         optionCOD.setBackgroundResource(R.drawable.bg_selected_option);
         optionCard.setBackgroundResource(R.drawable.bg_unselected_option);
-
         radioCOD.setImageResource(R.drawable.ic_check_circle);
-        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
-
+        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(
+                getResources().getColor(R.color.pg_primary, null)));
         radioCard.setImageResource(R.drawable.ic_circle_dashed);
-        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_sub, null)));
-
+        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(
+                getResources().getColor(R.color.pg_sub, null)));
         cardDetailsSection.setVisibility(View.GONE);
     }
 
@@ -126,48 +229,40 @@ public class PaymentActivity extends AppCompatActivity {
         selectedMethod = "card";
         optionCard.setBackgroundResource(R.drawable.bg_selected_option);
         optionCOD.setBackgroundResource(R.drawable.bg_unselected_option);
-
         radioCard.setImageResource(R.drawable.ic_check_circle);
-        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_primary, null)));
-
+        radioCard.setImageTintList(android.content.res.ColorStateList.valueOf(
+                getResources().getColor(R.color.pg_primary, null)));
         radioCOD.setImageResource(R.drawable.ic_circle_dashed);
-        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.pg_sub, null)));
-
+        radioCOD.setImageTintList(android.content.res.ColorStateList.valueOf(
+                getResources().getColor(R.color.pg_sub, null)));
         cardDetailsSection.setVisibility(View.VISIBLE);
     }
 
     // Place order
-    private void placeOrder() {
-        // Validate card details if card selected
-        if ("card".equals(selectedMethod)) {
-            String cardNo  = etCardNumber.getText() != null ? etCardNumber.getText().toString().trim() : "";
-            String expiry  = etExpiry.getText()     != null ? etExpiry.getText().toString().trim()     : "";
-            String cvv     = etCvv.getText()         != null ? etCvv.getText().toString().trim()        : "";
 
-            if (cardNo.length() < 12) {
-                etCardNumber.setError("Enter a valid card number");
-                etCardNumber.requestFocus();
-                return;
-            }
-            if (expiry.length() < 4) {
-                etExpiry.setError("Enter expiry date (MM/YY)");
-                etExpiry.requestFocus();
-                return;
-            }
-            if (cvv.length() < 3) {
-                etCvv.setError("Enter CVV");
-                etCvv.requestFocus();
-                return;
-            }
+    private void placeOrder() {
+        if (cartHasRx) {
+            Toast.makeText(this, "Please upload your prescription first. Payment will be enabled after pharmacy approval.", Toast.LENGTH_LONG).show();
+            return;
         }
 
+        // Validate card details if card selected
+        if ("card".equals(selectedMethod)) {
+            String cardNo = etCardNumber.getText() != null ? etCardNumber.getText().toString().trim() : "";
+            String expiry = etExpiry.getText()     != null ? etExpiry.getText().toString().trim()     : "";
+            String cvv    = etCvv.getText()         != null ? etCvv.getText().toString().trim()        : "";
+            if (cardNo.length() < 12) { etCardNumber.setError("Enter a valid card number"); etCardNumber.requestFocus(); return; }
+            if (expiry.length() < 4)  { etExpiry.setError("Enter expiry date (MM/YY)");    etExpiry.requestFocus();     return; }
+            if (cvv.length()    < 3)  { etCvv.setError("Enter CVV");                       etCvv.requestFocus();        return; }
+        }
+
+        // Existing order (Rx approved flow)
         if (existingOrderId != null && !existingOrderId.isEmpty()) {
-            MaterialButton btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
             btnPlaceOrder.setEnabled(false);
             btnPlaceOrder.setText("Processing payment...");
 
             Map<String, Object> updates = new HashMap<>();
-            updates.put("status", "processing");
+            updates.put("status",        "processing");
             updates.put("paymentMethod", selectedMethod);
 
             db.collection("orders").document(existingOrderId)
@@ -177,7 +272,7 @@ public class PaymentActivity extends AppCompatActivity {
 
                         String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
                         if (!uid.isEmpty()) {
-                            java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                            Map<String, Object> notif = new HashMap<>();
                             notif.put("userId",      uid);
                             notif.put("title",       "Payment Successful 💳");
                             notif.put("message",     "Payment for order " + existingOrderId + " was successful! The pharmacy is preparing your items.");
@@ -202,6 +297,7 @@ public class PaymentActivity extends AppCompatActivity {
             return;
         }
 
+        // New order from cart
         String uid     = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
         String orderId = "PG-" + System.currentTimeMillis();
 
@@ -214,12 +310,30 @@ public class PaymentActivity extends AppCompatActivity {
             item.put("pharmacyName", c.getPharmacyName());
             item.put("price",        c.getPrice());
             item.put("quantity",     c.getQuantity());
+            item.put("type",         c.getMedicineType() != null ? c.getMedicineType() : "OTC");
             itemsList.add(item);
         }
+
+        java.util.List<String> pharmNames = new java.util.ArrayList<>();
+        java.util.List<String> pharmIds = new java.util.ArrayList<>();
+        for (Cart c : CartActivity.CART_STORE) {
+            if (c.getPharmacyName() != null && !c.getPharmacyName().isEmpty() && !pharmNames.contains(c.getPharmacyName())) {
+                pharmNames.add(c.getPharmacyName());
+            }
+            if (c.getPharmacyId() != null && !c.getPharmacyId().isEmpty() && !pharmIds.contains(c.getPharmacyId())) {
+                pharmIds.add(c.getPharmacyId());
+            }
+        }
+
+        String mainPharmacyName = !pharmNames.isEmpty() ? String.join(", ", pharmNames) : "Pharmacy";
+        String mainPharmacyId   = !pharmIds.isEmpty() ? pharmIds.get(0) : "";
 
         Map<String, Object> order = new HashMap<>();
         order.put("orderId",       orderId);
         order.put("customerId",    uid);
+        order.put("pharmacyId",    mainPharmacyId);
+        order.put("pharmacyName",  mainPharmacyName);
+        order.put("pharmacyIds",   pharmIds);
         order.put("items",         itemsList);
         order.put("subtotal",      subtotal);
         order.put("deliveryFee",   deliveryFee);
@@ -232,8 +346,13 @@ public class PaymentActivity extends AppCompatActivity {
         if (!uid.isEmpty()) {
             db.collection("users").document(uid).get()
                     .addOnSuccessListener(doc -> {
-                        if (doc.exists() && doc.getString("address") != null) {
-                            order.put("deliveryAddress", doc.getString("address"));
+                        if (doc.exists()) {
+                            String addr  = doc.getString("address");
+                            String label = doc.getString("addressLabel");
+                            if (addr != null && !addr.isEmpty()) {
+                                order.put("deliveryAddress", (label != null && !label.isEmpty())
+                                        ? label + " · " + addr : addr);
+                            }
                         }
                         saveOrderToFirestore(orderId, order);
                     })
@@ -244,23 +363,19 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void saveOrderToFirestore(String orderId, Map<String, Object> order) {
-        MaterialButton btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
         btnPlaceOrder.setEnabled(false);
         btnPlaceOrder.setText("Placing order...");
 
-        db.collection("orders")
-                .document(orderId)
+        db.collection("orders").document(orderId)
                 .set(order)
                 .addOnSuccessListener(aVoid -> {
-                    // Clear the cart after successful order
                     CartActivity.clearCart();
 
-                    // Write confirmation notification
                     String notifUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
                     if (!notifUid.isEmpty()) {
-                        java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                        Map<String, Object> notif = new HashMap<>();
                         notif.put("userId",      notifUid);
-                        notif.put("title",       "Order confirmed \uD83C\uDF89");
+                        notif.put("title",       "Order confirmed 🎉");
                         notif.put("message",     "Your order " + orderId + " has been placed! We'll notify you when it's ready.");
                         notif.put("type",        "order_placed");
                         notif.put("referenceId", orderId);
@@ -269,9 +384,7 @@ public class PaymentActivity extends AppCompatActivity {
                         db.collection("notifications").add(notif);
                     }
 
-                    Toast.makeText(this,
-                            "✅ Order placed successfully!",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "✅ Order placed successfully!", Toast.LENGTH_SHORT).show();
 
                     Intent intent = new Intent(this, OrderTrackingActivity.class);
                     intent.putExtra("orderId", orderId);
@@ -282,10 +395,7 @@ public class PaymentActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     btnPlaceOrder.setEnabled(true);
                     btnPlaceOrder.setText("Place order");
-                    Toast.makeText(this,
-                            "Error: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }
-

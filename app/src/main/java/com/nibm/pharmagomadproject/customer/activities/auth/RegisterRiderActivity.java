@@ -33,181 +33,77 @@ import java.util.Map;
 
 
 public class RegisterRiderActivity extends AppCompatActivity {
-
-
-
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
     private SupabaseStorageHelper storageHelper;
-
-
     private Uri licenseUri;
 
-
-
-    private TextInputEditText etName,
-            etNic,
-            etEmail,
-            etPhone,
-            etVehicleType,
-            etVehicleReg,
-            etPassword,
-            etConfirmPassword;
-
-
+    private TextInputEditText etName, etNic, etEmail, etPhone, etVehicleType, etVehicleReg,
+            etPassword, etConfirmPassword;
 
     private static final int PICK_LICENSE = 101;
 
-
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-
         EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_register_rider);
-
-
-
         if(getSupportActionBar()!=null)
             getSupportActionBar().hide();
-
-
-
-
 
         mAuth = FirebaseAuth.getInstance();
 
         db = FirebaseFirestore.getInstance();
 
+        storageHelper = new SupabaseStorageHelper(this);
 
-        storageHelper =
-                new SupabaseStorageHelper(this);
+        etName = findViewById(R.id.etName);
+        etNic = findViewById(R.id.etNic);
+        etEmail = findViewById(R.id.etEmail);
+        etPhone = findViewById(R.id.etPhone);
+        etVehicleType = findViewById(R.id.etVehicleType);
+        etVehicleReg = findViewById(R.id.etVehicleReg);
+        etPassword = findViewById(R.id.etPassword);
+        etConfirmPassword = findViewById(R.id.etConfirmPassword);
+        ImageView btnBack = findViewById(R.id.btnBack);
 
+        btnBack.setOnClickListener(
+                v -> finish()
+        );
 
+        LinearLayout uploadArea = findViewById(R.id.uploadLicenseArea);
 
-
-
-        etName =
-                findViewById(R.id.etName);
-
-        etNic =
-                findViewById(R.id.etNic);
-
-        etEmail =
-                findViewById(R.id.etEmail);
-
-        etPhone =
-                findViewById(R.id.etPhone);
-
-        etVehicleType =
-                findViewById(R.id.etVehicleType);
-
-        etVehicleReg =
-                findViewById(R.id.etVehicleReg);
-
-
-        etPassword =
-                findViewById(R.id.etPassword);
-
-
-        etConfirmPassword =
-                findViewById(R.id.etConfirmPassword);
-
-
-
-
-
-        ImageView btnBack =
-                findViewById(R.id.btnBack);
-
-
-        btnBack.setOnClickListener(v -> finish());
-
-
-
-
-
-        LinearLayout uploadArea =
-                findViewById(R.id.uploadLicenseArea);
-
-
-
-        uploadArea.setOnClickListener(v -> {
-
-
-            Intent intent =
-                    new Intent(Intent.ACTION_PICK);
-
-
-            intent.setType("image/*");
-
-
-            startActivityForResult(
-                    intent,
-                    PICK_LICENSE
-            );
-
-
+        uploadArea.setOnClickListener(
+                v -> {
+                    Intent intent = new Intent(Intent.ACTION_PICK);
+                    intent.setType("image/*");
+                    startActivityForResult(
+                            intent,
+                            PICK_LICENSE
+                    );
         });
 
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
 
-
-
-
-
-        MaterialButton btnSubmit =
-                findViewById(R.id.btnSubmitForApproval);
-
-
-
-        btnSubmit.setOnClickListener(v -> {
-
-
-            registerRider();
-
-
+        btnSubmit.setOnClickListener(
+                v -> {
+                    registerRider();
         });
 
+        TextView tvLogin = findViewById(R.id.tvLogin);
 
-
-
-
-        TextView tvLogin =
-                findViewById(R.id.tvLogin);
-
-
-
-        tvLogin.setOnClickListener(v -> {
-
-
-            startActivity(
-                    new Intent(
-                            this,
-                            LoginActivity.class
-                    )
-            );
-
-
-            finish();
-
-
+        tvLogin.setOnClickListener(
+                v -> {
+                    startActivity(
+                            new Intent(
+                                    this,
+                                    LoginActivity.class
+                            )
+                    );
+                    finish();
         });
-
-
 
     }
-
-
-
-
-
-
 
     @Override
     protected void onActivityResult(
@@ -222,60 +118,35 @@ public class RegisterRiderActivity extends AppCompatActivity {
                 data
         );
 
-
-
         if(requestCode==PICK_LICENSE &&
                 resultCode==RESULT_OK &&
                 data!=null){
 
-
-            licenseUri =
-                    data.getData();
-
-
+            licenseUri = data.getData();
 
             Toast.makeText(
                     this,
                     "License selected",
                     Toast.LENGTH_SHORT
             ).show();
-
-
         }
-
-
-
     }
 
-
-
-
-
-
-
-
-
     private void registerRider(){
-
-
-
         String name =
                 etName.getText()
                         .toString()
                         .trim();
-
 
         String nic =
                 etNic.getText()
                         .toString()
                         .trim();
 
-
         String email =
                 etEmail.getText()
                         .toString()
                         .trim();
-
 
         String phone =
                 etPhone.getText()
@@ -288,95 +159,61 @@ public class RegisterRiderActivity extends AppCompatActivity {
                         .toString()
                         .trim();
 
-
         String vehicleReg =
                 etVehicleReg.getText()
                         .toString()
                         .trim();
-
-
 
         String password =
                 etPassword.getText()
                         .toString()
                         .trim();
 
-
         String confirm =
                 etConfirmPassword.getText()
                         .toString()
                         .trim();
 
-
-
-
-
-
         if(TextUtils.isEmpty(name)){
-
             etName.setError("Required");
             return;
 
         }
 
-
         if(TextUtils.isEmpty(email)){
-
             etEmail.setError("Required");
             return;
 
         }
 
-
         if(TextUtils.isEmpty(phone)){
-
             etPhone.setError("Required");
             return;
 
         }
 
-
         if(licenseUri==null){
-
             Toast.makeText(
                     this,
                     "Upload driving license",
                     Toast.LENGTH_SHORT
             ).show();
-
             return;
-
         }
 
-
-
         if(password.length()<6){
-
             etPassword.setError(
                     "Minimum 6 characters"
             );
-
             return;
-
         }
 
-
-
-
         if(!password.equals(confirm)){
-
-
             etConfirmPassword.setError(
                     "Password not match"
             );
-
             return;
-
         }
-
-
-
-
 
         MaterialButton btnSubmit = findViewById(R.id.btnSubmitForApproval);
         if (btnSubmit != null) btnSubmit.setEnabled(false);
@@ -391,7 +228,6 @@ public class RegisterRiderActivity extends AppCompatActivity {
                 vehicleReg
         );
     }
-
     private void createAccount(
             String email,
             String password,
@@ -569,7 +405,4 @@ public class RegisterRiderActivity extends AppCompatActivity {
                     }
                 });
     }
-
-
-
 }

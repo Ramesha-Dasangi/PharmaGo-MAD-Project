@@ -98,14 +98,38 @@ public class RegisterPharmacyActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String confirm = etConfirmPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(pharmacyName)) { etPharmacyName.setError("Required"); return; }
-        if (TextUtils.isEmpty(ownerName)) { etOwnerName.setError("Required"); return; }
-        if (TextUtils.isEmpty(licenseNo)) { etLicenseNo.setError("Required"); return; }
-        if (TextUtils.isEmpty(email)) { etEmail.setError("Required"); return; }
-        if (phone.isEmpty()) { etPhone.setError("Required"); return; }
-        if (address.isEmpty()) { etAddress.setError("Required"); return; }
-        if (password.length() < 6) { etPassword.setError("Minimum 6 characters"); return; }
-        if (!password.equals(confirm)) { etConfirmPassword.setError("Password mismatch"); return; }
+        if (TextUtils.isEmpty(pharmacyName)) {
+            etPharmacyName.setError("Required");
+            return;
+        }
+        if (TextUtils.isEmpty(ownerName)) {
+            etOwnerName.setError("Required");
+            return;
+        }
+        if (TextUtils.isEmpty(licenseNo)) {
+            etLicenseNo.setError("Required");
+            return;
+        }
+        if (TextUtils.isEmpty(email)) {
+            etEmail.setError("Required");
+            return;
+        }
+        if (phone.isEmpty()) {
+            etPhone.setError("Required");
+            return;
+        }
+        if (address.isEmpty()) {
+            etAddress.setError("Required");
+            return;
+        }
+        if (password.length() < 6) {
+            etPassword.setError("Minimum 6 characters");
+            return;
+        }
+        if (!password.equals(confirm)) {
+            etConfirmPassword.setError("Password mismatch");
+            return;
+        }
         if (licenseUri == null) {
             Toast.makeText(this, "Please upload license", Toast.LENGTH_SHORT).show();
             return;
@@ -171,9 +195,25 @@ public class RegisterPharmacyActivity extends AppCompatActivity {
         pharmacy.put("isApproved", false);
         pharmacy.put("status", "pending");
         pharmacy.put("rating", 0.0);
+
+        // Convert written address text into GPS latitude & longitude using Android Geocoder
+        double lat = 6.9271; // Default fallback
+        double lng = 79.8612;
+        try {
+            android.location.Geocoder geocoder = new android.location.Geocoder(this, java.util.Locale.getDefault());
+            @SuppressWarnings("deprecation")
+            java.util.List<android.location.Address> addresses = geocoder.getFromLocationName(address + ", Sri Lanka", 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                lat = addresses.get(0).getLatitude();
+                lng = addresses.get(0).getLongitude();
+            }
+        } catch (Exception ignored) {}
+
+        pharmacy.put("latitude", lat);
+        pharmacy.put("longitude", lng);
         pharmacy.put("createdAt", Timestamp.now());
 
-        // FIX #1: Properly chain Firestore operations - save user first, then pharmacy
+        // FIX 1: Properly chain Firestore operations - save user first, then pharmacy
         db.collection("users").document(uid).set(user)
                 .addOnSuccessListener(aVoid -> {
                     // User saved successfully, now save pharmacy

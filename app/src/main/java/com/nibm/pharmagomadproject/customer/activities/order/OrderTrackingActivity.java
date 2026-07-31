@@ -31,7 +31,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_order_tracking);
-        if (getSupportActionBar() != null) getSupportActionBar().hide();
+        if (getSupportActionBar() != null)
+            getSupportActionBar().hide();
 
         db = FirebaseFirestore.getInstance();
 
@@ -45,20 +46,15 @@ public class OrderTrackingActivity extends AppCompatActivity {
         // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Call rider
-        ImageView btnCall = findViewById(R.id.btnCallRider);
-        if (btnCall != null) {
-            btnCall.setOnClickListener(v -> {
-                Intent call = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + RIDER_PHONE));
-                startActivity(call);
-            });
-        }
-
-        // Report issue
+        // Report issue (hidden until order is delivered)
         MaterialButton btnReport = findViewById(R.id.btnReportIssue);
         if (btnReport != null) {
-            btnReport.setOnClickListener(v ->
-                    startActivity(new Intent(this, ReportIssueActivity.class)));
+            btnReport.setVisibility(View.GONE);
+            btnReport.setOnClickListener(v -> {
+                Intent i = new Intent(this, ReportIssueActivity.class);
+                i.putExtra("orderId", orderId);
+                startActivity(i);
+            });
         }
 
         // Review button (hidden until delivered)
@@ -74,53 +70,132 @@ public class OrderTrackingActivity extends AppCompatActivity {
             });
         }
 
-        // Firestore real-time status listener
+        // Firestore real-time status listener & real data loading
         if (!orderId.isEmpty()) {
             DocumentReference orderRef = db.collection("orders").document(orderId);
             statusListener = orderRef.addSnapshotListener((doc, error) -> {
-                if (error != null || doc == null) return;
+                if (error != null || doc == null || !doc.exists()) return;
+
+                // Load real Order ID header
+                android.widget.TextView tvOrderNum = findViewById(R.id.tvOrderNumber);
+                if (tvOrderNum != null) {
+                    tvOrderNum.setText("Order #" + doc.getId().substring(0, Math.min(8, doc.getId().length())).toUpperCase());
+                }
+
+                // Load order summary (items count + total amount)
+                // Load order summary (items count + pharmacies + total amount)
+                android.widget.TextView tvOrderSummary = findViewById(R.id.tvOrderSummary);
+                if (tvOrderSummary != null) {
+                    String pharmName = doc.getString("pharmacyName");
+                    Double total = doc.getDouble("total");
+                    java.util.List<?> items = (java.util.List<?>) doc.get("items");
+                    java.util.List<?> pIds = (java.util.List<?>) doc.get("pharmacyIds");
+                    int itemCount = items != null ? items.size() : 0;
+                    int pharmCount = pIds != null && !pIds.isEmpty() ? pIds.size() : (pharmName != null && pharmName.contains(",") ? pharmName.split(",").length : 1);
+
+                    String summary = itemCount + " item(s)" + (pharmCount > 1 ? " from " + pharmCount + " pharmacies (" + pharmName + ")" : (pharmName != null ? " from " + pharmName : "")) + " · Rs. " + (total != null ? total.intValue() : 0);
+                    tvOrderSummary.setText(summary);
+                }
+
+                // Rider Info & Card Visibility ONLY show when rider is assigned
+                String rName = doc.getString("riderName");
+                String rPhone = doc.getString("riderPhone");
+                String rId = doc.getString("riderId");
+                boolean hasRider = (rName != null && !rName.trim().isEmpty())
+                                || (rPhone != null && !rPhone.trim().isEmpty())
+                                || (rId != null && !rId.trim().isEmpty());
+
+                View cardRider = findViewById(R.id.cardRider);
+                if (cardRider != null) {
+                    cardRider.setVisibility(hasRider ? View.VISIBLE : View.GONE);
+                }
+
+                if (hasRider) {
+                    android.widget.TextView tvRider = findViewById(R.id.tvRiderName);
+                    if (tvRider != null) {
+                        tvRider.setText(rName != null ? rName + " — your rider" : "Assigned Rider");
+                    }
+                    ImageView btnCall = findViewById(R.id.btnCallRider);
+                    if (btnCall != null && rPhone != null && !rPhone.isEmpty()) {
+                        btnCall.setOnClickListener(v -> {
+                            Intent call = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + rPhone));
+                            startActivity(call);
+                        });
+                    }
+                }
 
                 String status = doc.getString("status");
                 updateStatusUI(status);
 
-                // Show review button when delivered
-                if ("delivered".equals(status) && btnReview != null) {
-                    btnReview.setVisibility(View.VISIBLE);
-                }
+                // Show report & review buttons ONLY when delivered
+                boolean isDelivered = "delivered".equalsIgnoreCase(status);
+                if (btnReview != null) btnReview.setVisibility(isDelivered ? View.VISIBLE : View.GONE);
+                if (btnReport != null) btnReport.setVisibility(isDelivered ? View.VISIBLE : View.GONE);
             });
         }
     }
 
     private void updateStatusUI(String status) {
-        if (status == null) return;
+        if (status == null) status = "pending";
 
         try {
             android.widget.TextView tvStatus = findViewById(R.id.tvCurrentStatus);
-            if (tvStatus != null) {
-                switch (status) {
-                    case "pending":
-                        tvStatus.setText("Order confirmed");
-                        setStepsProgress(1);
-                        break;
-                    case "processing":
-                        tvStatus.setText("Pharmacy is preparing your order");
-                        setStepsProgress(2);
-                        break;
-                    case "picked_up":
-                        tvStatus.setText("Rider picked up your order");
-                        setStepsProgress(3);
-                        break;
-                    case "out_for_delivery":
-                        tvStatus.setText("Out for delivery");
-                        setStepsProgress(4);
-                        break;
-                    case "delivered":
-                        tvStatus.setText("Delivered ✓");
-                        setStepsProgress(5);
-                        break;
-                    default:
-                        tvStatus.setText(status);
-                }
+            android.widget.TextView tvBadge = findViewById(R.id.tvOrderBadge);
+
+            if (tvBadge != null) {
+                tvBadge.setText(status.substring(0, 1).toUpperCase() + status.substring(1).replace("_", " "));
+            }
+
+            android.widget.TextView tvStep2Sub = findViewById(R.id.tvStep2Sub);
+            android.widget.TextView tvStep3Sub = findViewById(R.id.tvStep3Sub);
+            android.widget.TextView tvStep4Sub = findViewById(R.id.tvStep4Sub);
+            android.widget.TextView tvStep5Sub = findViewById(R.id.tvStep5Sub);
+
+            switch (status.toLowerCase()) {
+                case "pending":
+                    if (tvStatus != null) tvStatus.setText("Order Placed — Waiting for Pharmacy Confirmation");
+                    if (tvStep2Sub != null) tvStep2Sub.setText("Awaiting confirmation...");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Pending");
+                    if (tvStep4Sub != null) tvStep4Sub.setText("Pending");
+                    if (tvStep5Sub != null) tvStep5Sub.setText("Pending");
+                    setStepsProgress(1);
+                    break;
+                case "confirmed":
+                case "approved":
+                case "processing":
+                    if (tvStatus != null) tvStatus.setText("Pharmacy is preparing your order");
+                    if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed & Preparing");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Awaiting rider pickup...");
+                    if (tvStep4Sub != null) tvStep4Sub.setText("Pending");
+                    if (tvStep5Sub != null) tvStep5Sub.setText("Pending");
+                    setStepsProgress(2);
+                    break;
+                case "picked_up":
+                    if (tvStatus != null) tvStatus.setText("Rider picked up your order");
+                    if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed & Prepared");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Picked up by Rider");
+                    if (tvStep4Sub != null) tvStep4Sub.setText("In transit...");
+                    if (tvStep5Sub != null) tvStep5Sub.setText("Pending");
+                    setStepsProgress(3);
+                    break;
+                case "out_for_delivery":
+                    if (tvStatus != null) tvStatus.setText("Out for delivery");
+                    if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed & Prepared");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Picked up by Rider");
+                    if (tvStep4Sub != null) tvStep4Sub.setText("Out for delivery");
+                    if (tvStep5Sub != null) tvStep5Sub.setText("Arriving soon");
+                    setStepsProgress(4);
+                    break;
+                case "delivered":
+                    if (tvStatus != null) tvStatus.setText("Delivered ✓");
+                    if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Picked up");
+                    if (tvStep4Sub != null) tvStep4Sub.setText("Completed");
+                    if (tvStep5Sub != null) tvStep5Sub.setText("Delivered successfully");
+                    setStepsProgress(5);
+                    break;
+                default:
+                    if (tvStatus != null) tvStatus.setText(status);
             }
         } catch (Exception ignored) {}
     }

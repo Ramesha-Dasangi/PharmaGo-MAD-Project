@@ -43,6 +43,11 @@ public class ProfileActivity extends AppCompatActivity {
         tvProfileAddress = findViewById(R.id.tvProfileAddress);
         switchNotifications = findViewById(R.id.switchNotifications);
 
+        if (tvProfileName != null) tvProfileName.setText("Loading...");
+        if (tvProfileEmail != null) tvProfileEmail.setText("");
+        if (tvProfilePhone != null) tvProfilePhone.setText("");
+        if (tvProfileAddress != null) tvProfileAddress.setText("Loading address...");
+
         if (switchNotifications != null) {
             switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (mAuth.getCurrentUser() != null) {

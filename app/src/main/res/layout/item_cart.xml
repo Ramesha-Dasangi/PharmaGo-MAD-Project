@@ -93,13 +93,14 @@
 
 
             <ImageView
-
                 android:id="@+id/btnMinusMedicare"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:padding="8dp"
-                android:src="@android:drawable/ic_media_previous"
-                android:contentDescription="Decrease quantity"/>
+                android:padding="6dp"
+                android:src="@drawable/ic_minus"
+                app:tint="@color/pg_primary"
+                android:contentDescription="Decrease quantity"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
 
 
             <TextView

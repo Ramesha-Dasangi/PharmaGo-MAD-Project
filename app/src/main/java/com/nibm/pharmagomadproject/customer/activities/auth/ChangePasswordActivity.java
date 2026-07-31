@@ -97,10 +97,14 @@ public class ChangePasswordActivity extends AppCompatActivity {
                         btnUpdate.setEnabled(true);
                     }
                     if (updateTask.isSuccessful()) {
-                        Toast.makeText(ChangePasswordActivity.this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChangePasswordActivity.this,
+                                "Password updated successfully!", Toast.LENGTH_SHORT).show();
                         finish();
                     } else {
-                        Toast.makeText(ChangePasswordActivity.this, "Failed to update password: " + updateTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChangePasswordActivity.this,
+                                "Failed to update password: " +
+                                        updateTask.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {

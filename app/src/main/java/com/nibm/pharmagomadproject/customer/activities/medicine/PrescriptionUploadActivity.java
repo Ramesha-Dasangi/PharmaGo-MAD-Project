@@ -58,7 +58,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // ─── Gallery launcher ──────────────────────
+        // Gallery launcher
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -68,7 +68,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                     }
                 });
 
-        // ─── Camera launcher ───────────────────────
+        // Camera launcher
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 success -> {
@@ -113,7 +113,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
         if (tvFileName != null) tvFileName.setText(fileName);
     }
 
-    // ✅ Supabase storage eke upload karanna
+    // Upload to Supabase storage
     private void uploadToSupabase() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -142,49 +142,83 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                             Toast.makeText(PrescriptionUploadActivity.this,
                                     "Prescription uploaded!", Toast.LENGTH_SHORT).show();
 
-                            // Construct the order
                             String orderId = "PG-" + System.currentTimeMillis();
-                            String medicineId = getIntent().getStringExtra("medicine_id");
-                            String medicineName = getIntent().getStringExtra("medicine_name");
-                            String brandName = getIntent().getStringExtra("brand_name");
-                            String phId = getIntent().getStringExtra("pharmacy_id");
-                            String pharmacyName = getIntent().getStringExtra("pharmacy_name");
-                            int price = getIntent().getIntExtra("medicine_price", 0);
+
+                            boolean isCartRxOrder = getIntent().getBooleanExtra("is_cart_rx_order", false);
 
                             java.util.List<java.util.Map<String, Object>> itemsList = new java.util.ArrayList<>();
-                            java.util.Map<String, Object> item = new java.util.HashMap<>();
-                            item.put("medicineId", medicineId);
-                            item.put("medicineName", medicineName);
-                            item.put("brandName", brandName);
-                            item.put("pharmacyId", phId);
-                            item.put("pharmacyName", pharmacyName);
-                            item.put("price", (double) price);
-                            item.put("quantity", 1);
-                            itemsList.add(item);
+                            int subtotal = 0;
+                            String phId = getIntent().getStringExtra("pharmacy_id");
+                            String pharmacyName = getIntent().getStringExtra("pharmacy_name");
+
+                            if (isCartRxOrder && !com.nibm.pharmagomadproject.customer.activities.order.CartActivity.CART_STORE.isEmpty()) {
+                                for (com.nibm.pharmagomadproject.customer.models.Cart c : com.nibm.pharmagomadproject.customer.activities.order.CartActivity.CART_STORE) {
+                                    java.util.Map<String, Object> item = new java.util.HashMap<>();
+                                    item.put("medicineId",   c.getMedicineId());
+                                    item.put("medicineName", c.getMedicineName());
+                                    item.put("brandName",    c.getBrandName());
+                                    item.put("pharmacyId",   c.getPharmacyId());
+                                    item.put("pharmacyName", c.getPharmacyName());
+                                    item.put("price",        c.getPrice());
+                                    item.put("quantity",     c.getQuantity());
+                                    item.put("type",         c.getMedicineType() != null ? c.getMedicineType() : "Prescription");
+                                    itemsList.add(item);
+                                    subtotal += (int) c.getSubtotal();
+                                    if (phId == null || phId.isEmpty()) phId = c.getPharmacyId();
+                                    if (pharmacyName == null || pharmacyName.isEmpty()) pharmacyName = c.getPharmacyName();
+                                }
+                            } else {
+                                String medicineId   = getIntent().getStringExtra("medicine_id");
+                                String medicineName = getIntent().getStringExtra("medicine_name");
+                                String brandName    = getIntent().getStringExtra("brand_name");
+                                int    price        = getIntent().getIntExtra("medicine_price", 0);
+
+                                java.util.Map<String, Object> item = new java.util.HashMap<>();
+                                item.put("medicineId",   medicineId);
+                                item.put("medicineName", medicineName);
+                                item.put("brandName",    brandName);
+                                item.put("pharmacyId",   phId);
+                                item.put("pharmacyName", pharmacyName);
+                                item.put("price",        (double) price);
+                                item.put("quantity",     1);
+                                item.put("type",         "Prescription");
+                                itemsList.add(item);
+                                subtotal = price;
+                            }
+
+                            int deliveryFee = 100;
+                            int total = subtotal + deliveryFee;
 
                             java.util.Map<String, Object> order = new java.util.HashMap<>();
-                            order.put("orderId", orderId);
-                            order.put("customerId", userId);
-                            order.put("items", itemsList);
-                            order.put("subtotal", price);
-                            order.put("deliveryFee", 100);
-                            order.put("total", price + 100);
-                            order.put("paymentMethod", "cod");
-                            order.put("status", "awaiting_approval");  // awaiting pharmacy prescription review
-                            order.put("createdAt", System.currentTimeMillis());
+                            order.put("orderId",       orderId);
+                            order.put("customerId",    userId);
+                            order.put("pharmacyId",    phId   != null ? phId         : "");
+                            order.put("pharmacyName",  pharmacyName != null ? pharmacyName : "Pharmacy");
+                            order.put("items",         itemsList);
+                            order.put("subtotal",      subtotal);
+                            order.put("deliveryFee",   deliveryFee);
+                            order.put("total",         total);
+                            order.put("paymentMethod", "pending");          // payment method chosen after approval
+                            order.put("status",        "awaiting_approval"); // pharmacy must verify prescription
+                            order.put("orderType",     "Prescription");
+                            order.put("createdAt",     System.currentTimeMillis());
                             order.put("prescriptionUrl", publicUrl);
 
                             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                                     .collection("users").document(userId).get()
                                     .addOnSuccessListener(userDoc -> {
-                                        if (userDoc.exists() && userDoc.getString("address") != null) {
-                                            order.put("deliveryAddress", userDoc.getString("address"));
+                                        if (userDoc.exists()) {
+                                            String addr  = userDoc.getString("address");
+                                            String label = userDoc.getString("addressLabel");
+                                            if (addr != null && !addr.isEmpty()) {
+                                                order.put("deliveryAddress",
+                                                        (label != null && !label.isEmpty())
+                                                                ? label + " · " + addr : addr);
+                                            }
                                         }
                                         savePrescriptionOrder(orderId, order);
                                     })
-                                    .addOnFailureListener(e -> {
-                                        savePrescriptionOrder(orderId, order);
-                                    });
+                                    .addOnFailureListener(e -> savePrescriptionOrder(orderId, order));
                         });
                     }
 
@@ -208,6 +242,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                 .document(orderId)
                 .set(order)
                 .addOnSuccessListener(aVoid -> {
+                    com.nibm.pharmagomadproject.customer.activities.order.CartActivity.clearCart();
                     Intent intent = new Intent(PrescriptionUploadActivity.this, OrderTrackingActivity.class);
                     intent.putExtra("orderId", orderId);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

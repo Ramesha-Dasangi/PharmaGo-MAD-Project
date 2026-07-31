@@ -32,7 +32,8 @@ public class AdminLoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_admin_login);
-        if (getSupportActionBar() != null) getSupportActionBar().hide();
+        if (getSupportActionBar() != null)
+            getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
         db    = FirebaseFirestore.getInstance();
@@ -45,7 +46,9 @@ public class AdminLoginActivity extends AppCompatActivity {
         btnLoginAsAdmin.setOnClickListener(
                 v -> attemptAdminLogin()
         );
-        tvBackToCustomer.setOnClickListener(v -> finish());
+        tvBackToCustomer.setOnClickListener(
+                v -> finish()
+        );
     }
 
     private void attemptAdminLogin() {

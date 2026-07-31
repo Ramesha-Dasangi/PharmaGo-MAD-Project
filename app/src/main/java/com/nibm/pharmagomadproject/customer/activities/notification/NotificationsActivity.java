@@ -73,39 +73,78 @@ public class NotificationsActivity extends AppCompatActivity {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
-        if (uid == null) return;
+        if (uid == null) {
+            Toast.makeText(this, "Please log in to view notifications", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // ✅ Real-time listener — auto-updates when status changes write new notifications
+        // Real-time listener — ordered by createdAt descending
+        // Requires a Firestore composite index on notifications(userId, createdAt DESC)
         listenerRegistration = FirebaseFirestore.getInstance()
                 .collection("notifications")
                 .whereEqualTo("userId", uid)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((query, error) -> {
                     if (error != null) {
-                        Toast.makeText(this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                        // Likely a missing Firestore composite index — fallback to unordered query
+                        loadNotificationsFallback(uid);
                         return;
                     }
                     if (query == null) return;
+                    populateNotifications(uid, query);
+                });
+    }
 
+    // simple query without ordering (no composite index needed)
+    private void loadNotificationsFallback(String uid) {
+        FirebaseFirestore.getInstance()
+                .collection("notifications")
+                .whereEqualTo("userId", uid)
+                .get()
+                .addOnSuccessListener(query -> {
                     notifications.clear();
                     for (QueryDocumentSnapshot doc : query) {
-                        String title   = doc.getString("title");
-                        String message = doc.getString("message");
-                        Boolean isRead = doc.getBoolean("isRead");
-
-                        Notification notif = new Notification(
-                                uid,
-                                title   != null ? title   : "",
-                                message != null ? message : "",
-                                doc.getString("type") != null ? doc.getString("type") : "",
-                                doc.getString("referenceId") != null ? doc.getString("referenceId") : ""
-                        );
-                        notif.setNotificationId(doc.getId());
-                        if (Boolean.TRUE.equals(isRead)) notif.setRead(true);
-                        notifications.add(notif);
+                        buildNotification(uid, doc);
                     }
+                    // Sort in memory by createdAt descending
+                    notifications.sort((a, b) -> {
+                        com.google.firebase.Timestamp ta = a.getCreatedAt();
+                        com.google.firebase.Timestamp tb = b.getCreatedAt();
+                        if (ta == null) return 1;
+                        if (tb == null) return -1;
+                        // Firebase Timestamp: compare seconds, then nanos
+                        int cmp = Long.compare(tb.getSeconds(), ta.getSeconds());
+                        return cmp != 0 ? cmp : Integer.compare(tb.getNanoseconds(), ta.getNanoseconds());
+                    });
                     if (adapter != null) adapter.notifyDataSetChanged();
-                });
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load notifications", Toast.LENGTH_SHORT).show());
+    }
+
+    private void populateNotifications(String uid, com.google.firebase.firestore.QuerySnapshot query) {
+        notifications.clear();
+        for (QueryDocumentSnapshot doc : query) {
+            buildNotification(uid, doc);
+        }
+        if (adapter != null) adapter.notifyDataSetChanged();
+    }
+
+    private void buildNotification(String uid, QueryDocumentSnapshot doc) {
+        String title   = doc.getString("title");
+        String message = doc.getString("message");
+        Boolean isRead = doc.getBoolean("isRead");
+
+        Notification notif = new Notification(
+                uid,
+                title   != null ? title   : "",
+                message != null ? message : "",
+                doc.getString("type")        != null ? doc.getString("type")        : "",
+                doc.getString("referenceId") != null ? doc.getString("referenceId") : ""
+        );
+        notif.setNotificationId(doc.getId());
+        if (Boolean.TRUE.equals(isRead)) notif.setRead(true);
+        notifications.add(notif);
     }
 
     @Override
