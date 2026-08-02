@@ -141,4 +141,13 @@ public class UnassignedOrdersActivity extends AppCompatActivity {
         super.onDestroy();
         if (ordersListener != null) ordersListener.remove();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_delivery);
+        }
+    }
 }
