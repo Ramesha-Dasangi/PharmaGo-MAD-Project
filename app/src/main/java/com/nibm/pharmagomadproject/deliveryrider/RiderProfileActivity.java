@@ -23,6 +23,7 @@ public class RiderProfileActivity extends AppCompatActivity {
 
     private TextView tvAvatarInitials, tvProfileName, tvProfileVehicle;
     private TextView tvExpandName, tvExpandPhone, tvExpandVehicle;
+    private TextView tvProfileTodayEarnings, tvProfileWeekEarnings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +42,14 @@ public class RiderProfileActivity extends AppCompatActivity {
         tvExpandName = findViewById(R.id.tvExpandName);
         tvExpandPhone = findViewById(R.id.tvExpandPhone);
         tvExpandVehicle = findViewById(R.id.tvExpandVehicle);
+        tvProfileTodayEarnings = findViewById(R.id.tvProfileTodayEarnings);
+        tvProfileWeekEarnings = findViewById(R.id.tvProfileWeekEarnings);
 
         setupExpandableItems();
         setupBottomNav();
 
         fetchUserData();
+        fetchEarnings();
     }
 
     private void fetchUserData() {
@@ -88,6 +92,54 @@ public class RiderProfileActivity extends AppCompatActivity {
                     if (tvExpandVehicle != null) tvExpandVehicle.setText(vehicleStr);
                 }
             });
+        }
+    }
+
+    private void fetchEarnings() {
+        if (mAuth.getCurrentUser() != null) {
+            String uid = mAuth.getCurrentUser().getUid();
+
+            db.collection("orders").whereEqualTo("riderId", uid).whereEqualTo("status", "delivered")
+                    .get().addOnSuccessListener(querySnapshot -> {
+                        long todayEarned = 0;
+                        long weekEarned = 0;
+
+                        java.util.Calendar todayCal = java.util.Calendar.getInstance();
+                        todayCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                        todayCal.set(java.util.Calendar.MINUTE, 0);
+                        todayCal.set(java.util.Calendar.SECOND, 0);
+                        todayCal.set(java.util.Calendar.MILLISECOND, 0);
+                        long startOfDay = todayCal.getTimeInMillis();
+
+                        java.util.Calendar weekCal = java.util.Calendar.getInstance();
+                        weekCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                        weekCal.set(java.util.Calendar.MINUTE, 0);
+                        weekCal.set(java.util.Calendar.SECOND, 0);
+                        weekCal.set(java.util.Calendar.MILLISECOND, 0);
+                        weekCal.add(java.util.Calendar.DAY_OF_YEAR, -7);
+                        long startOfWeek = weekCal.getTimeInMillis();
+
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                            Long deliveryFee = doc.getLong("deliveryFee");
+                            long fee = deliveryFee != null ? deliveryFee : 100L;
+                            
+                            Long completedAt = doc.getLong("completedAt");
+                            if (completedAt == null) {
+                                completedAt = doc.getLong("createdAt");
+                            }
+                            if (completedAt != null) {
+                                if (completedAt >= startOfDay) {
+                                    todayEarned += fee;
+                                }
+                                if (completedAt >= startOfWeek) {
+                                    weekEarned += fee;
+                                }
+                            }
+                        }
+
+                        if (tvProfileTodayEarnings != null) tvProfileTodayEarnings.setText("Rs. " + todayEarned);
+                        if (tvProfileWeekEarnings != null) tvProfileWeekEarnings.setText("Rs. " + weekEarned);
+                    });
         }
     }
 
