@@ -4,13 +4,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="@color/pg_bg">
 
     <View
         android:id="@+id/topBackground"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/pg_primary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -28,10 +28,10 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Unassigned Orders"
+        android:text="Orders"
         android:textColor="@color/white"
         android:textSize="20sp"
-        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         android:layout_marginStart="16dp"
         app:layout_constraintStart_toEndOf="@id/ivBack"
         app:layout_constraintTop_toTopOf="@id/ivBack"
@@ -119,11 +119,11 @@
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@color/pg_card"
+        android:elevation="8dp"
         android:paddingVertical="8dp"
         app:itemIconTint="@color/nav_icon_color"
         app:itemTextColor="@color/nav_icon_color"
-        app:itemBackground="@drawable/nav_item_bg"
         app:itemRippleColor="@android:color/transparent"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/admin_bottom_nav"

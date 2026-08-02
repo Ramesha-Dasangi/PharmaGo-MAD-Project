@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/white"
+    app:cardBackgroundColor="@color/pg_card"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp">
 
@@ -29,7 +29,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/colorAccent" />
+                app:tint="@color/pg_primary" />
 
             <TextView
                 android:id="@+id/tvUserName"
@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="16dp"
-                android:textColor="@color/black"
+                android:textColor="@color/pg_text"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/tvUserStatus"
@@ -49,7 +49,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:textColor="@color/colorTextSecondary"
+                android:textColor="@color/pg_sub"
                 android:textSize="12sp"
                 app:layout_constraintStart_toEndOf="@id/ivUserIcon"
                 app:layout_constraintTop_toBottomOf="@id/tvUserName" />
@@ -61,7 +61,7 @@
                 android:background="@drawable/bg_badge_green"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:textColor="@color/colorAccent"
+                android:textColor="@color/pg_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -95,10 +95,10 @@
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:text="Edit"
-                android:textColor="@color/colorAccent"
+                android:textColor="@color/pg_primary"
                 android:textSize="13sp"
                 app:backgroundTint="@color/white"
-                app:strokeColor="@color/colorAccent"
+                app:strokeColor="@color/pg_primary"
                 app:strokeWidth="1dp"
                 app:cornerRadius="8dp" />
 
