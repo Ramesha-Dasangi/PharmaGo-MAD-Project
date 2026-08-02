@@ -20,8 +20,9 @@ import java.util.Map;
 
 public class ComplaintPharmacyActivity extends AppCompatActivity {
 
-    private String selectedPharmacy = "MediCare Pharmacy";
+    private String selectedPharmacy = "Pharmacy";
     private String selectedChip     = "Wrong medicine";
+    private String orderId = "";
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -37,20 +38,22 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Pharmacy selection options
-        LinearLayout optMediCare   = findViewById(R.id.optMediCare);
-        LinearLayout optCityPharma = findViewById(R.id.optCityPharma);
+        orderId = getIntent().getStringExtra("orderId");
+        if (orderId == null) orderId = "";
 
-        findViewById(R.id.optMediCare).setOnClickListener(v -> {
-            selectedPharmacy = "MediCare Pharmacy";
-            optMediCare.setBackgroundResource(R.drawable.bg_selected_option);
-            optCityPharma.setBackgroundResource(R.drawable.bg_unselected_option);
-        });
-        findViewById(R.id.optCityPharma).setOnClickListener(v -> {
-            selectedPharmacy = "City Pharma";
-            optCityPharma.setBackgroundResource(R.drawable.bg_selected_option);
-            optMediCare.setBackgroundResource(R.drawable.bg_unselected_option);
-        });
+        if (!orderId.isEmpty()) {
+            db.collection("orders").document(orderId).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            String pName = doc.getString("pharmacyName");
+                            if (pName != null && !pName.isEmpty()) {
+                                selectedPharmacy = pName;
+                                TextView tvPharmacyName = findViewById(R.id.tvPharmacyName);
+                                if (tvPharmacyName != null) tvPharmacyName.setText(selectedPharmacy);
+                            }
+                        }
+                    });
+        }
 
         // Issue chips
         int[] chipIds   = { R.id.chipWrongMedicine, R.id.chipFake, R.id.chipIncorrectPrice,
@@ -101,6 +104,7 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
         Map<String, Object> complaint = new HashMap<>();
         complaint.put("complaintId", complaintId);
         complaint.put("customerId", uid);
+        complaint.put("orderId", orderId);
         complaint.put("type", "pharmacy");
         complaint.put("targetName", selectedPharmacy);
         complaint.put("category", selectedChip);

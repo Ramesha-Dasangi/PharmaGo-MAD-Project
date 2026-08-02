@@ -60,7 +60,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         boolean isBlocked = "blocked".equals(status);
         holder.btnBlockUnblock.setText(isBlocked ? "Unblock" : "Block");
         int blockColor = isBlocked
-                ? ctx.getResources().getColor(R.color.colorAccent, null)
+                ? ctx.getResources().getColor(R.color.pg_primary, null)
                 : ctx.getResources().getColor(R.color.colorRed, null);
         holder.btnBlockUnblock.setBackgroundTintList(android.content.res.ColorStateList.valueOf(blockColor));
 
@@ -156,11 +156,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                 break;
             case "approved":
             case "active":
-                textColor = ctx.getResources().getColor(R.color.colorAccent, null);
+                textColor = ctx.getResources().getColor(R.color.pg_primary, null);
                 bgRes = R.drawable.bg_badge_green;
                 break;
             default:
-                textColor = ctx.getResources().getColor(R.color.colorTextSecondary, null);
+                textColor = ctx.getResources().getColor(R.color.pg_sub, null);
                 bgRes = R.drawable.bg_badge_green;
         }
         tv.setTextColor(textColor);

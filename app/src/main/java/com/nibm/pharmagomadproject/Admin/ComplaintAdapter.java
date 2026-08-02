@@ -49,6 +49,13 @@ public class ComplaintAdapter extends RecyclerView.Adapter<ComplaintAdapter.Comp
         holder.tvComplaintType.setText(complaint.getType() != null ? complaint.getType().toUpperCase() : "GENERAL");
         holder.tvReason.setText(complaint.getCategory() != null ? complaint.getCategory() : "No category");
         
+        if (complaint.getOrderId() != null && !complaint.getOrderId().isEmpty()) {
+            holder.tvOrderId.setText("Order #" + complaint.getOrderId().substring(0, Math.min(8, complaint.getOrderId().length())).toUpperCase());
+            holder.tvOrderId.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvOrderId.setVisibility(View.GONE);
+        }
+        
         // Hide description in the list item so it's only shown on View
         holder.tvDescription.setVisibility(View.GONE);
 
@@ -86,7 +93,7 @@ public class ComplaintAdapter extends RecyclerView.Adapter<ComplaintAdapter.Comp
     }
 
     public static class ComplaintViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTargetName, tvComplaintType, tvReason, tvDescription, tvComplaintStatus;
+        TextView tvTargetName, tvComplaintType, tvReason, tvDescription, tvComplaintStatus, tvOrderId;
         MaterialButton btnResolve;
 
         public ComplaintViewHolder(@NonNull View itemView) {
@@ -96,6 +103,7 @@ public class ComplaintAdapter extends RecyclerView.Adapter<ComplaintAdapter.Comp
             tvReason = itemView.findViewById(R.id.tvReason);
             tvDescription = itemView.findViewById(R.id.tvDescription);
             tvComplaintStatus = itemView.findViewById(R.id.tvComplaintStatus);
+            tvOrderId = itemView.findViewById(R.id.tvOrderId);
             btnResolve = itemView.findViewById(R.id.btnResolve);
         }
     }

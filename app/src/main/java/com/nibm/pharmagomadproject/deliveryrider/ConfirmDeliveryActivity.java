@@ -14,6 +14,7 @@ import com.nibm.pharmagomadproject.R;
 public class ConfirmDeliveryActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_CAMERA_PERMISSION = 100;
     private ImageView ivPhotoResult;
 
     @Override
@@ -40,9 +41,12 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
             boxPhoto.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent takePictureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                    if (androidx.core.content.ContextCompat.checkSelfPermission(ConfirmDeliveryActivity.this, android.Manifest.permission.CAMERA)
+                            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        androidx.core.app.ActivityCompat.requestPermissions(ConfirmDeliveryActivity.this,
+                                new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+                    } else {
+                        launchCamera();
                     }
                 }
             });
@@ -97,18 +101,43 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
         }
     }
 
+    private void launchCamera() {
+        Intent takePictureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        } catch (android.content.ActivityNotFoundException e) {
+            android.widget.Toast.makeText(this, "No camera app found", android.widget.Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @androidx.annotation.NonNull String[] permissions, @androidx.annotation.NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                launchCamera();
+            } else {
+                android.widget.Toast.makeText(this, "Camera permission is required to take photo", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            if (extras != null) {
-                android.graphics.Bitmap imageBitmap = (android.graphics.Bitmap) extras.get("data");
-                if (ivPhotoResult != null) {
-                    ivPhotoResult.setImageBitmap(imageBitmap);
-                    ivPhotoResult.setVisibility(View.VISIBLE);
-                    findViewById(R.id.iconCamera).setVisibility(View.GONE);
-                    findViewById(R.id.tvTakePhoto).setVisibility(View.GONE);
+            if (data != null) {
+                Bundle extras = data.getExtras();
+                if (extras != null) {
+                    android.graphics.Bitmap imageBitmap = (android.graphics.Bitmap) extras.get("data");
+                    if (ivPhotoResult != null && imageBitmap != null) {
+                        ivPhotoResult.setImageBitmap(imageBitmap);
+                        ivPhotoResult.setVisibility(View.VISIBLE);
+                        View iconCamera = findViewById(R.id.iconCamera);
+                        View tvTakePhoto = findViewById(R.id.tvTakePhoto);
+                        if (iconCamera != null) iconCamera.setVisibility(View.GONE);
+                        if (tvTakePhoto != null) tvTakePhoto.setVisibility(View.GONE);
+                    }
                 }
             }
         }
