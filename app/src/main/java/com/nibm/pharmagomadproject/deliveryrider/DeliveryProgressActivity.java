@@ -223,25 +223,32 @@ public class DeliveryProgressActivity extends AppCompatActivity {
                     setupButton();
                 }
 
-                List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
-                if (items != null && !items.isEmpty()) {
-                    Map<String, Object> item1 = items.get(0);
-                    String pId1 = (String) item1.get("pharmacyId");
-                    if (pId1 != null) {
-                        db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
-                            if (pDoc.exists() && pDoc.getString("name") != null) {
-                                String pName = pDoc.getString("name");
-                                if (tvStep3Title != null) tvStep3Title.setText("Heading to " + pName);
-                                
-                                // Update timeline colors after setting text
-                                updateTimelineUI(status);
-                            }
-                        });
+                // Check for multiple pharmacies
+                List<String> pIds = (List<String>) doc.get("pharmacyIds");
+                if (pIds != null && pIds.size() > 1) {
+                    if (tvStep3Title != null) tvStep3Title.setText("Heading to Pharmacies (" + pIds.size() + ")");
+                    updateTimelineUI(status);
+                } else {
+                    List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
+                    if (items != null && !items.isEmpty()) {
+                        Map<String, Object> item1 = items.get(0);
+                        String pId1 = (String) item1.get("pharmacyId");
+                        if (pId1 != null) {
+                            db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
+                                if (pDoc.exists() && pDoc.getString("name") != null) {
+                                    String pName = pDoc.getString("name");
+                                    if (tvStep3Title != null) tvStep3Title.setText("Heading to " + pName);
+                                    
+                                    // Update timeline colors after setting text
+                                    updateTimelineUI(status);
+                                }
+                            });
+                        } else {
+                            updateTimelineUI(status);
+                        }
                     } else {
                         updateTimelineUI(status);
                     }
-                } else {
-                    updateTimelineUI(status);
                 }
             } else {
                 Toast.makeText(this, "Order not found", Toast.LENGTH_SHORT).show();
