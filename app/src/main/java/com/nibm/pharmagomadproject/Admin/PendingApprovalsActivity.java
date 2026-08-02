@@ -220,4 +220,13 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             rvRiders.setVisibility(riders.isEmpty() ? View.GONE : View.VISIBLE);
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_approvals);
+        }
+    }
 }

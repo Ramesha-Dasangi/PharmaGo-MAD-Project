@@ -200,4 +200,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (listenerOrders != null) listenerOrders.remove();
         if (listenerComplaints != null) listenerComplaints.remove();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_home);
+        }
+    }
 }

@@ -47,6 +47,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
     // ──────────────── Firebase ────────────────
     private FirebaseFirestore db;
     private String currentOrderId;
+    private String customerId;
+    private String currentStatus = "";
     private boolean isPrescriptionOrder = false;
 
     // ──────────────── Camera / Gallery ────────────────
@@ -198,9 +200,9 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         btnApprove.setEnabled(true);
-                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(OrderDetailsActivity.this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
-        }
+        });
     }
 
     // ═══════════════════════════════════════════════════
@@ -443,6 +445,42 @@ public class OrderDetailsActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  UI Helpers
+    // ═══════════════════════════════════════════════════
+    private void refreshActionButtons(String status) {
+        if (status == null) return;
+        switch (status.toLowerCase()) {
+            case "pending":
+                if (btnApprove != null) btnApprove.setVisibility(android.view.View.VISIBLE);
+                if (btnReject != null) {
+                    btnReject.setVisibility(android.view.View.VISIBLE);
+                    btnReject.setText("Reject");
+                }
+                break;
+            case "approved_pending_payment":
+            case "processing":
+            case "ready_for_pickup":
+            case "out_for_delivery":
+                if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
+                if (btnReject != null) {
+                    btnReject.setVisibility(android.view.View.VISIBLE);
+                    btnReject.setText("Cancel Order");
+                }
+                break;
+            default:
+                if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
+                if (btnReject != null) btnReject.setVisibility(android.view.View.GONE);
+                break;
+        }
+    }
+
+    private void updateStatusBadge(String status) {
+        if (txtStatus != null && status != null) {
+            txtStatus.setText(status.toUpperCase());
         }
     }
 }
