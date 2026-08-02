@@ -59,12 +59,26 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         // Time ago
         holder.tvOrderTime.setText(timeAgo(order.getCreatedAt()));
 
-        // Assign button
+        // Assign button and Rider Name
+        boolean isAssigned = order.getRiderId() != null && !order.getRiderId().isEmpty();
+        
+        if (isAssigned && order.getRiderName() != null && !order.getRiderName().isEmpty()) {
+            holder.tvRiderAssigned.setVisibility(View.VISIBLE);
+            holder.tvRiderAssigned.setText("Assigned to: " + order.getRiderName());
+        } else {
+            holder.tvRiderAssigned.setVisibility(View.GONE);
+        }
+
+        holder.btnAssignRider.setText(isAssigned ? "Reassign Rider" : "Assign Rider");
+        
         holder.btnAssignRider.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), AssignRiderActivity.class);
             intent.putExtra("ORDER_ID", order.getId());
             intent.putExtra("ORDER_DISPLAY_ID", displayId);
             intent.putExtra("ORDER_DETAILS", itemCount + " item(s)  •  " + (addr != null ? addr : ""));
+            if (isAssigned) {
+                intent.putExtra("OLD_RIDER_ID", order.getRiderId());
+            }
             v.getContext().startActivity(intent);
         });
     }
@@ -90,7 +104,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     }
 
     static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderId, tvOrderStatus, tvOrderItems, tvOrderAddress, tvOrderTotal, tvOrderTime;
+        TextView tvOrderId, tvOrderStatus, tvOrderItems, tvOrderAddress, tvOrderTotal, tvOrderTime, tvRiderAssigned;
         MaterialButton btnAssignRider;
 
         OrderViewHolder(@NonNull View itemView) {
@@ -101,6 +115,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvOrderAddress = itemView.findViewById(R.id.tvOrderAddress);
             tvOrderTotal = itemView.findViewById(R.id.tvOrderTotal);
             tvOrderTime = itemView.findViewById(R.id.tvOrderTime);
+            tvRiderAssigned = itemView.findViewById(R.id.tvRiderAssigned);
             btnAssignRider = itemView.findViewById(R.id.btnAssignRider);
         }
     }

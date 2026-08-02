@@ -48,12 +48,46 @@
         app:layout_constraintTop_toTopOf="@id/ivBack"
         app:layout_constraintBottom_toBottomOf="@id/ivBack" />
 
+    <!-- TABS -->
+    <LinearLayout
+        android:id="@+id/llTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:background="@drawable/rounded_edittext"
+        app:layout_constraintTop_toBottomOf="@id/topBackground">
+
+        <TextView
+            android:id="@+id/tabUnassigned"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Unassigned"
+            android:textColor="@color/white"
+            android:background="@drawable/tab_active_bg"
+            android:paddingVertical="12dp"
+            android:gravity="center"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabAssigned"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pending Pickup"
+            android:textColor="@color/colorTextSecondary"
+            android:paddingVertical="12dp"
+            android:gravity="center" />
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/progressOrders"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintTop_toBottomOf="@id/llTabs"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -66,7 +100,7 @@
         android:textColor="@color/colorTextSecondary"
         android:textSize="15sp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintTop_toBottomOf="@id/llTabs"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -78,7 +112,7 @@
         android:padding="16dp"
         android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintTop_toBottomOf="@id/llTabs"
         app:layout_constraintBottom_toTopOf="@id/bottomNav" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

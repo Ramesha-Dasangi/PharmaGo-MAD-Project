@@ -64,6 +64,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvOrderItems" />
 
+        <!-- Rider Assigned -->
+        <TextView
+            android:id="@+id/tvRiderAssigned"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorPrimary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvOrderAddress" />
+
         <!-- Total + time row -->
         <TextView
             android:id="@+id/tvOrderTotal"
@@ -74,7 +87,7 @@
             android:textStyle="bold"
             android:layout_marginTop="10dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvOrderAddress" />
+            app:layout_constraintTop_toBottomOf="@id/tvRiderAssigned" />
 
         <TextView
             android:id="@+id/tvOrderTime"
@@ -84,7 +97,7 @@
             android:textSize="11sp"
             android:layout_marginTop="10dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvOrderAddress" />
+            app:layout_constraintTop_toBottomOf="@id/tvRiderAssigned" />
 
         <!-- Assign button -->
         <com.google.android.material.button.MaterialButton
