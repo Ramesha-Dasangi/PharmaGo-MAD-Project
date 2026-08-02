@@ -77,7 +77,7 @@ public class UnassignedOrdersActivity extends AppCompatActivity {
                         for (DocumentSnapshot doc : snapshots.getDocuments()) {
                             String status = doc.getString("status");
                             // Only show orders that need a rider
-                            if (!"pending".equals(status) && !"ready".equals(status) && !"unassigned".equals(status)) {
+                            if (!"pending".equals(status) && !"ready".equals(status) && !"unassigned".equals(status) && !"processing".equals(status)) {
                                 continue;
                             }
                             // Skip if rider already assigned

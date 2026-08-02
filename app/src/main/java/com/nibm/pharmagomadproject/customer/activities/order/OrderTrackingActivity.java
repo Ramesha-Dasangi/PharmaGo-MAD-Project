@@ -163,17 +163,26 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 case "confirmed":
                 case "approved":
                 case "processing":
+                case "ready":
                     if (tvStatus != null) tvStatus.setText("Pharmacy is preparing your order");
                     if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed & Preparing");
-                    if (tvStep3Sub != null) tvStep3Sub.setText("Awaiting rider pickup...");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Awaiting rider assignment...");
+                    if (tvStep4Sub != null) tvStep4Sub.setText("Pending");
+                    if (tvStep5Sub != null) tvStep5Sub.setText("Pending");
+                    setStepsProgress(2);
+                    break;
+                case "assigned":
+                    if (tvStatus != null) tvStatus.setText("Rider assigned — preparing for pickup");
+                    if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed & Prepared");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Rider assigned, heading to pharmacy");
                     if (tvStep4Sub != null) tvStep4Sub.setText("Pending");
                     if (tvStep5Sub != null) tvStep5Sub.setText("Pending");
                     setStepsProgress(2);
                     break;
                 case "picked_up":
-                    if (tvStatus != null) tvStatus.setText("Rider picked up your order");
+                    if (tvStatus != null) tvStatus.setText("Rider accepted — picking up your order");
                     if (tvStep2Sub != null) tvStep2Sub.setText("Confirmed & Prepared");
-                    if (tvStep3Sub != null) tvStep3Sub.setText("Picked up by Rider");
+                    if (tvStep3Sub != null) tvStep3Sub.setText("Rider heading to pharmacy");
                     if (tvStep4Sub != null) tvStep4Sub.setText("In transit...");
                     if (tvStep5Sub != null) tvStep5Sub.setText("Pending");
                     setStepsProgress(3);

@@ -79,12 +79,30 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
 
         Button btnStartNavigation = findViewById(R.id.btnStartNavigation);
         if (btnStartNavigation != null) {
+            btnStartNavigation.setText("Confirm Assignment");
             btnStartNavigation.setOnClickListener(v -> {
-                Intent intent = new Intent(AssignmentDetailsActivity.this, PickupNavigationActivity.class);
                 if (orderId != null) {
-                    intent.putExtra("orderId", orderId);
+                    btnStartNavigation.setEnabled(false);
+                    btnStartNavigation.setText("Confirming...");
+                    // Update order status to picked_up (rider accepted the assignment)
+                    db.collection("orders").document(orderId)
+                            .update("status", "picked_up")
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Assignment confirmed!", Toast.LENGTH_SHORT).show();
+                                // Go back to dashboard — order will show in "In Progress"
+                                Intent intent = new Intent(AssignmentDetailsActivity.this, RiderDashboardActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                btnStartNavigation.setEnabled(true);
+                                btnStartNavigation.setText("Confirm Assignment");
+                                Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    Toast.makeText(this, "No order ID", Toast.LENGTH_SHORT).show();
                 }
-                startActivity(intent);
             });
         }
 

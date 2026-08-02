@@ -129,8 +129,8 @@ public class RiderDashboardActivity extends AppCompatActivity {
 
                 boolean isMyOrder = currentUid != null && currentUid.equals(riderId);
 
-                // Count active orders for this rider
-                if (isMyOrder && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("out_for_delivery") || status.equalsIgnoreCase("picked_up"))) {
+                // Count active orders for this rider (assigned + in-transit)
+                if (isMyOrder && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up") || status.equalsIgnoreCase("out_for_delivery"))) {
                     activeCount++;
                 }
 
@@ -139,8 +139,8 @@ public class RiderDashboardActivity extends AppCompatActivity {
                     deliveredCount++;
                 }
 
-                // Show a new assignment card (orders not yet assigned to any rider)
-                if (!hasNew && (status.equalsIgnoreCase("processing") || status.equalsIgnoreCase("ready"))) {
+                // Show a new assignment card (orders assigned to this rider but not yet picked up)
+                if (!hasNew && isMyOrder && status.equalsIgnoreCase("assigned")) {
                     if (cardNewAssignment != null) cardNewAssignment.setVisibility(View.VISIBLE);
                     if (tvNewAssignmentLabel != null) tvNewAssignmentLabel.setVisibility(View.VISIBLE);
                     if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
@@ -153,7 +153,7 @@ public class RiderDashboardActivity extends AppCompatActivity {
                     
                     currentNewOrderId = doc.getId();
                     hasNew = true;
-                } else if (!hasActive && isMyOrder && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("out_for_delivery") || status.equalsIgnoreCase("picked_up"))) {
+                } else if (!hasActive && isMyOrder && (status.equalsIgnoreCase("picked_up") || status.equalsIgnoreCase("out_for_delivery"))) {
                     if (cardInProgress != null) cardInProgress.setVisibility(View.VISIBLE);
                     if (tvInProgressLabel != null) tvInProgressLabel.setVisibility(View.VISIBLE);
                     if (tvActiveOrderId != null) tvActiveOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());

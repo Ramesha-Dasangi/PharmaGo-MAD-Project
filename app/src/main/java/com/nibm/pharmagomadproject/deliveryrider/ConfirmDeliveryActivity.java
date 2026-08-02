@@ -56,21 +56,31 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
                     btnConfirmDelivered.setEnabled(false);
                     btnConfirmDelivered.setText("Confirming...");
 
+                    String deliveryOrderId = getIntent().getStringExtra("orderId");
                     com.google.firebase.auth.FirebaseAuth mAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
                     String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
 
                     if (uid != null) {
                         com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
-                        java.util.Map<String, Object> updates = new java.util.HashMap<>();
-                        updates.put("activeOrderId", null);
-                        // Also, theoretically, the order status should be updated to 'delivered' here, 
-                        // but if that's handled elsewhere we just clear activeOrderId for the rider.
                         
                         com.google.firebase.firestore.WriteBatch batch = db.batch();
-                        batch.update(db.collection("riders").document(uid), updates);
-                        batch.update(db.collection("users").document(uid), updates);
+                        
+                        // Update order status to delivered
+                        if (deliveryOrderId != null && !deliveryOrderId.isEmpty()) {
+                            java.util.Map<String, Object> orderUpdates = new java.util.HashMap<>();
+                            orderUpdates.put("status", "delivered");
+                            orderUpdates.put("deliveredAt", System.currentTimeMillis());
+                            batch.update(db.collection("orders").document(deliveryOrderId), orderUpdates);
+                        }
+                        
+                        // Clear rider's activeOrderId
+                        java.util.Map<String, Object> riderUpdates = new java.util.HashMap<>();
+                        riderUpdates.put("activeOrderId", null);
+                        batch.update(db.collection("riders").document(uid), riderUpdates);
+                        batch.update(db.collection("users").document(uid), riderUpdates);
                         
                         batch.commit().addOnCompleteListener(task -> {
+                            android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "✅ Delivery confirmed!", android.widget.Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
