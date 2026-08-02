@@ -157,9 +157,15 @@ public class ComplaintsActivity extends AppCompatActivity {
     }
 
     private void showComplaintDetails(ComplaintModel complaint) {
+        String msg = "Target: " + complaint.getTargetName() + "\nType: " + complaint.getType();
+        if (complaint.getOrderId() != null && !complaint.getOrderId().isEmpty()) {
+            msg += "\nOrder ID: " + complaint.getOrderId();
+        }
+        msg += "\n\nDescription:\n" + complaint.getDescription();
+        
         new AlertDialog.Builder(this)
                 .setTitle(complaint.getCategory())
-                .setMessage("Target: " + complaint.getTargetName() + "\nType: " + complaint.getType() + "\n\nDescription:\n" + complaint.getDescription())
+                .setMessage(msg)
                 .setPositiveButton("Close", null)
                 .show();
     }
