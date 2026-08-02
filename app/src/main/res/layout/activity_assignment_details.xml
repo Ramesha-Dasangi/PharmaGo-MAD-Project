@@ -365,7 +365,7 @@
         android:id="@+id/btnStartNavigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Start navigation"
+        android:text="Confirm Assignment"
         android:textColor="@color/white"
         android:textAllCaps="false"
         android:textSize="16sp"

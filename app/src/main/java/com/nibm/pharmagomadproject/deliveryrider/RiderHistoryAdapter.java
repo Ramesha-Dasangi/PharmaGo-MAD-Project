@@ -79,6 +79,14 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
                     break;
             }
         }
+        
+        String earnings = order.get("earnings");
+        if (earnings != null) {
+            holder.tvEarnings.setVisibility(View.VISIBLE);
+            holder.tvEarnings.setText(earnings);
+        } else {
+            holder.tvEarnings.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -87,13 +95,14 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderId, tvBadge, tvCustomerName;
+        TextView tvOrderId, tvBadge, tvCustomerName, tvEarnings;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvOrderId = itemView.findViewById(R.id.tvOrderId);
             tvBadge = itemView.findViewById(R.id.tvBadge);
             tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
+            tvEarnings = itemView.findViewById(R.id.tvEarnings);
         }
     }
 }

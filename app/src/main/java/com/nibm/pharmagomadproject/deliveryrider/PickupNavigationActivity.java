@@ -5,10 +5,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 
 public class PickupNavigationActivity extends AppCompatActivity {
+
+    private FirebaseFirestore db;
+    private String orderId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,18 +25,38 @@ public class PickupNavigationActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
+        db = FirebaseFirestore.getInstance();
+        orderId = getIntent().getStringExtra("orderId");
+
         setupButtons();
     }
 
     private void setupButtons() {
         Button btnNavigate = findViewById(R.id.btnNavigateToPickup);
         if (btnNavigate != null) {
-            btnNavigate.setText("Open in Google Maps");
+            btnNavigate.setText("Picked up — Head to customer");
             btnNavigate.setOnClickListener(v -> {
-                Uri gmmIntentUri = Uri.parse("google.navigation:q=6.9290,79.8600");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                startActivity(mapIntent);
+                if (orderId != null) {
+                    btnNavigate.setEnabled(false);
+                    btnNavigate.setText("Updating...");
+                    // Update order status to out_for_delivery
+                    db.collection("orders").document(orderId)
+                            .update("status", "out_for_delivery")
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Heading to customer!", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(PickupNavigationActivity.this, DeliveryProgressActivity.class);
+                                intent.putExtra("orderId", orderId);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                btnNavigate.setEnabled(true);
+                                btnNavigate.setText("Picked up — Head to customer");
+                                Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    Toast.makeText(this, "No order ID", Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
