@@ -186,6 +186,9 @@
             android:name=".deliveryrider.DeliveryHistoryActivity"
             android:exported="false" />
         <activity
+            android:name=".deliveryrider.ReportIssueByRiderActivity"
+            android:exported="false" />
+        <activity
             android:name=".deliveryrider.RiderProfileActivity"
             android:exported="false" /> <!-- Admin -->
         <activity
