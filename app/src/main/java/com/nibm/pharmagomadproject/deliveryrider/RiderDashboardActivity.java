@@ -23,6 +23,8 @@ public class RiderDashboardActivity extends AppCompatActivity {
     private TextView tvNewOrderId, tvNewOrderDetails;
     private TextView tvActiveOrderId, tvActiveOrderDetails;
     private TextView tvRiderName;
+    private TextView tvNewAssignmentLabel, tvInProgressLabel;
+    private TextView tvActiveOrdersCount, tvDeliveredCount;
     private ConstraintLayout cardNewAssignment, cardInProgress;
     private Button btnAcceptAssignment;
 
@@ -48,6 +50,10 @@ public class RiderDashboardActivity extends AppCompatActivity {
         cardNewAssignment = findViewById(R.id.cardNewAssignment);
         cardInProgress = findViewById(R.id.cardInProgress);
         btnAcceptAssignment = findViewById(R.id.btnAcceptAssignment);
+        tvNewAssignmentLabel = findViewById(R.id.tvNewAssignmentLabel);
+        tvInProgressLabel = findViewById(R.id.tvInProgressLabel);
+        tvActiveOrdersCount = findViewById(R.id.tvActiveOrdersCount);
+        tvDeliveredCount = findViewById(R.id.tvDeliveredCount);
 
         if (mAuth.getCurrentUser() != null) {
             String uid = mAuth.getCurrentUser().getUid();
@@ -60,9 +66,11 @@ public class RiderDashboardActivity extends AppCompatActivity {
             });
         }
 
-        // Hide cards initially until we fetch data
+        // Hide cards and labels initially until we fetch data
         if (cardNewAssignment != null) cardNewAssignment.setVisibility(View.GONE);
         if (cardInProgress != null) cardInProgress.setVisibility(View.GONE);
+        if (tvNewAssignmentLabel != null) tvNewAssignmentLabel.setVisibility(View.GONE);
+        if (tvInProgressLabel != null) tvInProgressLabel.setVisibility(View.GONE);
 
         if (btnAcceptAssignment != null) {
             btnAcceptAssignment.setOnClickListener(v -> {
@@ -106,17 +114,35 @@ public class RiderDashboardActivity extends AppCompatActivity {
     }
 
     private void fetchOrders() {
+        String currentUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+
         db.collection("orders").get().addOnSuccessListener(queryDocumentSnapshots -> {
             boolean hasNew = false;
             boolean hasActive = false;
+            int activeCount = 0;
+            int deliveredCount = 0;
 
             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                 String status = doc.getString("status");
+                String riderId = doc.getString("riderId");
                 if (status == null) continue;
 
-                // Simple logic to show a new assignment or active assignment
+                boolean isMyOrder = currentUid != null && currentUid.equals(riderId);
+
+                // Count active orders for this rider
+                if (isMyOrder && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("out_for_delivery") || status.equalsIgnoreCase("picked_up"))) {
+                    activeCount++;
+                }
+
+                // Count delivered orders for this rider
+                if (isMyOrder && status.equalsIgnoreCase("delivered")) {
+                    deliveredCount++;
+                }
+
+                // Show a new assignment card (orders not yet assigned to any rider)
                 if (!hasNew && (status.equalsIgnoreCase("processing") || status.equalsIgnoreCase("ready"))) {
                     if (cardNewAssignment != null) cardNewAssignment.setVisibility(View.VISIBLE);
+                    if (tvNewAssignmentLabel != null) tvNewAssignmentLabel.setVisibility(View.VISIBLE);
                     if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
                     
                     if (tvNewOrderDetails != null) {
@@ -127,8 +153,9 @@ public class RiderDashboardActivity extends AppCompatActivity {
                     
                     currentNewOrderId = doc.getId();
                     hasNew = true;
-                } else if (!hasActive && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("out_for_delivery") || status.equalsIgnoreCase("picked_up"))) {
+                } else if (!hasActive && isMyOrder && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("out_for_delivery") || status.equalsIgnoreCase("picked_up"))) {
                     if (cardInProgress != null) cardInProgress.setVisibility(View.VISIBLE);
+                    if (tvInProgressLabel != null) tvInProgressLabel.setVisibility(View.VISIBLE);
                     if (tvActiveOrderId != null) tvActiveOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
                     
                     if (tvActiveOrderDetails != null) {
@@ -141,20 +168,10 @@ public class RiderDashboardActivity extends AppCompatActivity {
                 }
             }
 
-            // Fallback for visual demo if no orders match exactly but we want to show something from DB
-            if (!hasNew && !queryDocumentSnapshots.isEmpty() && cardNewAssignment != null) {
-                DocumentSnapshot firstDoc = queryDocumentSnapshots.getDocuments().get(0);
-                cardNewAssignment.setVisibility(View.VISIBLE);
-                if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + firstDoc.getId().substring(0, Math.min(6, firstDoc.getId().length())).toUpperCase());
-                
-                if (tvNewOrderDetails != null) {
-                    java.util.List<java.util.Map<String, Object>> items = (java.util.List<java.util.Map<String, Object>>) firstDoc.get("items");
-                    int stops = (items != null) ? items.size() : 1;
-                    tvNewOrderDetails.setText(stops + " items · 1 customer drop-off");
-                }
-                
-                currentNewOrderId = firstDoc.getId();
-            }
+            // Update summary cards with real counts
+            if (tvActiveOrdersCount != null) tvActiveOrdersCount.setText(String.valueOf(activeCount));
+            if (tvDeliveredCount != null) tvDeliveredCount.setText(String.valueOf(deliveredCount));
+
 
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Failed to load orders: " + e.getMessage(), Toast.LENGTH_SHORT).show();
