@@ -173,17 +173,8 @@ public class SupabaseStorageHelper {
 
                 Log.d(TAG, "Response code: " + responseCode);
 
-                // FIX: Log error response if any
-                if(responseCode != 200 && responseCode != 201) {
-                    String errorMsg = readErrorResponse(conn);
-                    Log.e(TAG, "Upload error response: " + errorMsg);
-                }
-
-
                 if(responseCode == 200 ||
                         responseCode == 201){
-
-
 
                     String publicUrl =
                             SUPABASE_URL
@@ -191,8 +182,6 @@ public class SupabaseStorageHelper {
                                     + bucket
                                     + "/"
                                     + encodedPath;
-
-
 
                     String finalUrl =
                             publicUrl;
@@ -204,8 +193,6 @@ public class SupabaseStorageHelper {
                     ).post(() ->
                             callback.onSuccess(finalUrl)
                     );
-
-
 
                 } else {
                     String errorBody = readErrorResponse(conn);

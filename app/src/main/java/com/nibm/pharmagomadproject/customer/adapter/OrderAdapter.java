@@ -53,7 +53,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
         // Show/hide action buttons based on status
         boolean isActive = "pending".equals(status) || "processing".equals(status)
-                || "picked_up".equals(status) || "out_for_delivery".equals(status);
+                || "assigned".equals(status) || "picked_up".equals(status) || "out_for_delivery".equals(status);
         boolean isPendingPay = "approved_pending_payment".equals(status);
         boolean isAwaitingApproval = "awaiting_approval".equals(status);
         boolean isDelivered = "delivered".equals(status);
