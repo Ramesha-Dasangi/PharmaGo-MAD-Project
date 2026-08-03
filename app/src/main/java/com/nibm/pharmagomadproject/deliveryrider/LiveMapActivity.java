@@ -15,6 +15,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 
+import org.osmdroid.config.Configuration;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
+import android.preference.PreferenceManager;
+
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +32,7 @@ public class LiveMapActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Configuration.getInstance().load(getApplicationContext(), PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
         setContentView(R.layout.activity_live_map);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
@@ -34,8 +41,29 @@ public class LiveMapActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
+        MapView map = findViewById(R.id.mapView);
+        if (map != null) {
+            map.setMultiTouchControls(true);
+            map.getController().setZoom(15.0);
+            map.getController().setCenter(new GeoPoint(6.9271, 79.8612));
+        }
+
         setupButtons();
         loadActiveOrderDetails();
+    }
+
+    private void setupMapLocation(Double lat, Double lng, String title) {
+        MapView map = findViewById(R.id.mapView);
+        if (map != null && lat != null && lng != null) {
+            GeoPoint point = new GeoPoint(lat, lng);
+            map.getController().setCenter(point);
+            Marker marker = new Marker(map);
+            marker.setPosition(point);
+            marker.setTitle(title);
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            map.getOverlays().add(marker);
+            map.invalidate();
+        }
     }
 
     private void loadActiveOrderDetails() {
@@ -116,116 +144,111 @@ public class LiveMapActivity extends AppCompatActivity {
                             Button btnRecenter = findViewById(R.id.btnRecenter);
                             if (btnRecenter != null) {
                                 btnRecenter.setText("Open in Google Maps");
-                                btnRecenter.setOnClickListener(v -> {
-                                    if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up")) {
-                                        List<String> pIdsList = (List<String>) doc.get("pharmacyIds");
-                                        if (pIdsList != null && pIdsList.size() > 1) {
-                                            btnRecenter.setText("Loading locations...");
-                                            btnRecenter.setEnabled(false);
-                                            db.collection("pharmacies").whereIn("ownerId", pIdsList).get()
-                                                    .addOnSuccessListener(pSnaps -> {
-                                                        btnRecenter.setText("Open in Google Maps");
-                                                        btnRecenter.setEnabled(true);
-                                                        if (!pSnaps.isEmpty()) {
-                                                            StringBuilder waypoints = new StringBuilder();
-                                                            String destination = "";
-                                                            int count = 0;
-                                                            for (DocumentSnapshot pDoc : pSnaps.getDocuments()) {
-                                                                Double lat = pDoc.getDouble("latitude");
-                                                                Double lng = pDoc.getDouble("longitude");
-                                                                if (lat != null && lng != null) {
-                                                                    if (count == pSnaps.size() - 1) {
-                                                                        destination = lat + "," + lng;
-                                                                    } else {
-                                                                        if (waypoints.length() > 0) waypoints.append("|");
-                                                                        waypoints.append(lat).append(",").append(lng);
-                                                                    }
-                                                                    count++;
+                                if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up")) {
+                                    List<String> pIdsList = (List<String>) doc.get("pharmacyIds");
+                                    if (pIdsList != null && pIdsList.size() > 1) {
+                                        db.collection("pharmacies").whereIn("ownerId", pIdsList).get()
+                                                .addOnSuccessListener(pSnaps -> {
+                                                    if (!pSnaps.isEmpty()) {
+                                                        StringBuilder waypoints = new StringBuilder();
+                                                        String destination = "";
+                                                        int count = 0;
+                                                        for (DocumentSnapshot pDoc : pSnaps.getDocuments()) {
+                                                            Double lat = pDoc.getDouble("latitude");
+                                                            Double lng = pDoc.getDouble("longitude");
+                                                            String pName = pDoc.getString("name");
+                                                            if (lat != null && lng != null) {
+                                                                setupMapLocation(lat, lng, pName != null ? pName : "Pharmacy");
+                                                                if (count == pSnaps.size() - 1) {
+                                                                    destination = lat + "," + lng;
+                                                                } else {
+                                                                    if (waypoints.length() > 0) waypoints.append("|");
+                                                                    waypoints.append(lat).append(",").append(lng);
                                                                 }
+                                                                count++;
                                                             }
-                                                            if (!destination.isEmpty()) {
-                                                                String url = "https://www.google.com/maps/dir/?api=1&destination=" + Uri.encode(destination);
-                                                                if (waypoints.length() > 0) {
-                                                                    url += "&waypoints=" + Uri.encode(waypoints.toString());
+                                                        }
+                                                        final String fDestination = destination;
+                                                        final String fWaypoints = waypoints.toString();
+                                                        btnRecenter.setOnClickListener(v -> {
+                                                            if (!fDestination.isEmpty()) {
+                                                                String url = "https://www.google.com/maps/dir/?api=1&destination=" + Uri.encode(fDestination);
+                                                                if (fWaypoints.length() > 0) {
+                                                                    url += "&waypoints=" + Uri.encode(fWaypoints);
                                                                 }
                                                                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                                                                 mapIntent.setPackage("com.google.android.apps.maps");
                                                                 startActivity(mapIntent);
-                                                                return;
                                                             }
-                                                        }
-                                                        Toast.makeText(LiveMapActivity.this, "Pharmacy locations not found", Toast.LENGTH_SHORT).show();
-                                                    });
-                                        } else {
-                                            List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
-                                            if (items != null && !items.isEmpty()) {
-                                                String pId = (String) items.get(0).get("pharmacyId");
-                                                if (pId != null) {
-                                                    btnRecenter.setText("Loading location...");
-                                                    btnRecenter.setEnabled(false);
-                                                    db.collection("pharmacies").whereEqualTo("ownerId", pId).limit(1).get()
-                                                            .addOnSuccessListener(pSnaps -> {
-                                                                btnRecenter.setText("Open in Google Maps");
-                                                                btnRecenter.setEnabled(true);
-                                                                if (!pSnaps.isEmpty()) {
-                                                                    DocumentSnapshot pDoc = pSnaps.getDocuments().get(0);
-                                                                    Double lat = pDoc.getDouble("latitude");
-                                                                    Double lng = pDoc.getDouble("longitude");
-                                                                    if (lat != null && lng != null) {
+                                                        });
+                                                    }
+                                                });
+                                    } else {
+                                        List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
+                                        if (items != null && !items.isEmpty()) {
+                                            String pId = (String) items.get(0).get("pharmacyId");
+                                            if (pId != null) {
+                                                db.collection("pharmacies").whereEqualTo("ownerId", pId).limit(1).get()
+                                                        .addOnSuccessListener(pSnaps -> {
+                                                            if (!pSnaps.isEmpty()) {
+                                                                DocumentSnapshot pDoc = pSnaps.getDocuments().get(0);
+                                                                Double lat = pDoc.getDouble("latitude");
+                                                                Double lng = pDoc.getDouble("longitude");
+                                                                String pName = pDoc.getString("name");
+                                                                if (lat != null && lng != null) {
+                                                                    setupMapLocation(lat, lng, pName != null ? pName : "Pharmacy");
+                                                                    btnRecenter.setOnClickListener(v -> {
                                                                         Uri gmmIntentUri = Uri.parse("google.navigation:q=" + lat + "," + lng);
                                                                         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                                                                         mapIntent.setPackage("com.google.android.apps.maps");
                                                                         startActivity(mapIntent);
-                                                                        return;
-                                                                    }
+                                                                    });
                                                                 }
-                                                                Toast.makeText(LiveMapActivity.this, "Pharmacy location not found", Toast.LENGTH_SHORT).show();
-                                                            });
-                                                }
+                                                            }
+                                                        });
                                             }
                                         }
-                                    } else if (status.equalsIgnoreCase("out_for_delivery")) {
-                                        String customerId = doc.getString("customerId");
-                                        if (customerId != null) {
-                                            btnRecenter.setText("Loading location...");
-                                            btnRecenter.setEnabled(false);
-                                            db.collection("users").document(customerId).get()
-                                                    .addOnSuccessListener(cDoc -> {
-                                                        btnRecenter.setText("Open in Google Maps");
-                                                        btnRecenter.setEnabled(true);
-                                                        if (cDoc.exists()) {
-                                                            Double lat = cDoc.getDouble("latitude");
-                                                            Double lng = cDoc.getDouble("longitude");
-                                                            if (lat != null && lng != null) {
+                                    }
+                                } else if (status.equalsIgnoreCase("out_for_delivery")) {
+                                    String customerId = doc.getString("customerId");
+                                    if (customerId != null) {
+                                        db.collection("users").document(customerId).get()
+                                                .addOnSuccessListener(cDoc -> {
+                                                    if (cDoc.exists()) {
+                                                        Double lat = cDoc.getDouble("latitude");
+                                                        Double lng = cDoc.getDouble("longitude");
+                                                        if (lat != null && lng != null) {
+                                                            setupMapLocation(lat, lng, "Customer");
+                                                            btnRecenter.setOnClickListener(v -> {
                                                                 Uri gmmIntentUri = Uri.parse("google.navigation:q=" + lat + "," + lng);
                                                                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                                                                 mapIntent.setPackage("com.google.android.apps.maps");
                                                                 startActivity(mapIntent);
-                                                                return;
-                                                            }
+                                                            });
+                                                            return;
                                                         }
-                                                        // Fallback to text address
+                                                    }
+                                                    // Fallback
+                                                    btnRecenter.setOnClickListener(v -> {
                                                         if (addr != null && !addr.isEmpty()) {
                                                             Uri gmmIntentUri = Uri.parse("google.navigation:q=" + Uri.encode(addr));
                                                             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                                                             mapIntent.setPackage("com.google.android.apps.maps");
                                                             startActivity(mapIntent);
-                                                        } else {
-                                                            Toast.makeText(LiveMapActivity.this, "Customer location not found", Toast.LENGTH_SHORT).show();
                                                         }
                                                     });
-                                        } else {
+                                                });
+                                    } else {
+                                        btnRecenter.setOnClickListener(v -> {
                                             if (addr != null && !addr.isEmpty()) {
                                                 Uri gmmIntentUri = Uri.parse("google.navigation:q=" + Uri.encode(addr));
                                                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                                                 mapIntent.setPackage("com.google.android.apps.maps");
                                                 startActivity(mapIntent);
-                                            } else {
-                                                Toast.makeText(LiveMapActivity.this, "Customer address not found", Toast.LENGTH_SHORT).show();
                                             }
-                                        }
+                                        });
                                     }
-                                });
+                                }
                             }
 
                             break; // show only the first active order

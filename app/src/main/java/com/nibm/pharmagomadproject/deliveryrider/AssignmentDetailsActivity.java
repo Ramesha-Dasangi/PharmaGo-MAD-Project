@@ -177,52 +177,23 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
                     stopsContainer.removeAllViews();
                     int stopNum = 1;
                     
-                    for (Map.Entry<String, StringBuilder> entry : pharmacyItemsMap.entrySet()) {
-                        String pId = entry.getKey();
-                        String itemsStr = entry.getValue().toString();
-                        
-                        View stopView = LayoutInflater.from(this).inflate(R.layout.item_assignment_stop, stopsContainer, false);
-                        
-                        TextView tvStopNum = stopView.findViewById(R.id.tvStopNum);
-                        TextView tvStopName = stopView.findViewById(R.id.tvStopName);
-                        TextView tvStopItems = stopView.findViewById(R.id.tvStopItems);
-                        TextView tvStopAddress = stopView.findViewById(R.id.tvStopAddress);
-                        TextView tvStopPhone = stopView.findViewById(R.id.tvStopPhone);
-                        ImageView btnExpandStop = stopView.findViewById(R.id.btnExpandStop);
-                        LinearLayout layoutStopDetails = stopView.findViewById(R.id.layoutStopDetails);
-                        
-                        tvStopNum.setText(String.valueOf(stopNum));
-                        tvStopItems.setText(itemsStr);
-                        
-                        btnExpandStop.setOnClickListener(v -> {
-                            if (layoutStopDetails.getVisibility() == View.VISIBLE) {
-                                layoutStopDetails.setVisibility(View.GONE);
-                                btnExpandStop.setImageResource(android.R.drawable.ic_media_play);
-                            } else {
-                                layoutStopDetails.setVisibility(View.VISIBLE);
-                                btnExpandStop.setImageResource(android.R.drawable.ic_media_pause);
+                    String pId1 = (String) item1.get("pharmacyId");
+                    if (pId1 != null && !pId1.trim().isEmpty()) {
+                        db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
+                            if (pDoc.exists()) {
+                                if (pDoc.getString("name") != null) tvStop1Name.setText(pDoc.getString("name"));
+                                if (tvStop1Address != null) tvStop1Address.setText("Address: " + (pDoc.getString("address") != null ? pDoc.getString("address") : "N/A"));
+                                if (tvStop1Phone != null) tvStop1Phone.setText("Phone: " + (pDoc.getString("phone") != null ? pDoc.getString("phone") : "N/A"));
                             }
                         });
                         
-                        if (!"unknown".equals(pId)) {
-                            db.collection("pharmacies").whereEqualTo("ownerId", pId).limit(1).get().addOnSuccessListener(snapshots -> {
-                                if (snapshots != null && !snapshots.isEmpty()) {
-                                    com.google.firebase.firestore.DocumentSnapshot pDoc = snapshots.getDocuments().get(0);
-                                    if (pDoc.getString("name") != null) tvStopName.setText(pDoc.getString("name"));
-                                    String pAddress = pDoc.getString("address");
-                                    tvStopAddress.setText("Address: " + (pAddress != null && !pAddress.isEmpty() ? pAddress : "N/A"));
-                                    String pPhone = pDoc.getString("phone");
-                                    tvStopPhone.setText("Phone: " + (pPhone != null && !pPhone.isEmpty() ? pPhone : "N/A"));
-                                } else {
-                                    db.collection("users").document(pId).get().addOnSuccessListener(pDoc -> {
-                                        if (pDoc.exists()) {
-                                            if (pDoc.getString("name") != null) tvStopName.setText(pDoc.getString("name"));
-                                            String pAddress = pDoc.getString("address");
-                                            tvStopAddress.setText("Address: " + (pAddress != null && !pAddress.isEmpty() ? pAddress : "N/A"));
-                                            String pPhone = pDoc.getString("phone");
-                                            tvStopPhone.setText("Phone: " + (pPhone != null && !pPhone.isEmpty() ? pPhone : "N/A"));
-                                        }
-                                    });
+                        String pId2 = (String) item2.get("pharmacyId");
+                        if (pId2 != null && !pId2.trim().isEmpty()) {
+                            db.collection("users").document(pId2).get().addOnSuccessListener(pDoc -> {
+                                if (pDoc.exists()) {
+                                    if (pDoc.getString("name") != null) tvStop2Name.setText(pDoc.getString("name"));
+                                    if (tvStop2Address != null) tvStop2Address.setText("Address: " + (pDoc.getString("address") != null ? pDoc.getString("address") : "N/A"));
+                                    if (tvStop2Phone != null) tvStop2Phone.setText("Phone: " + (pDoc.getString("phone") != null ? pDoc.getString("phone") : "N/A"));
                                 }
                             });
                         } else {

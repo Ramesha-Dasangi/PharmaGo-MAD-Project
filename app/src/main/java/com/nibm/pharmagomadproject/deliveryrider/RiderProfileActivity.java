@@ -23,7 +23,7 @@ public class RiderProfileActivity extends AppCompatActivity {
 
     private TextView tvAvatarInitials, tvProfileName, tvProfileVehicle;
     private TextView tvExpandName, tvExpandPhone, tvExpandVehicle;
-    private TextView tvProfileTodayEarnings, tvProfileWeekEarnings;
+    private TextView tvProfileTodayEarnings, tvProfileWeekEarnings, tvProfileDeliveries;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +44,7 @@ public class RiderProfileActivity extends AppCompatActivity {
         tvExpandVehicle = findViewById(R.id.tvExpandVehicle);
         tvProfileTodayEarnings = findViewById(R.id.tvProfileTodayEarnings);
         tvProfileWeekEarnings = findViewById(R.id.tvProfileWeekEarnings);
+        tvProfileDeliveries = findViewById(R.id.tvProfileDeliveries);
 
         setupExpandableItems();
         setupBottomNav();
@@ -139,6 +140,7 @@ public class RiderProfileActivity extends AppCompatActivity {
 
                         if (tvProfileTodayEarnings != null) tvProfileTodayEarnings.setText("Rs. " + todayEarned);
                         if (tvProfileWeekEarnings != null) tvProfileWeekEarnings.setText("Rs. " + weekEarned);
+                        if (tvProfileDeliveries != null) tvProfileDeliveries.setText(String.valueOf(querySnapshot.size()));
                     });
         }
     }
@@ -173,6 +175,16 @@ public class RiderProfileActivity extends AppCompatActivity {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
+            });
+        }
+        
+        // Notifications switch
+        android.widget.Switch switchOrderAlerts = findViewById(R.id.switchOrderAlerts);
+        if (switchOrderAlerts != null) {
+            android.content.SharedPreferences prefs = getSharedPreferences("RiderPrefs", MODE_PRIVATE);
+            switchOrderAlerts.setChecked(prefs.getBoolean("new_order_alerts", true));
+            switchOrderAlerts.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("new_order_alerts", isChecked).apply();
             });
         }
     }

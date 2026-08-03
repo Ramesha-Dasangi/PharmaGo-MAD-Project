@@ -40,26 +40,18 @@
         app:layout_constraintStart_toStartOf="@id/tvWelcomeBack"
         app:layout_constraintTop_toBottomOf="@id/tvWelcomeBack" />
 
-    <TextView
-        android:id="@+id/tvOnlineStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Online"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/switchOnline"
-        app:layout_constraintTop_toTopOf="@+id/switchOnline"
-        app:layout_constraintBottom_toBottomOf="@+id/switchOnline" />
-
-    <Switch
-        android:id="@+id/switchOnline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="true"
+    <ImageView
+        android:id="@+id/btnNotifications"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginEnd="24dp"
+        android:src="@drawable/ic_bell"
+        app:tint="#FFFFFF"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvWelcomeBack"
+        app:layout_constraintTop_toTopOf="@id/tvRiderName"
         app:layout_constraintBottom_toBottomOf="@id/tvRiderName" />
 
     <!-- Active Orders Card -->
