@@ -72,6 +72,19 @@ public class RiderDashboardActivity extends AppCompatActivity {
         if (tvNewAssignmentLabel != null) tvNewAssignmentLabel.setVisibility(View.GONE);
         if (tvInProgressLabel != null) tvInProgressLabel.setVisibility(View.GONE);
 
+        View btnNotifications = findViewById(R.id.btnNotifications);
+        if (btnNotifications != null) {
+            btnNotifications.setOnClickListener(v -> {
+                android.content.SharedPreferences prefs = getSharedPreferences("RiderPrefs", MODE_PRIVATE);
+                boolean isEnabled = prefs.getBoolean("new_order_alerts", true);
+                if (isEnabled) {
+                    startActivity(new Intent(RiderDashboardActivity.this, RiderNotificationsActivity.class));
+                } else {
+                    Toast.makeText(RiderDashboardActivity.this, "Alerts are turned off in your profile", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         if (btnAcceptAssignment != null) {
             btnAcceptAssignment.setOnClickListener(v -> {
                 Intent intent = new Intent(RiderDashboardActivity.this, AssignmentDetailsActivity.class);

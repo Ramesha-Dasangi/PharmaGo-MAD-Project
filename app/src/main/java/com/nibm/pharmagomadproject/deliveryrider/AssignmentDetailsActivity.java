@@ -201,7 +201,7 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
                     cardStop1.setVisibility(View.VISIBLE);
                     
                     String pId1 = (String) item1.get("pharmacyId");
-                    if (pId1 != null) {
+                    if (pId1 != null && !pId1.trim().isEmpty()) {
                         db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
                             if (pDoc.exists()) {
                                 if (pDoc.getString("name") != null) tvStop1Name.setText(pDoc.getString("name"));
@@ -219,7 +219,7 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
                         cardStop2.setVisibility(View.VISIBLE);
                         
                         String pId2 = (String) item2.get("pharmacyId");
-                        if (pId2 != null) {
+                        if (pId2 != null && !pId2.trim().isEmpty()) {
                             db.collection("users").document(pId2).get().addOnSuccessListener(pDoc -> {
                                 if (pDoc.exists()) {
                                     if (pDoc.getString("name") != null) tvStop2Name.setText(pDoc.getString("name"));
