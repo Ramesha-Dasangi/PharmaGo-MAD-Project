@@ -130,14 +130,18 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            if (extras != null) {
-                android.graphics.Bitmap imageBitmap = (android.graphics.Bitmap) extras.get("data");
-                if (ivPhotoResult != null) {
-                    ivPhotoResult.setImageBitmap(imageBitmap);
-                    ivPhotoResult.setVisibility(View.VISIBLE);
-                    findViewById(R.id.iconCamera).setVisibility(View.GONE);
-                    findViewById(R.id.tvTakePhoto).setVisibility(View.GONE);
+            if (data != null) {
+                Bundle extras = data.getExtras();
+                if (extras != null) {
+                    android.graphics.Bitmap imageBitmap = (android.graphics.Bitmap) extras.get("data");
+                    if (ivPhotoResult != null && imageBitmap != null) {
+                        ivPhotoResult.setImageBitmap(imageBitmap);
+                        ivPhotoResult.setVisibility(View.VISIBLE);
+                        View iconCamera = findViewById(R.id.iconCamera);
+                        View tvTakePhoto = findViewById(R.id.tvTakePhoto);
+                        if (iconCamera != null) iconCamera.setVisibility(View.GONE);
+                        if (tvTakePhoto != null) tvTakePhoto.setVisibility(View.GONE);
+                    }
                 }
             }
         }

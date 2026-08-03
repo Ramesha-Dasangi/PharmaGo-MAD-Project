@@ -29,6 +29,7 @@ public class AssignRiderActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     
     private String orderId; 
+    private String oldRiderId;
     private UserModel selectedRider = null;
 
     private TextView tvOrderNumber, tvOrderDetails, tvEmptyRiders;
@@ -58,6 +59,7 @@ public class AssignRiderActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             orderId = intent.getStringExtra("ORDER_ID");
+            oldRiderId = intent.getStringExtra("OLD_RIDER_ID");
             
             String displayId = intent.getStringExtra("ORDER_DISPLAY_ID");
             if (displayId == null) displayId = orderId;
@@ -155,6 +157,14 @@ public class AssignRiderActivity extends AppCompatActivity {
 
         batch.set(db.collection("riders").document(selectedRider.getId()), riderUpdates, SetOptions.merge());
         batch.set(db.collection("users").document(selectedRider.getId()), riderUpdates, SetOptions.merge());
+
+        // Remove activeOrderId from old rider if this is a reassignment
+        if (oldRiderId != null && !oldRiderId.isEmpty()) {
+            Map<String, Object> oldRiderUpdates = new HashMap<>();
+            oldRiderUpdates.put("activeOrderId", com.google.firebase.firestore.FieldValue.delete());
+            batch.update(db.collection("riders").document(oldRiderId), oldRiderUpdates);
+            batch.update(db.collection("users").document(oldRiderId), oldRiderUpdates);
+        }
 
         batch.commit()
                 .addOnSuccessListener(unused -> {

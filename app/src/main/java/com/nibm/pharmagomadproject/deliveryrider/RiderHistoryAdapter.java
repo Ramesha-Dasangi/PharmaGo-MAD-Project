@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
+import com.google.android.material.button.MaterialButton;
 import com.nibm.pharmagomadproject.R;
 
 import java.util.List;
@@ -87,6 +89,18 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
         } else {
             holder.tvEarnings.setVisibility(View.GONE);
         }
+
+        // Only show report issue for delivered or cancelled
+        if ("delivered".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
+            holder.btnReportIssue.setVisibility(View.VISIBLE);
+            holder.btnReportIssue.setOnClickListener(v -> {
+                Intent i = new Intent(context, ReportIssueByRiderActivity.class);
+                i.putExtra("orderId", orderId);
+                context.startActivity(i);
+            });
+        } else {
+            holder.btnReportIssue.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -96,6 +110,7 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvOrderId, tvBadge, tvCustomerName, tvEarnings;
+        MaterialButton btnReportIssue;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,6 +118,7 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
             tvBadge = itemView.findViewById(R.id.tvBadge);
             tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
             tvEarnings = itemView.findViewById(R.id.tvEarnings);
+            btnReportIssue = itemView.findViewById(R.id.btnReportIssue);
         }
     }
 }

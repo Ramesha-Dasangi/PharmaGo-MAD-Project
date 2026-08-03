@@ -9,6 +9,8 @@ public class OrderModel {
     private double total;
     private long createdAt;
     private int itemCount;
+    private String riderId;
+    private String riderName;
 
     public OrderModel() {}
 
@@ -35,4 +37,10 @@ public class OrderModel {
 
     public int getItemCount() { return itemCount; }
     public void setItemCount(int itemCount) { this.itemCount = itemCount; }
+
+    public String getRiderId() { return riderId; }
+    public void setRiderId(String riderId) { this.riderId = riderId; }
+
+    public String getRiderName() { return riderName; }
+    public void setRiderName(String riderName) { this.riderName = riderName; }
 }

@@ -2,6 +2,7 @@ package com.nibm.pharmagomadproject.Admin;
 
 public class ComplaintModel {
     private String complaintId;
+    private String orderId;
     private String customerId;
     private String type; // "rider" or "pharmacy"
     private String targetName;
@@ -14,8 +15,9 @@ public class ComplaintModel {
         // Empty constructor needed for Firestore
     }
 
-    public ComplaintModel(String complaintId, String customerId, String type, String targetName, String category, String description, String status, long createdAt) {
+    public ComplaintModel(String complaintId, String orderId, String customerId, String type, String targetName, String category, String description, String status, long createdAt) {
         this.complaintId = complaintId;
+        this.orderId = orderId;
         this.customerId = customerId;
         this.type = type;
         this.targetName = targetName;
@@ -31,6 +33,14 @@ public class ComplaintModel {
 
     public void setComplaintId(String complaintId) {
         this.complaintId = complaintId;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
     public String getCustomerId() {

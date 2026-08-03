@@ -1,4 +1,4 @@
-package com.nibm.pharmagomadproject.customer.activities.rider;
+package com.nibm.pharmagomadproject.deliveryrider;
 
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,11 +17,11 @@ import com.nibm.pharmagomadproject.R;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ComplaintRiderActivity extends AppCompatActivity {
+public class ReportIssueByRiderActivity extends AppCompatActivity {
 
-    private String selectedChip = "Late delivery";
+    private String selectedChip = "Pharmacy closed";
     private String orderId = "";
-    private String targetRiderName = "Delivery Rider";
+    private String targetName = "Pharmacy"; // defaults to pharmacy since rider delivers from there
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -29,7 +29,7 @@ public class ComplaintRiderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_complaint_rider);
+        setContentView(R.layout.activity_report_issue_by_rider);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         db = FirebaseFirestore.getInstance();
@@ -44,29 +44,21 @@ public class ComplaintRiderActivity extends AppCompatActivity {
             db.collection("orders").document(orderId).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
-                        String riderId = doc.getString("riderId");
-                        if (riderId != null && !riderId.isEmpty()) {
-                            db.collection("users").document(riderId).get()
-                                .addOnSuccessListener(riderDoc -> {
-                                    if (riderDoc.exists()) {
-                                        String rName = riderDoc.getString("name");
-                                        if (rName != null && !rName.isEmpty()) {
-                                            targetRiderName = rName;
-                                        }
-                                    }
-                                });
+                        String pName = doc.getString("pharmacyName");
+                        if (pName != null && !pName.isEmpty()) {
+                            targetName = pName;
                         }
                     }
                 });
         }
 
-        int[] chipIds   = { R.id.chipLateDelivery, R.id.chipRudeBehavior, R.id.chipItemMissing,
-                             R.id.chipWrongAddress, R.id.chipStatusNotUpdated, R.id.chipOtherRider };
-        String[] labels = { "Late delivery", "Rude behavior", "Item missing / damaged",
-                             "Wrong address", "Status not updated", "Other" };
+        int[] chipIds   = { R.id.chipPharmacyClosed, R.id.chipCustomerUnavailable, R.id.chipOrderNotReady,
+                             R.id.chipWrongAddressRider, R.id.chipLongWaitTime, R.id.chipOtherIssue };
+        String[] labels = { "Pharmacy closed", "Customer unavailable", "Order not ready",
+                             "Wrong address", "Long wait time", "Other" };
         setupChips(chipIds, labels);
 
-        MaterialButton btnSubmit = findViewById(R.id.btnSubmitComplaintRider);
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitReport);
         btnSubmit.setOnClickListener(v -> submitComplaint());
     }
 
@@ -103,16 +95,16 @@ public class ComplaintRiderActivity extends AppCompatActivity {
 
         Map<String, Object> complaint = new HashMap<>();
         complaint.put("complaintId", complaintId);
-        complaint.put("customerId", uid);
+        complaint.put("customerId", uid); // Actually Rider's UID here
         complaint.put("orderId", orderId);
-        complaint.put("type", "rider");
-        complaint.put("targetName", targetRiderName);
+        complaint.put("type", "pharmacy"); // Rider complaining about pharmacy/customer
+        complaint.put("targetName", targetName);
         complaint.put("category", selectedChip);
         complaint.put("description", desc);
         complaint.put("status", "pending");
         complaint.put("createdAt", System.currentTimeMillis());
 
-        MaterialButton btnSubmit = findViewById(R.id.btnSubmitComplaintRider);
+        MaterialButton btnSubmit = findViewById(R.id.btnSubmitReport);
         btnSubmit.setEnabled(false);
         btnSubmit.setText("Submitting...");
 

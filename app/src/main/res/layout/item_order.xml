@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="14dp"
-    app:cardBackgroundColor="@color/white"
+    app:cardBackgroundColor="@color/pg_card"
     app:cardCornerRadius="16dp"
     app:cardElevation="3dp">
 
@@ -19,7 +19,7 @@
             android:id="@+id/tvOrderId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
+            android:textColor="@color/pg_text"
             android:textSize="15sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -45,7 +45,7 @@
             android:id="@+id/tvOrderItems"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorTextSecondary"
+            android:textColor="@color/pg_sub"
             android:textSize="12sp"
             android:layout_marginTop="6dp"
             android:layout_marginEnd="8dp"
@@ -58,33 +58,46 @@
             android:id="@+id/tvOrderAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorTextSecondary"
+            android:textColor="@color/pg_sub"
             android:textSize="12sp"
             android:layout_marginTop="4dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvOrderItems" />
+
+        <!-- Rider Assigned -->
+        <TextView
+            android:id="@+id/tvRiderAssigned"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/pg_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvOrderAddress" />
 
         <!-- Total + time row -->
         <TextView
             android:id="@+id/tvOrderTotal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/pg_primary"
             android:textSize="13sp"
             android:textStyle="bold"
             android:layout_marginTop="10dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvOrderAddress" />
+            app:layout_constraintTop_toBottomOf="@id/tvRiderAssigned" />
 
         <TextView
             android:id="@+id/tvOrderTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorTextSecondary"
+            android:textColor="@color/pg_sub"
             android:textSize="11sp"
             android:layout_marginTop="10dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvOrderAddress" />
+            app:layout_constraintTop_toBottomOf="@id/tvRiderAssigned" />
 
         <!-- Assign button -->
         <com.google.android.material.button.MaterialButton
@@ -95,7 +108,7 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:layout_marginTop="12dp"
-            app:backgroundTint="@color/colorAccent"
+            app:backgroundTint="@color/pg_primary"
             app:cornerRadius="10dp"
             app:layout_constraintTop_toBottomOf="@id/tvOrderTotal"
             app:layout_constraintStart_toStartOf="parent"

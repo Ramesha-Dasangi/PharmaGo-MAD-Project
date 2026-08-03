@@ -167,7 +167,7 @@ public class ManageUsersActivity extends AppCompatActivity {
 
     private void resetTab(TextView tab) {
         tab.setBackground(null);
-        tab.setTextColor(ContextCompat.getColor(this, R.color.colorTextSecondary));
+        tab.setTextColor(ContextCompat.getColor(this, R.color.pg_sub));
         tab.setTypeface(null, Typeface.NORMAL);
     }
 
