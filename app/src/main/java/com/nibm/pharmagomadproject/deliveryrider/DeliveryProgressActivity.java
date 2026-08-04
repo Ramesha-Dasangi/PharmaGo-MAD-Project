@@ -233,7 +233,7 @@ public class DeliveryProgressActivity extends AppCompatActivity {
                     if (items != null && !items.isEmpty()) {
                         Map<String, Object> item1 = items.get(0);
                         String pId1 = (String) item1.get("pharmacyId");
-                        if (pId1 != null) {
+                        if (pId1 != null && !pId1.isEmpty()) {
                             db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
                                 if (pDoc.exists() && pDoc.getString("name") != null) {
                                     String pName = pDoc.getString("name");

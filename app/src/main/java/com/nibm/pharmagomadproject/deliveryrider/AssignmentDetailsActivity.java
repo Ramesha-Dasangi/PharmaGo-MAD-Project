@@ -2,6 +2,7 @@ package com.nibm.pharmagomadproject.deliveryrider;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -214,15 +215,23 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
                                     String pPhone = pDoc.getString("phone");
                                     tvStopPhone.setText("Phone: " + (pPhone != null && !pPhone.isEmpty() ? pPhone : "N/A"));
                                 } else {
-                                    db.collection("users").document(pId).get().addOnSuccessListener(pDoc -> {
-                                        if (pDoc.exists()) {
-                                            if (pDoc.getString("name") != null) tvStopName.setText(pDoc.getString("name"));
-                                            String pAddress = pDoc.getString("address");
-                                            tvStopAddress.setText("Address: " + (pAddress != null && !pAddress.isEmpty() ? pAddress : "N/A"));
-                                            String pPhone = pDoc.getString("phone");
-                                            tvStopPhone.setText("Phone: " + (pPhone != null && !pPhone.isEmpty() ? pPhone : "N/A"));
-                                        }
-                                    });
+                                    if (pId != null && !pId.isEmpty()) {
+                                        db.collection("users").document(pId).get().addOnSuccessListener(pDoc -> {
+                                            if (pDoc.exists()) {
+                                                if (pDoc.getString("name") != null)
+                                                    tvStopName.setText(pDoc.getString("name"));
+
+                                                String pAddress = pDoc.getString("address");
+                                                tvStopAddress.setText("Address: " + (pAddress != null && !pAddress.isEmpty() ? pAddress : "N/A"));
+
+                                                String pPhone = pDoc.getString("phone");
+                                                tvStopPhone.setText("Phone: " + (pPhone != null && !pPhone.isEmpty() ? pPhone : "N/A"));
+                                            }
+                                        });
+                                    } else {
+                                        Log.e("Firestore", "Invalid pId: " + pId);
+                                    }
+
                                 }
                             });
                         } else {
