@@ -21,7 +21,7 @@
         android:id="@+id/ivBack"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:src="@android:drawable/ic_menu_revert"
+        android:src="@drawable/ic_arrow_back"
         android:layout_marginStart="16dp"
         android:layout_marginTop="56dp"
         app:tint="#FFFFFF"
@@ -233,8 +233,17 @@
             android:textSize="16sp"
             android:layout_marginStart="16dp"
             app:layout_constraintStart_toEndOf="@id/iconStep4"
-            app:layout_constraintTop_toTopOf="@id/iconStep4"
-            app:layout_constraintBottom_toBottomOf="@id/iconStep4" />
+            app:layout_constraintTop_toTopOf="@id/iconStep4" />
+
+        <TextView
+            android:id="@+id/tvStep4Time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pending"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@id/tvStep4Title"
+            app:layout_constraintTop_toBottomOf="@id/tvStep4Title" />
             
         <View
             android:layout_width="2dp"

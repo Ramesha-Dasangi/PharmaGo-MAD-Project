@@ -5,6 +5,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.medicine.MedicineDetailsActivity;
 import com.nibm.pharmagomadproject.customer.activities.medicine.MedicineListActivity;
+import com.nibm.pharmagomadproject.customer.activities.medicine.PrescriptionUploadActivity;
 import com.nibm.pharmagomadproject.customer.activities.order.CartActivity;
 import com.nibm.pharmagomadproject.customer.models.Cart;
 import com.nibm.pharmagomadproject.customer.models.Medicine;
@@ -363,42 +365,48 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
 
         for(Medicine m:list){
+            View card = inflater.inflate(R.layout.item_medicine_card, medicineListContainer, false);
 
+            TextView tvName = card.findViewById(R.id.tvMedicineName);
+            if (tvName != null) tvName.setText(m.getMedicineName());
 
+            TextView tvCat = card.findViewById(R.id.tvMedicineCategory);
+            if (tvCat != null) {
+                String catStr = m.getCategory() != null ? m.getCategory() : "";
+                String typeStr = m.getType() != null ? m.getType() : "";
+                tvCat.setText(catStr.isEmpty() ? typeStr : catStr + " • " + typeStr);
+            }
 
-            View card =
-                    inflater.inflate(
-                            R.layout.item_medicine_card,
-                            medicineListContainer,
-                            false
-                    );
+            TextView tvPrice = card.findViewById(R.id.tvMedicinePrice);
+            if (tvPrice != null) tvPrice.setText("Rs. " + (int) m.getPrice());
 
+            TextView tvRxBadge = card.findViewById(R.id.tvRxBadge);
+            if (tvRxBadge != null) {
+                boolean isRx = "Prescription".equalsIgnoreCase(m.getType())
+                        || "Rx".equalsIgnoreCase(m.getType())
+                        || "Prescription".equalsIgnoreCase(m.getCategory())
+                        || "Rx".equalsIgnoreCase(m.getCategory());
+                tvRxBadge.setVisibility(isRx ? View.VISIBLE : View.GONE);
+            }
 
-
-            ((TextView)card.findViewById(
-                    R.id.tvMedicineName))
-                    .setText(
-                            m.getMedicineName()
-                    );
-
-
-
-            ((TextView)card.findViewById(
-                    R.id.tvMedicineCategory))
-                    .setText(
-                            m.getCategory()+" • "+m.getType()
-                    );
-
-
-
-            ((TextView)card.findViewById(
-                    R.id.tvMedicinePrice))
-                    .setText(
-                            "Rs. "+m.getPrice()
-                    );
-
-
-
+            ImageView ivImage = card.findViewById(R.id.ivMedicineImage);
+            ImageView ivIcon  = card.findViewById(R.id.ivMedicineIcon);
+            String imgUrl = m.getImageUrl();
+            if (ivImage != null && ivIcon != null) {
+                if (imgUrl != null && !imgUrl.trim().isEmpty()) {
+                    ivIcon.setVisibility(View.GONE);
+                    ivImage.setVisibility(View.VISIBLE);
+                    com.bumptech.glide.Glide.with(this)
+                            .load(imgUrl.trim())
+                            .placeholder(R.drawable.ic_pill)
+                            .error(R.drawable.ic_pill)
+                            .centerCrop()
+                            .into(ivImage);
+                } else {
+                    ivImage.setVisibility(View.GONE);
+                    ivIcon.setVisibility(View.VISIBLE);
+                }
+            }
 
             card.setOnClickListener(v -> {
                 Intent intent = new Intent(this, MedicineDetailsActivity.class);
@@ -416,7 +424,7 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
             card.findViewById(R.id.btnAddToCartCard)
                     .setOnClickListener(v -> {
-                        CartActivity.addToCart(new Cart(
+                        Cart cartItem = new Cart(
                                 m.getMedicineId(),
                                 m.getMedicineName(),
                                 m.getBrandName(),
@@ -424,7 +432,9 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
                                 m.getPharmacy(),
                                 m.getPrice(),
                                 1
-                        ));
+                        );
+                        cartItem.setMedicineType(m.getType());
+                        CartActivity.addToCart(cartItem);
                         Toast.makeText(
                                 this,
                                 m.getMedicineName() + " added to cart",

@@ -12,7 +12,7 @@
     <LinearLayout
         android:id="@+id/bar"
         android:layout_width="26dp"
-        android:layout_height="100dp"
+        android:layout_height="130dp"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/chart_bar_background"
         android:gravity="bottom">
@@ -20,7 +20,7 @@
         <View
             android:id="@+id/viewBar"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="0dp"
             android:background="@color/green"/>
 
     </LinearLayout>

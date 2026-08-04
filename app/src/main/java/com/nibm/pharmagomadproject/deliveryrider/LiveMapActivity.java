@@ -1,186 +1,263 @@
 package com.nibm.pharmagomadproject.deliveryrider;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.Priority;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 
 import org.osmdroid.config.Configuration;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.Polyline;
+import android.preference.PreferenceManager;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Map;
 
 public class LiveMapActivity extends AppCompatActivity {
 
-    private static final String TAG = "LiveMap";
-    private static final int LOCATION_PERMISSION_REQUEST = 101;
-
-    private MapView map = null;
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-    private Marker riderMarker;
-    private Polyline routePolyline;
-
-    private GeoPoint currentRiderPos = new GeoPoint(6.9271, 79.8612);
-    private final GeoPoint dropOff = new GeoPoint(6.9350, 79.8550);
-
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Configuration.getInstance().load(getApplicationContext(),
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+        Configuration.getInstance().load(getApplicationContext(), PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
         setContentView(R.layout.activity_live_map);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        setupMap();
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
+        MapView map = findViewById(R.id.mapView);
+        if (map != null) {
+            map.setMultiTouchControls(true);
+            map.getController().setZoom(15.0);
+            map.getController().setCenter(new GeoPoint(6.9271, 79.8612));
+        }
+
         setupButtons();
+        loadActiveOrderDetails();
+    }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST);
+    private void setupMapLocation(Double lat, Double lng, String title) {
+        MapView map = findViewById(R.id.mapView);
+        if (map != null && lat != null && lng != null) {
+            GeoPoint point = new GeoPoint(lat, lng);
+            map.getController().setCenter(point);
+            Marker marker = new Marker(map);
+            marker.setPosition(point);
+            marker.setTitle(title);
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            map.getOverlays().add(marker);
+            map.invalidate();
         }
     }
 
-    private void setupMap() {
-        map = findViewById(R.id.mapView);
-        if (map == null) return;
+    private void loadActiveOrderDetails() {
+        String currentUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (currentUid == null) return;
 
-        map.setTileSource(TileSourceFactory.MAPNIK);
-        map.setMultiTouchControls(true);
-        map.getController().setZoom(15.0);
-        map.getController().setCenter(currentRiderPos);
-
-        // Route polyline — add FIRST so markers render on top
-        routePolyline = new Polyline(map);
-        routePolyline.getOutlinePaint().setColor(Color.parseColor("#108A68"));
-        routePolyline.getOutlinePaint().setStrokeWidth(16f);
-        routePolyline.getOutlinePaint().setAlpha(230);
-        routePolyline.getOutlinePaint().setAntiAlias(true);
-        map.getOverlays().add(routePolyline);
-
-        // Drop-off Marker
-        Marker dropMarker = new Marker(map);
-        dropMarker.setPosition(dropOff);
-        dropMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        dropMarker.setTitle("Drop-off");
-        dropMarker.setSnippet("Galle Rd, Col 3");
-        dropMarker.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_location_pin));
-        map.getOverlays().add(dropMarker);
-
-        // Rider Marker
-        riderMarker = new Marker(map);
-        riderMarker.setPosition(currentRiderPos);
-        riderMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-        riderMarker.setTitle("You");
-        riderMarker.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_rider_marker));
-        map.getOverlays().add(riderMarker);
-
-        map.invalidate();
-
-        // Fetch road route immediately
-        fetchAndDrawRoute(currentRiderPos);
-    }
-
-    private void fetchAndDrawRoute(GeoPoint riderPos) {
-        List<GeoPoint> waypoints = new ArrayList<>();
-        waypoints.add(riderPos);
-        waypoints.add(dropOff);
-
-        RouteUtils.fetchRoute(waypoints, executor, mainHandler, new RouteUtils.RouteCallback() {
-            @Override
-            public void onRouteReady(List<GeoPoint> points) {
-                routePolyline.setPoints(points);
-                map.invalidate();
-                Log.d(TAG, "Route drawn: " + points.size() + " points");
-            }
-
-            @Override
-            public void onFallback(List<GeoPoint> straightLine) {
-                routePolyline.setPoints(straightLine);
-                map.invalidate();
-                Log.w(TAG, "Fallback straight line drawn");
-            }
-        });
-    }
-
-    /** Zoom to fit rider + drop-off in view */
-    private void zoomToFitAll() {
-        double minLat = Math.min(currentRiderPos.getLatitude(), dropOff.getLatitude());
-        double maxLat = Math.max(currentRiderPos.getLatitude(), dropOff.getLatitude());
-        double minLon = Math.min(currentRiderPos.getLongitude(), dropOff.getLongitude());
-        double maxLon = Math.max(currentRiderPos.getLongitude(), dropOff.getLongitude());
-
-        double pad = 0.008;
-        BoundingBox box = new BoundingBox(maxLat + pad, maxLon + pad, minLat - pad, minLon - pad);
-        map.post(() -> map.zoomToBoundingBox(box, true, 150));
-    }
-
-    private void startLocationUpdates() {
-        LocationRequest req = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
-                .setMinUpdateIntervalMillis(3000).build();
-
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(@NonNull LocationResult result) {
-                Location loc = result.getLastLocation();
-                if (loc != null) {
-                    currentRiderPos = new GeoPoint(loc.getLatitude(), loc.getLongitude());
-                    riderMarker.setPosition(currentRiderPos);
-                    map.invalidate();
-                    fetchAndDrawRoute(currentRiderPos);
+        // Find the info card TextViews from the XML layout
+        TextView tvCurrentOrderId = null;
+        android.widget.LinearLayout infoCards = findViewById(R.id.infoCards);
+        if (infoCards != null && infoCards.getChildCount() >= 2) {
+            // First card: Current Order
+            View card1 = infoCards.getChildAt(0);
+            if (card1 instanceof android.widget.LinearLayout) {
+                android.widget.LinearLayout ll1 = (android.widget.LinearLayout) card1;
+                if (ll1.getChildCount() >= 2) {
+                    tvCurrentOrderId = (TextView) ll1.getChildAt(1);
                 }
             }
-        };
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(req, locationCallback, getMainLooper());
-            fusedLocationClient.getLastLocation().addOnSuccessListener(loc -> {
-                if (loc != null) {
-                    currentRiderPos = new GeoPoint(loc.getLatitude(), loc.getLongitude());
-                    riderMarker.setPosition(currentRiderPos);
-                    fetchAndDrawRoute(currentRiderPos);
-                }
-            });
         }
+
+        final TextView tvOrderId = tvCurrentOrderId;
+        final TextView tvDropoffLabel = findViewById(R.id.tvDropoffLabel);
+        final TextView tvDropoffValue = findViewById(R.id.tvDropoffValue);
+
+        // Set defaults
+        if (tvOrderId != null) tvOrderId.setText("No active order");
+        if (tvDropoffValue != null) tvDropoffValue.setText("—");
+
+        // Query for active orders assigned to this rider
+        db.collection("orders")
+                .whereEqualTo("riderId", currentUid)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        String status = doc.getString("status");
+                        if (status == null) continue;
+
+                        // Show the first active order
+                        if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up") || status.equalsIgnoreCase("out_for_delivery")) {
+                            String docId = doc.getId();
+                            String shortId = "#" + docId.substring(0, Math.min(8, docId.length())).toUpperCase();
+
+                            if (tvOrderId != null) tvOrderId.setText(shortId);
+
+                            String pharmName = doc.getString("pharmacyName");
+                            String tempAddr = doc.getString("deliveryAddress");
+                            if (tempAddr == null) tempAddr = doc.getString("address");
+                            final String addr = tempAddr;
+
+                            if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up")) {
+                                List<String> pIds = (List<String>) doc.get("pharmacyIds");
+                                if (pIds != null && pIds.size() > 1) {
+                                    if (tvDropoffLabel != null) tvDropoffLabel.setText("Pickup from");
+                                    if (tvDropoffValue != null) tvDropoffValue.setText("Multiple Pharmacies (" + pIds.size() + ")");
+                                } else {
+                                    if (tvDropoffLabel != null) tvDropoffLabel.setText("Pickup from");
+                                    if (tvDropoffValue != null) tvDropoffValue.setText(pharmName != null ? pharmName : "Pharmacy");
+                                }
+                            } else {
+                                if (tvDropoffLabel != null) tvDropoffLabel.setText("Drop-off Customer");
+                                if (tvDropoffValue != null) tvDropoffValue.setText(addr != null && !addr.isEmpty() ? addr : "No address");
+                            }
+
+                            // Show status in ETA/Distance area to replace the hacks
+                            TextView tvEta = findViewById(R.id.tvEta);
+                            if (tvEta != null) {
+                                tvEta.setText(status.equalsIgnoreCase("out_for_delivery") ? "En route" : "Pending");
+                            }
+                            
+                            // Show status in distance area
+                            TextView tvDistance = findViewById(R.id.tvDistance);
+                            if (tvDistance != null) {
+                                String displayStatus = status.substring(0, 1).toUpperCase() + status.substring(1).replace("_", " ");
+                                tvDistance.setText(displayStatus);
+                            }
+
+                            // Setup map navigation button based on status
+                            Button btnRecenter = findViewById(R.id.btnRecenter);
+                            if (btnRecenter != null) {
+                                btnRecenter.setText("Open in Google Maps");
+                                if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up")) {
+                                    List<String> pIdsList = (List<String>) doc.get("pharmacyIds");
+                                    if (pIdsList != null && pIdsList.size() > 1) {
+                                        db.collection("pharmacies").whereIn("ownerId", pIdsList).get()
+                                                .addOnSuccessListener(pSnaps -> {
+                                                    if (!pSnaps.isEmpty()) {
+                                                        StringBuilder waypoints = new StringBuilder();
+                                                        String destination = "";
+                                                        int count = 0;
+                                                        for (DocumentSnapshot pDoc : pSnaps.getDocuments()) {
+                                                            Double lat = pDoc.getDouble("latitude");
+                                                            Double lng = pDoc.getDouble("longitude");
+                                                            String pName = pDoc.getString("name");
+                                                            if (lat != null && lng != null) {
+                                                                setupMapLocation(lat, lng, pName != null ? pName : "Pharmacy");
+                                                                if (count == pSnaps.size() - 1) {
+                                                                    destination = lat + "," + lng;
+                                                                } else {
+                                                                    if (waypoints.length() > 0) waypoints.append("|");
+                                                                    waypoints.append(lat).append(",").append(lng);
+                                                                }
+                                                                count++;
+                                                            }
+                                                        }
+                                                        final String fDestination = destination;
+                                                        final String fWaypoints = waypoints.toString();
+                                                        btnRecenter.setOnClickListener(v -> {
+                                                            if (!fDestination.isEmpty()) {
+                                                                String url = "https://www.google.com/maps/dir/?api=1&destination=" + Uri.encode(fDestination);
+                                                                if (fWaypoints.length() > 0) {
+                                                                    url += "&waypoints=" + Uri.encode(fWaypoints);
+                                                                }
+                                                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                                                mapIntent.setPackage("com.google.android.apps.maps");
+                                                                startActivity(mapIntent);
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                    } else {
+                                        List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
+                                        if (items != null && !items.isEmpty()) {
+                                            String pId = (String) items.get(0).get("pharmacyId");
+                                            if (pId != null) {
+                                                db.collection("pharmacies").whereEqualTo("ownerId", pId).limit(1).get()
+                                                        .addOnSuccessListener(pSnaps -> {
+                                                            if (!pSnaps.isEmpty()) {
+                                                                DocumentSnapshot pDoc = pSnaps.getDocuments().get(0);
+                                                                Double lat = pDoc.getDouble("latitude");
+                                                                Double lng = pDoc.getDouble("longitude");
+                                                                String pName = pDoc.getString("name");
+                                                                if (lat != null && lng != null) {
+                                                                    setupMapLocation(lat, lng, pName != null ? pName : "Pharmacy");
+                                                                    btnRecenter.setOnClickListener(v -> {
+                                                                        Uri gmmIntentUri = Uri.parse("google.navigation:q=" + lat + "," + lng);
+                                                                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                                                        mapIntent.setPackage("com.google.android.apps.maps");
+                                                                        startActivity(mapIntent);
+                                                                    });
+                                                                }
+                                                            }
+                                                        });
+                                            }
+                                        }
+                                    }
+                                } else if (status.equalsIgnoreCase("out_for_delivery")) {
+                                    String customerId = doc.getString("customerId");
+                                    if (customerId != null) {
+                                        db.collection("users").document(customerId).get()
+                                                .addOnSuccessListener(cDoc -> {
+                                                    if (cDoc.exists()) {
+                                                        Double lat = cDoc.getDouble("latitude");
+                                                        Double lng = cDoc.getDouble("longitude");
+                                                        if (lat != null && lng != null) {
+                                                            setupMapLocation(lat, lng, "Customer");
+                                                            btnRecenter.setOnClickListener(v -> {
+                                                                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + lat + "," + lng);
+                                                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                                                mapIntent.setPackage("com.google.android.apps.maps");
+                                                                startActivity(mapIntent);
+                                                            });
+                                                            return;
+                                                        }
+                                                    }
+                                                    // Fallback
+                                                    btnRecenter.setOnClickListener(v -> {
+                                                        if (addr != null && !addr.isEmpty()) {
+                                                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + Uri.encode(addr));
+                                                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                                            mapIntent.setPackage("com.google.android.apps.maps");
+                                                            startActivity(mapIntent);
+                                                        }
+                                                    });
+                                                });
+                                    } else {
+                                        btnRecenter.setOnClickListener(v -> {
+                                            if (addr != null && !addr.isEmpty()) {
+                                                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + Uri.encode(addr));
+                                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                                mapIntent.setPackage("com.google.android.apps.maps");
+                                                startActivity(mapIntent);
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+
+                            break; // show only the first active order
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void setupButtons() {
@@ -204,38 +281,5 @@ public class LiveMapActivity extends AppCompatActivity {
             navProfile.setOnClickListener(v ->
                     startActivity(new Intent(this, RiderProfileActivity.class)));
         }
-
-        // Re-center: zoom to show rider + drop-off
-        View btnRecenter = findViewById(R.id.btnRecenter);
-        if (btnRecenter != null) {
-            btnRecenter.setOnClickListener(v -> zoomToFitAll());
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST && grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates();
-        }
-    }
-
-    @Override
-    public void onResume() { super.onResume(); if (map != null) map.onResume(); }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (map != null) map.onPause();
-        if (fusedLocationClient != null && locationCallback != null)
-            fusedLocationClient.removeLocationUpdates(locationCallback);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executor.shutdown();
     }
 }

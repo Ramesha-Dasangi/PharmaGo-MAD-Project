@@ -52,15 +52,29 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         String status = order.getStatus();
 
         // Show/hide action buttons based on status
-        boolean isActive    = "pending".equals(status) || "processing".equals(status)
-                || "picked_up".equals(status) || "out_for_delivery".equals(status);
+        boolean isActive = "pending".equals(status) || "processing".equals(status)
+                || "assigned".equals(status) || "picked_up".equals(status) || "out_for_delivery".equals(status);
+        boolean isPendingPay = "approved_pending_payment".equals(status);
+        boolean isAwaitingApproval = "awaiting_approval".equals(status);
         boolean isDelivered = "delivered".equals(status);
         boolean isCancelled = "cancelled".equals(status);
 
-        if (h.btnTrack != null)
-            h.btnTrack.setVisibility(isActive ? View.VISIBLE : View.GONE);
-        if (h.btnCancel != null)
-            h.btnCancel.setVisibility(isActive ? View.VISIBLE : View.GONE);
+        if (h.btnTrack != null) {
+            if (isPendingPay) {
+                h.btnTrack.setVisibility(View.VISIBLE);
+                h.btnTrack.setText("Pay");
+            } else if (isActive) {
+                h.btnTrack.setVisibility(View.VISIBLE);
+                h.btnTrack.setText("Track");
+            } else {
+                h.btnTrack.setVisibility(View.GONE);
+            }
+        }
+
+        if (h.btnCancel != null) {
+            h.btnCancel.setVisibility((isActive || isPendingPay || isAwaitingApproval) ? View.VISIBLE : View.GONE);
+        }
+
         if (h.btnReorder != null)
             h.btnReorder.setVisibility(isDelivered ? View.VISIBLE : View.GONE);
         if (h.btnReport != null)

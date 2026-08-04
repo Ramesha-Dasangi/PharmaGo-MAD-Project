@@ -65,8 +65,9 @@ public class LoginActivity extends AppCompatActivity {
 
         TextView tvForgot = findViewById(R.id.tvForgotPassword);
 
-        tvForgot.setOnClickListener(v -> {
-            String email =
+        tvForgot.setOnClickListener(
+                v -> {
+                    String email =
                     etEmail.getText()
                             .toString()
                             .trim();
@@ -111,12 +112,12 @@ public class LoginActivity extends AppCompatActivity {
 
     private void loginUser(){
         String email = etEmail.getText()
-                        .toString()
-                        .trim();
+                .toString()
+                .trim();
 
         String password = etPassword.getText()
-                        .toString()
-                        .trim();
+                .toString()
+                .trim();
 
         if(TextUtils.isEmpty(email)){
             etEmail.setError("Enter email");
@@ -154,11 +155,15 @@ public class LoginActivity extends AppCompatActivity {
                     if (btnLogin != null) {
                         btnLogin.setEnabled(true);
                     }
-                    Toast.makeText(
-                            this,
-                            "Login failed: "+e.getMessage(),
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    String errorMsg = "Login failed: " + e.getMessage();
+                    if (e instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+                        errorMsg = "Incorrect password or invalid email format. Please check your password.";
+                    } else if (e instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                        errorMsg = "No account found with this email. Please register first.";
+                    } else if (e instanceof com.google.firebase.auth.FirebaseAuthUserCollisionException) {
+                        errorMsg = "An account already exists with this email.";
+                    }
+                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
                 });
     }
 
@@ -208,8 +213,10 @@ public class LoginActivity extends AppCompatActivity {
                                     openPharmacy();
                                 } else {
                                     // Update Firestore flag so they only see it once
-                                    db.collection("users").document(uid).update("approvalSeen", true);
-                                    startActivity(new Intent(LoginActivity.this, ApprovalSuccessActivity.class));
+                                    db.collection("users").document(uid).update(
+                                            "approvalSeen", true);
+                                    startActivity(new Intent(LoginActivity.this,
+                                            ApprovalSuccessActivity.class));
                                     finish();
                                 }
                             }else{

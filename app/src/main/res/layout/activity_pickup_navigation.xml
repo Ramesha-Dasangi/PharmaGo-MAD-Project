@@ -8,10 +8,14 @@
     tools:context=".deliveryrider.PickupNavigationActivity">
 
     <!-- Map View -->
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
+    <ImageView
+        android:id="@+id/mapPlaceholder"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="#E5E5E5"
+        android:src="@android:drawable/ic_dialog_map"
+        android:scaleType="center"
+        app:tint="#999999"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

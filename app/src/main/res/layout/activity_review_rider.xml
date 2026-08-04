@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="@color/pg_bg">
 
     <View
         android:id="@+id/topBackground"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/pg_primary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -27,18 +27,30 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Review rider"
+        android:text="Review Rider"
         android:textColor="@color/white"
         android:textSize="20sp"
-        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         android:layout_marginStart="16dp"
         app:layout_constraintStart_toEndOf="@id/ivBack"
         app:layout_constraintTop_toTopOf="@id/ivBack"
         app:layout_constraintBottom_toBottomOf="@id/ivBack" />
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/topBackground"
+        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/topBackground"
         app:layout_constraintBottom_toTopOf="@id/bottomContainer">
 
@@ -53,7 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/white"
+                app:cardBackgroundColor="@color/pg_card"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
 
@@ -70,25 +82,27 @@
                         android:src="@android:drawable/ic_menu_myplaces"
                         android:background="@drawable/icon_bg_green"
                         android:padding="16dp"
-                        app:tint="@color/colorAccent"
+                        app:tint="@color/pg_primary"
                         android:layout_marginBottom="12dp" />
 
                     <TextView
-                        android:id="@+id/tvName"
+                        android:id="@+id/tvRiderName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nuwan Fernando"
-                        android:textColor="@color/black"
+                        android:text="—"
+                        android:textColor="@color/pg_text"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp" />
 
                     <TextView
+                        android:id="@+id/tvRiderSub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="077 456 7890 · Applied 3 hrs ago"
-                        android:textColor="@color/colorTextSecondary"
+                        android:text="—"
+                        android:textColor="@color/pg_sub"
                         android:textSize="14sp" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -97,7 +111,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/white"
+                app:cardBackgroundColor="@color/pg_card"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
 
@@ -107,117 +121,137 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
+                    <!-- NIC -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-                        
+                        android:layout_marginBottom="12dp">
                         <TextView
-                            android:id="@+id/tvNic"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="NIC"
-                            android:textColor="@color/colorTextSecondary" />
-                            
+                            android:textColor="@color/pg_sub" />
                         <TextView
+                            android:id="@+id/tvNicValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="95xxxxxxxV"
-                            android:textColor="@color/black"
+                            android:text="—"
+                            android:textColor="@color/pg_text"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Email -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
+                        android:layout_marginBottom="12dp">
                         <TextView
-                            android:id="@+id/tvEmail"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Email"
-                            android:textColor="@color/colorTextSecondary" />
-
+                            android:textColor="@color/pg_sub" />
                         <TextView
+                            android:id="@+id/tvEmailValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="rider@gmail.com"
-                            android:textColor="@color/black"
+                            android:text="—"
+                            android:textColor="@color/pg_text"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Phone -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-                        
+                        android:layout_marginBottom="12dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Phone"
+                            android:textColor="@color/pg_sub" />
+                        <TextView
+                            android:id="@+id/tvPhoneValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="—"
+                            android:textColor="@color/pg_text"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Vehicle -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Vehicle"
-                            android:textColor="@color/colorTextSecondary" />
-                            
+                            android:textColor="@color/pg_sub" />
                         <TextView
+                            android:id="@+id/tvVehicleValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Motorbike — CAA-4521"
-                            android:textColor="@color/black"
+                            android:text="—"
+                            android:textColor="@color/pg_text"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Vehicle Reg -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
-                        
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="License no."
-                            android:textColor="@color/colorTextSecondary" />
-                            
+                            android:text="Vehicle Reg."
+                            android:textColor="@color/pg_sub" />
                         <TextView
+                            android:id="@+id/tvVehicleRegValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="B1234567"
-                            android:textColor="@color/black"
+                            android:text="—"
+                            android:textColor="@color/pg_text"
                             android:textStyle="bold" />
                     </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Driving license -->
+            <!-- Driving License -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Driving license"
-                android:textColor="@color/black"
+                android:text="Driving License"
+                android:textColor="@color/pg_text"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardLicense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/colorBackground"
+                app:cardBackgroundColor="@color/pg_card"
                 app:cardCornerRadius="12dp"
                 app:strokeWidth="1dp"
-                app:strokeColor="@color/colorStroke"
+                app:strokeColor="@color/pg_border"
                 app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="100dp"
                     android:orientation="vertical"
                     android:gravity="center">
 
@@ -225,57 +259,17 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:src="@android:drawable/ic_menu_gallery"
-                        app:tint="@color/colorTextSecondary"
+                        app:tint="@color/pg_sub"
                         android:layout_marginBottom="8dp" />
 
                     <TextView
+                        android:id="@+id/tvLicenseFileName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="license_front.jpg"
-                        android:textColor="@color/colorTextSecondary"
+                        android:text="No license document uploaded"
+                        android:textColor="@color/pg_sub"
                         android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- NIC copy -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NIC copy"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/colorBackground"
-                app:cardCornerRadius="12dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/colorStroke"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_gallery"
-                        app:tint="@color/colorTextSecondary"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="nic_copy.jpg"
-                        android:textColor="@color/colorTextSecondary"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -308,11 +302,9 @@
             android:layout_height="64dp"
             android:layout_weight="1"
             android:text="Accept"
-            android:textColor="#F57C00"
+            android:textColor="@color/white"
             android:textSize="18sp"
-            app:backgroundTint="@color/black"
-            app:strokeWidth="1dp"
-            app:strokeColor="#F57C00"
+            app:backgroundTint="@color/pg_primary"
             app:cornerRadius="16dp"
             android:layout_marginStart="8dp" />
 

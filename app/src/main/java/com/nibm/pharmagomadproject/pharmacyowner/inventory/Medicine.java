@@ -130,4 +130,23 @@ public class Medicine {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
+
+    private boolean deleted;
+    private long updatedAt;
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public long getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(long updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

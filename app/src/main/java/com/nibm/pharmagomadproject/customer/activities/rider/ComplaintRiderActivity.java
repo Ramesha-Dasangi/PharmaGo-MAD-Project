@@ -20,6 +20,8 @@ import java.util.Map;
 public class ComplaintRiderActivity extends AppCompatActivity {
 
     private String selectedChip = "Late delivery";
+    private String orderId = "";
+    private String targetRiderName = "Delivery Rider";
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -34,6 +36,29 @@ public class ComplaintRiderActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        
+        orderId = getIntent().getStringExtra("orderId");
+        if (orderId == null) orderId = "";
+        
+        if (!orderId.isEmpty()) {
+            db.collection("orders").document(orderId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String riderId = doc.getString("riderId");
+                        if (riderId != null && !riderId.isEmpty()) {
+                            db.collection("users").document(riderId).get()
+                                .addOnSuccessListener(riderDoc -> {
+                                    if (riderDoc.exists()) {
+                                        String rName = riderDoc.getString("name");
+                                        if (rName != null && !rName.isEmpty()) {
+                                            targetRiderName = rName;
+                                        }
+                                    }
+                                });
+                        }
+                    }
+                });
+        }
 
         int[] chipIds   = { R.id.chipLateDelivery, R.id.chipRudeBehavior, R.id.chipItemMissing,
                              R.id.chipWrongAddress, R.id.chipStatusNotUpdated, R.id.chipOtherRider };
@@ -79,8 +104,9 @@ public class ComplaintRiderActivity extends AppCompatActivity {
         Map<String, Object> complaint = new HashMap<>();
         complaint.put("complaintId", complaintId);
         complaint.put("customerId", uid);
+        complaint.put("orderId", orderId);
         complaint.put("type", "rider");
-        complaint.put("targetName", "Delivery Rider");
+        complaint.put("targetName", targetRiderName);
         complaint.put("category", selectedChip);
         complaint.put("description", desc);
         complaint.put("status", "pending");

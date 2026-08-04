@@ -113,6 +113,7 @@
                         android:text="Pharmacy"
                         android:textSize="12sp"
                         android:textColor="@color/pg_sub"
+                        android:fontFamily="sans-serif-medium"
                         android:background="@drawable/bg_role_unselected"
                         android:layout_marginEnd="6dp"
                         android:clickable="true"
@@ -127,6 +128,7 @@
                         android:text="Rider"
                         android:textSize="12sp"
                         android:textColor="@color/pg_sub"
+                        android:fontFamily="sans-serif-medium"
                         android:background="@drawable/bg_role_unselected"
                         android:clickable="true"
                         android:focusable="true" />

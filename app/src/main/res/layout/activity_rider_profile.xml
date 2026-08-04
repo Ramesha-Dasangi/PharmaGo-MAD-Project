@@ -59,6 +59,7 @@
 
                 <!-- Avatar -->
                 <TextView
+                    android:id="@+id/tvAvatarInitials"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:text="KS"
@@ -69,6 +70,7 @@
                     android:gravity="center" />
 
                 <TextView
+                    android:id="@+id/tvProfileName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Kamal Silva"
@@ -78,6 +80,7 @@
                     android:layout_marginTop="12dp" />
 
                 <TextView
+                    android:id="@+id/tvProfileVehicle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CAA-4521 · Motorbike"
@@ -102,9 +105,10 @@
                         android:padding="12dp"
                         android:layout_marginEnd="6dp">
                         <TextView
+                            android:id="@+id/tvProfileDeliveries"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="189"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary" />
@@ -238,17 +242,17 @@
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Full name" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView android:id="@+id/tvExpandName" android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Kamal Silva" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Phone number" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView android:id="@+id/tvExpandPhone" android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="+94 77 123 4567" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Vehicle" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView android:id="@+id/tvExpandVehicle" android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="CAA-4521 · Motorbike" android:textColor="@color/text_primary" android:textSize="15sp"/>
                 </LinearLayout>
             </LinearLayout>
@@ -312,13 +316,17 @@
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Today's earnings" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView
+                        android:id="@+id/tvProfileTodayEarnings"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Rs. 2,450" android:textColor="@color/green_accept" android:textSize="18sp"
                         android:textStyle="bold" android:layout_marginBottom="12dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="This week" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView
+                        android:id="@+id/tvProfileWeekEarnings"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Rs. 14,200" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -390,16 +398,11 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1" android:text="New order alerts"
                             android:textColor="@color/text_primary" android:textSize="14sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="ON" android:textColor="@color/green_accept" android:textStyle="bold" android:textSize="14sp"/>
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:gravity="center_vertical">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Promotions"
-                            android:textColor="@color/text_primary" android:textSize="14sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="OFF" android:textColor="@color/text_secondary" android:textStyle="bold" android:textSize="14sp"/>
+                        <Switch
+                            android:id="@+id/switchOrderAlerts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

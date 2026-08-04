@@ -80,17 +80,19 @@
                         android:gravity="center_vertical"
                         android:layout_marginBottom="4dp">
                         <TextView
+                            android:id="@+id/tvOrderNumber"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Order #PG-00234"
+                            android:text="Order #..."
                             android:textColor="@color/pg_text"
                             android:textSize="14sp"
                             android:fontFamily="sans-serif-medium"/>
                         <TextView
+                            android:id="@+id/tvOrderBadge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Out for delivery"
+                            android:text="Pending"
                             android:textSize="10sp"
                             android:textColor="#1E40AF"
                             android:fontFamily="sans-serif-medium"
@@ -101,9 +103,10 @@
                             android:paddingBottom="4dp"/>
                     </LinearLayout>
                     <TextView
+                        android:id="@+id/tvOrderSummary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2 items from 2 pharmacies · Rs. 304"
+                        android:text="Loading order details..."
                         android:textColor="@color/pg_sub"
                         android:textSize="11sp"/>
                 </LinearLayout>
@@ -131,19 +134,17 @@
                 android:layout_marginBottom="12dp"/>
 
 
-            <!--  Step 1: Order confirmed  -->
+            <!--  Step 1: Order Placed (Always Done with Green Tick)  -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="2dp">
-
                 <FrameLayout
                     android:id="@+id/indicatorStep1"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@drawable/bg_step_done">
-
                     <ImageView
                         android:id="@+id/iconStep1"
                         android:layout_width="14dp"
@@ -153,7 +154,6 @@
                         android:contentDescription="@null"
                         app:tint="@color/pg_primary"/>
                 </FrameLayout>
-
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -162,22 +162,24 @@
                     android:layout_marginStart="10dp"
                     android:paddingBottom="14dp">
                     <TextView
+                        android:id="@+id/tvStep1Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Order confirmed"
+                        android:text="Order Placed"
                         android:textColor="@color/pg_text"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif-medium"/>
                     <TextView
+                        android:id="@+id/tvStep1Time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="10:15 AM"
+                        android:text="Waiting for pharmacy confirmation"
                         android:textColor="@color/pg_sub"
                         android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!--  Step 2: Picked up MediCare  -->
+            <!--  Step 2: Order Confirmed / Preparing  -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -187,7 +189,7 @@
                     android:id="@+id/indicatorStep2"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:background="@drawable/bg_step_done">
+                    android:background="@drawable/bg_step_pending">
                     <ImageView
                         android:id="@+id/iconStep2"
                         android:layout_width="14dp"
@@ -205,22 +207,24 @@
                     android:layout_marginStart="10dp"
                     android:paddingBottom="14dp">
                     <TextView
+                        android:id="@+id/tvStep2Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Picked up — MediCare"
+                        android:text="Pharmacy Confirmation"
                         android:textColor="@color/pg_text"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif-medium"/>
                     <TextView
+                        android:id="@+id/tvStep2Sub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="10:42 AM"
+                        android:text="Pending"
                         android:textColor="@color/pg_sub"
                         android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!--  Step 3: Picked up City Pharma  -->
+            <!--  Step 3: Picked up by Rider  -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -230,7 +234,7 @@
                     android:id="@+id/indicatorStep3"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:background="@drawable/bg_step_done">
+                    android:background="@drawable/bg_step_pending">
                     <ImageView
                         android:id="@+id/iconStep3"
                         android:layout_width="14dp"
@@ -248,22 +252,24 @@
                     android:layout_marginStart="10dp"
                     android:paddingBottom="14dp">
                     <TextView
+                        android:id="@+id/tvStep3Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Picked up — City Pharma"
+                        android:text="Picked up by Rider"
                         android:textColor="@color/pg_text"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif-medium"/>
                     <TextView
+                        android:id="@+id/tvStep3Sub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="11:05 AM"
+                        android:text="Pending"
                         android:textColor="@color/pg_sub"
                         android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!--  Step 4: Out for delivery (current/active)  -->
+            <!--  Step 4: Out for delivery  -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -273,7 +279,7 @@
                     android:id="@+id/indicatorStep4"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:background="@drawable/bg_step_active">
+                    android:background="@drawable/bg_step_pending">
                     <ImageView
                         android:id="@+id/iconStep4"
                         android:layout_width="14dp"
@@ -291,22 +297,24 @@
                     android:layout_marginStart="10dp"
                     android:paddingBottom="14dp">
                     <TextView
+                        android:id="@+id/tvStep4Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Out for delivery"
+                        android:text="Out for Delivery"
                         android:textColor="@color/pg_text"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif-medium"/>
                     <TextView
+                        android:id="@+id/tvStep4Sub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="In progress..."
-                        android:textColor="@color/pg_primary"
+                        android:text="Pending"
+                        android:textColor="@color/pg_sub"
                         android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!--  Step 5: Delivered (pending)  -->
+            <!--  Step 5: Delivered  -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -334,16 +342,25 @@
                     android:orientation="vertical"
                     android:layout_marginStart="10dp">
                     <TextView
+                        android:id="@+id/tvStep5Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Delivered"
                         android:textColor="@color/pg_sub"
                         android:textSize="13sp"/>
+                    <TextView
+                        android:id="@+id/tvStep5Sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pending"
+                        android:textColor="@color/pg_sub"
+                        android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
             <!--  Rider card  -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardRider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -375,9 +392,10 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
                         <TextView
+                            android:id="@+id/tvRiderName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Kamal — your rider"
+                            android:text="Assigning rider..."
                             android:textColor="@color/pg_text"
                             android:textSize="13sp"
                             android:fontFamily="sans-serif-medium"/>
@@ -419,7 +437,23 @@
                 android:textSize="13sp"
                 app:cornerRadius="10dp"
                 app:strokeColor="#EF4444"
-                android:textColor="#EF4444"/>
+                android:textColor="#EF4444"
+                android:layout_marginBottom="8dp"/>
+                
+            <!-- Cancel Order button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelOrder"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Cancel Order"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                app:cornerRadius="10dp"
+                app:strokeColor="#EF4444"
+                android:textColor="#EF4444"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
 
             <!-- Leave review button (hidden until delivered) -->
             <com.google.android.material.button.MaterialButton

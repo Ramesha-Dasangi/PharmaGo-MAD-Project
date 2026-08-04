@@ -10,25 +10,6 @@
       "client_info": {
         "mobilesdk_app_id": "1:533881287038:android:eeeb88a7acc571a0ad032f",
         "android_client_info": {
-          "package_name": "com.nibm.Pharmagomadproject"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyC17KcrlwmfFbIbQms9ENB1SUz70FbXir8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:533881287038:android:39ebdcb4cbf0782cad032f",
-        "android_client_info": {
           "package_name": "com.nibm.pharmagomadproject"
         }
       },
