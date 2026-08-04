@@ -233,15 +233,17 @@ public class DeliveryProgressActivity extends AppCompatActivity {
                     if (items != null && !items.isEmpty()) {
                         Map<String, Object> item1 = items.get(0);
                         String pId1 = (String) item1.get("pharmacyId");
-                        if (pId1 != null && !pId1.isEmpty()) {
-                            db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
-                                if (pDoc.exists() && pDoc.getString("name") != null) {
-                                    String pName = pDoc.getString("name");
+                        if (pId1 != null && !pId1.trim().isEmpty()) {
+                            db.collection("pharmacies").whereEqualTo("ownerId", pId1).get().addOnSuccessListener(qSnap -> {
+                                if (!qSnap.isEmpty() && qSnap.getDocuments().get(0).getString("name") != null) {
+                                    String pName = qSnap.getDocuments().get(0).getString("name");
                                     if (tvStep3Title != null) tvStep3Title.setText("Heading to " + pName);
-                                    
-                                    // Update timeline colors after setting text
-                                    updateTimelineUI(status);
+                                } else {
+                                    String fallback = doc.getString("pharmacyName");
+                                    if (tvStep3Title != null) tvStep3Title.setText("Heading to " + (fallback != null ? fallback : "Pharmacy"));
                                 }
+                                // Update timeline colors after setting text
+                                updateTimelineUI(status);
                             });
                         } else {
                             updateTimelineUI(status);

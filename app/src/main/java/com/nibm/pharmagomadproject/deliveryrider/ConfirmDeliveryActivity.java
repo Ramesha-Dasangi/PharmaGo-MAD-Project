@@ -14,7 +14,7 @@ import com.nibm.pharmagomadproject.R;
 public class ConfirmDeliveryActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int REQUEST_CAMERA_PERMISSION = 100;
+    private static final int CAMERA_PERMISSION_CODE = 100;
     private ImageView ivPhotoResult;
 
     @Override
@@ -41,15 +41,19 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
             boxPhoto.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (androidx.core.content.ContextCompat.checkSelfPermission(ConfirmDeliveryActivity.this, android.Manifest.permission.CAMERA)
-                            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                        androidx.core.app.ActivityCompat.requestPermissions(ConfirmDeliveryActivity.this,
-                                new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+                    if (androidx.core.content.ContextCompat.checkSelfPermission(ConfirmDeliveryActivity.this, android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        androidx.core.app.ActivityCompat.requestPermissions(ConfirmDeliveryActivity.this, new String[]{android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
                     } else {
-                        launchCamera();
+                        openCamera();
                     }
                 }
             });
+        }
+
+        SignatureView signatureView = findViewById(R.id.boxSignature);
+        android.widget.TextView tvClearSignature = findViewById(R.id.tvClearSignature);
+        if (tvClearSignature != null && signatureView != null) {
+            tvClearSignature.setOnClickListener(v -> signatureView.clear());
         }
 
         Button btnConfirmDelivered = findViewById(R.id.btnConfirmDelivered);
@@ -101,21 +105,21 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
         }
     }
 
-    private void launchCamera() {
+    private void openCamera() {
         Intent takePictureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         try {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        } catch (android.content.ActivityNotFoundException e) {
-            android.widget.Toast.makeText(this, "No camera app found", android.widget.Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Cannot open camera: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @androidx.annotation.NonNull String[] permissions, @androidx.annotation.NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+        if (requestCode == CAMERA_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                launchCamera();
+                openCamera();
             } else {
                 android.widget.Toast.makeText(this, "Camera permission is required to take photo", android.widget.Toast.LENGTH_SHORT).show();
             }
