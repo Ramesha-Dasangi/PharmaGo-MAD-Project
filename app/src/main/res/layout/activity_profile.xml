@@ -20,11 +20,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Profile"
-            android:textColor="@android:color/white"
             android:textSize="28dp"
-            android:textStyle="bold"/>
-
+            android:textStyle="bold" />
     </LinearLayout>
+
+    <!-- Scrollable content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
 
     <!-- Profile -->
 
@@ -75,6 +86,98 @@
         android:text="Verified ✓"
         android:textColor="@android:color/holo_orange_dark"
         android:textStyle="bold"/>
+
+    <!-- Rating display -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/txtPharmacyRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="★  —"
+            android:textColor="#FFC107"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/txtPharmacyRatingCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text=""
+            android:textColor="#777777"
+            android:textSize="13sp"/>
+    </LinearLayout>
+
+    <!-- Reviews expandable card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/rowPharmacyReviews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="15dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/btn_star_big_on"
+                    app:tint="@color/green"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="Customer Reviews"
+                    android:textStyle="bold"/>
+
+                <ImageView
+                    android:id="@+id/chevronPharmacyReviews"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_media_next"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/expandPharmacyReviews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="12dp"
+                android:visibility="gone">
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="#DDDDDD" android:layout_marginBottom="4dp"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutPharmacyReviewsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <!-- Settings Card -->
 
@@ -276,10 +379,8 @@
 
     </androidx.cardview.widget.CardView>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Bottom Navigation -->
 

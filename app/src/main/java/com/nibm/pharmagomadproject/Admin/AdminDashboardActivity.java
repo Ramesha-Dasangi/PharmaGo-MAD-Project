@@ -98,6 +98,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private com.google.firebase.firestore.ListenerRegistration listenerUsers;
+    private com.google.firebase.firestore.ListenerRegistration listenerPharmacies;
     private com.google.firebase.firestore.ListenerRegistration listenerRiders;
     private com.google.firebase.firestore.ListenerRegistration listenerOrders;
     private com.google.firebase.firestore.ListenerRegistration listenerComplaints;
@@ -118,26 +119,33 @@ public class AdminDashboardActivity extends AppCompatActivity {
         android.widget.TextView tvComplaintsSub = findViewById(R.id.tvComplaintsSub);
         android.widget.TextView tvUnassignedOrdersCount = findViewById(R.id.tvUnassignedOrdersCount);
 
-        // Live listener for users (customers + pharmacy owners)
+        // Live listener for users (customers/users count)
         listenerUsers = db.collection("users").addSnapshotListener((snapshots, error) -> {
             if (snapshots == null) return;
-            int total = snapshots.size();
-            int pharmaciesCount = 0;
-            int pendingPharm = 0;
+            long realUsers = snapshots.getDocuments().stream()
+                    .filter(d -> !"admin".equalsIgnoreCase(d.getString("role")))
+                    .count();
+            if (tvTotalUsers != null) tvTotalUsers.setText(String.valueOf(realUsers));
+        });
 
-            for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots) {
-                String role = doc.getString("role");
+        // Live listener for pharmacies collection (source of truth for pharmacies)
+        listenerPharmacies = db.collection("pharmacies").addSnapshotListener((snapshots, error) -> {
+            if (snapshots == null) return;
+            int approvedPharmacies = 0;
+            int pendingPharmacies = 0;
+
+            for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
                 String status = doc.getString("status");
-                if ("pharmacy_owner".equals(role)) {
-                    pharmaciesCount++;
-                    if ("pending".equals(status)) pendingPharm++;
-                }
+                Boolean approved = doc.getBoolean("isApproved");
+                boolean isApprovedFlag = Boolean.TRUE.equals(approved) || "approved".equalsIgnoreCase(status);
+                boolean isRejectedFlag = "rejected".equalsIgnoreCase(status);
+
+                if (isApprovedFlag) approvedPharmacies++;
+                else if (!isRejectedFlag) pendingPharmacies++;
             }
 
-            if (tvTotalUsers != null) tvTotalUsers.setText(String.valueOf(total));
-            if (tvPharmacies != null) tvPharmacies.setText(String.valueOf(pharmaciesCount));
-
-            pendingPharmaciesCount = pendingPharm;
+            if (tvPharmacies != null) tvPharmacies.setText(String.valueOf(approvedPharmacies));
+            pendingPharmaciesCount = pendingPharmacies;
             updatePendingUI(tvPendingApprovalsCount, tvPendingApprovalsSub);
         });
 
@@ -147,42 +155,69 @@ public class AdminDashboardActivity extends AppCompatActivity {
             int approvedRiders = 0;
             int pendingRiders = 0;
 
-            for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots) {
+            for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
                 String status = doc.getString("status");
-                if ("approved".equals(status)) approvedRiders++;
-                else if ("pending".equals(status)) pendingRiders++;
+                Boolean approved = doc.getBoolean("isApproved");
+                boolean isApprovedFlag = Boolean.TRUE.equals(approved) || "approved".equalsIgnoreCase(status);
+                boolean isRejectedFlag = "rejected".equalsIgnoreCase(status);
+
+                if (isApprovedFlag) approvedRiders++;
+                else if (!isRejectedFlag) pendingRiders++;
             }
 
             if (tvActiveRiders != null) tvActiveRiders.setText(String.valueOf(approvedRiders));
-
             pendingRidersCount = pendingRiders;
             updatePendingUI(tvPendingApprovalsCount, tvPendingApprovalsSub);
         });
 
-        // Live listener for Orders
+        // Live listener for Orders — today's orders + unassigned
         listenerOrders = db.collection("orders").addSnapshotListener((snapshots, error) -> {
             if (snapshots == null) return;
-            if (tvOrdersToday != null) tvOrdersToday.setText(String.valueOf(snapshots.size()));
+
+            // Compute midnight of today (local time)
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            cal.set(java.util.Calendar.MINUTE, 0);
+            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
+            long todayMidnight = cal.getTimeInMillis();
+
+            int ordersToday = 0;
             int unassigned = 0;
+
             for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots) {
-                String status = doc.getString("status");
-                if ("pending".equals(status) || "ready".equals(status) || "unassigned".equals(status)) {
+                // Count today's orders (createdAt >= midnight)
+                Object createdAtObj = doc.get("createdAt");
+                long createdMs = 0;
+                if (createdAtObj instanceof com.google.firebase.Timestamp) {
+                    createdMs = ((com.google.firebase.Timestamp) createdAtObj).toDate().getTime();
+                } else if (createdAtObj instanceof Number) {
+                    createdMs = ((Number) createdAtObj).longValue();
+                }
+                if (createdMs >= todayMidnight) ordersToday++;
+
+                // Count orders pending rider assignment
+                String riderId = doc.getString("riderId");
+                if ((riderId == null || riderId.trim().isEmpty()) && isReadyForRiderAssignment(doc)) {
                     unassigned++;
                 }
             }
-            if (tvUnassignedOrdersCount != null) tvUnassignedOrdersCount.setText(unassigned + " unassigned orders");
+
+            if (tvOrdersToday != null) tvOrdersToday.setText(String.valueOf(ordersToday));
+            if (tvUnassignedOrdersCount != null)
+                tvUnassignedOrdersCount.setText(unassigned + " unassigned orders");
         });
 
         // Live listener for Complaints
         listenerComplaints = db.collection("complaints").addSnapshotListener((snapshots, error) -> {
             if (snapshots == null) return;
             if (tvComplaintsCount != null) tvComplaintsCount.setText(snapshots.size() + " complaints");
-            int highPriority = 0;
+            int pendingComplaints = 0;
             for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots) {
-                String priority = doc.getString("priority");
-                if ("high".equalsIgnoreCase(priority)) highPriority++;
+                String status = doc.getString("status");
+                if (!"resolved".equalsIgnoreCase(status)) pendingComplaints++;
             }
-            if (tvComplaintsSub != null) tvComplaintsSub.setText(highPriority + " high priority");
+            if (tvComplaintsSub != null) tvComplaintsSub.setText(pendingComplaints + " need attention");
         });
     }
 
@@ -192,10 +227,48 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (tvSub != null) tvSub.setText(pendingPharmaciesCount + " pharmacies · " + pendingRidersCount + " riders");
     }
 
+    private boolean isReadyForRiderAssignment(com.google.firebase.firestore.DocumentSnapshot doc) {
+        String status = doc.getString("status");
+        if (status == null) return false;
+
+        String s = status.toLowerCase();
+        if ("picked_up".equals(s) || "out_for_delivery".equals(s) || "delivered".equals(s)
+                || "completed".equals(s) || "cancelled".equals(s) || "rejected".equals(s)) {
+            return false;
+        }
+
+        java.util.List<?> pharmIds = (java.util.List<?>) doc.get("pharmacyIds");
+        java.util.List<?> confirmedList = (java.util.List<?>) doc.get("confirmedPharmacies");
+        java.util.List<?> rejectedList  = (java.util.List<?>) doc.get("rejectedPharmacies");
+
+        int totalPharmCount = (pharmIds != null && !pharmIds.isEmpty()) ? pharmIds.size() : 1;
+
+        if (pharmIds == null || pharmIds.isEmpty()) {
+            java.util.List<?> items = (java.util.List<?>) doc.get("items");
+            if (items != null && !items.isEmpty()) {
+                java.util.Set<String> set = new java.util.HashSet<>();
+                for (Object itemObj : items) {
+                    if (itemObj instanceof java.util.Map) {
+                        Object pId = ((java.util.Map<?, ?>) itemObj).get("pharmacyId");
+                        if (pId != null) set.add(pId.toString());
+                    }
+                }
+                if (!set.isEmpty()) totalPharmCount = set.size();
+            }
+        }
+
+        int confirmedCount = confirmedList != null ? confirmedList.size() : 0;
+        int rejectedCount  = rejectedList  != null ? rejectedList.size()  : 0;
+
+        if (confirmedCount < 1) return false;
+        return (confirmedCount + rejectedCount) >= totalPharmCount;
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (listenerUsers != null) listenerUsers.remove();
+        if (listenerPharmacies != null) listenerPharmacies.remove();
         if (listenerRiders != null) listenerRiders.remove();
         if (listenerOrders != null) listenerOrders.remove();
         if (listenerComplaints != null) listenerComplaints.remove();

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,9 +26,13 @@ import com.nibm.pharmagomadproject.customer.activities.report.ReportIssueActivit
 import com.nibm.pharmagomadproject.customer.adapter.OrderAdapter;
 import com.nibm.pharmagomadproject.customer.models.Order;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class OrderHistoryActivity extends AppCompatActivity implements OrderAdapter.OrderListener {
 
@@ -128,11 +133,43 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
                                 ? doc.getString("status") : "pending");
                         Double totalVal = doc.getDouble("total");
                         o.setTotal(totalVal != null ? totalVal : 0.0);
+                        String riderIdVal = doc.getString("riderId");
+                        o.setRiderId(riderIdVal != null ? riderIdVal : "");
+
+                        Object createdAtObj = doc.get("createdAt");
+                        if (createdAtObj instanceof com.google.firebase.Timestamp) {
+                            o.setCreatedAt((com.google.firebase.Timestamp) createdAtObj);
+                        } else if (createdAtObj instanceof Long) {
+                            o.setCreatedAt(new com.google.firebase.Timestamp((Long) createdAtObj / 1000, 0));
+                        } else if (createdAtObj instanceof String) {
+                            try {
+                                Date parsed = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse((String) createdAtObj);
+                                o.setCreatedAt(new com.google.firebase.Timestamp(parsed.getTime() / 1000, 0));
+                            } catch (Exception e) {
+                                o.setCreatedAt(null);
+                            }
+                        } else {
+                            o.setCreatedAt(null);
+                        }
+
+
+                        Object rawItems = doc.get("items");
+                        if (rawItems instanceof List) {
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> itemsList = (List<Map<String, Object>>) rawItems;
+                            o.setItems(itemsList);
+                        }
+
                         allOrders.add(o);
                     }
 
                     // Sort newest orders first
-                    allOrders.sort((o1, o2) -> o2.getOrderId().compareTo(o1.getOrderId()));
+                    allOrders.sort((o1, o2) -> {
+                        if (o1.getCreatedAt() != null && o2.getCreatedAt() != null) {
+                            return o2.getCreatedAt().compareTo(o1.getCreatedAt());
+                        }
+                        return o2.getOrderId().compareTo(o1.getOrderId());
+                    });
 
                     applyTabFilter();
                 });
@@ -178,7 +215,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
                     include = "cancelled".equals(s);
                     break;
                 case "active":
-                    // Everything that is NOT delivered or cancelled goes here
+                    // Everything that is NOT delivered or cancel ed goes here
                     include = !"delivered".equals(s) && !"cancelled".equals(s);
                     break;
                 default: // "all"
@@ -197,7 +234,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
     }
 
 
-    // OrderAdapter.OrderListener
+    // ─── OrderAdapter.OrderListener ──────────────────
 
     @Override
     public void onTrackOrder(Order order) {
@@ -214,8 +251,60 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
 
     @Override
     public void onReorder(Order order) {
-        Toast.makeText(this, "Items added to cart!", Toast.LENGTH_SHORT).show();
+        List<Map<String, Object>> items = order.getItems();
+        if (items != null && !items.isEmpty()) {
+            addItemsToCartAndNavigate(items);
+        } else {
+            // Fetch doc from Firestore if items were not cached
+            db.collection("orders").document(order.getOrderId()).get()
+                    .addOnSuccessListener(doc -> {
+                        List<Map<String, Object>> fetchedItems = (List<Map<String, Object>>) doc.get("items");
+                        if (fetchedItems != null && !fetchedItems.isEmpty()) {
+                            addItemsToCartAndNavigate(fetchedItems);
+                        } else {
+                            Toast.makeText(this, "No items found in this order", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e ->
+                            Toast.makeText(this, "Failed to load order items", Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    private void addItemsToCartAndNavigate(List<Map<String, Object>> items) {
+        int addedCount = 0;
+        for (Map<String, Object> map : items) {
+            String medId = (String) map.get("medicineId");
+            String name  = (String) map.get("medicineName");
+            String brand = (String) map.get("brand");
+            String phId  = (String) map.get("pharmacyId");
+            String phName = (String) map.get("pharmacyName");
+            double price = map.get("price") instanceof Number ? ((Number) map.get("price")).doubleValue() : 0.0;
+            int qty      = map.get("quantity") instanceof Number ? ((Number) map.get("quantity")).intValue() : 1;
+
+            com.nibm.pharmagomadproject.customer.models.Cart cartItem =
+                    new com.nibm.pharmagomadproject.customer.models.Cart(
+                            medId != null ? medId : "temp_" + System.currentTimeMillis(),
+                            name != null ? name : "Medicine",
+                            brand != null ? brand : "",
+                            phId != null ? phId : "",
+                            phName != null ? phName : "",
+                            price,
+                            qty
+                    );
+            CartActivity.addToCart(cartItem);
+            addedCount++;
+        }
+        Toast.makeText(this, addedCount + " item(s) re-added to cart!", Toast.LENGTH_SHORT).show();
         startActivity(new Intent(this, CartActivity.class));
+    }
+
+    @Override
+    public void onRateOrder(Order order) {
+        Intent intent = new Intent(this, com.nibm.pharmagomadproject.customer.activities.review.ReviewActivity.class);
+        intent.putExtra("orderId", order.getOrderId());
+        intent.putExtra("pharmacyId", order.getPharmacyId() != null ? order.getPharmacyId() : "");
+        intent.putExtra("riderId", order.getRiderId() != null ? order.getRiderId() : "");
+        startActivity(intent);
     }
 
     @Override
@@ -227,19 +316,54 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
 
     @Override
     public void onCancelOrder(Order order) {
+        String status = order.getStatus() != null ? order.getStatus().toLowerCase() : "";
+        // Block cancel if order is already processing or further
+        if ("processing".equals(status) || "partially_approved".equals(status)
+                || "picked_up".equals(status) || "out_for_delivery".equals(status)
+                || "delivered".equals(status) || "completed".equals(status)) {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Cannot Cancel")
+                    .setMessage("This order is already being processed and cannot be cancelled.")
+                    .setPositiveButton("OK", null)
+                    .show();
+            return;
+        }
+
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Cancel order?")
                 .setMessage("This action cannot be undone.")
                 .setPositiveButton("Yes, cancel", (dialog, which) -> {
                     db.collection("orders").document(order.getOrderId())
-                            .update("status", "cancelled")
-                            .addOnSuccessListener(v -> {
-                                Toast.makeText(this, "Order cancelled", Toast.LENGTH_SHORT).show();
-                                loadOrders();
+                            .get()
+                            .addOnSuccessListener(doc -> {
+                                if (!doc.exists()) return;
+                                String paymentMethod = doc.getString("paymentMethod");
+                                String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+
+                                db.collection("orders").document(order.getOrderId())
+                                        .update("status", "cancelled")
+                                        .addOnSuccessListener(v -> {
+                                            Toast.makeText(this, "Order cancelled", Toast.LENGTH_SHORT).show();
+
+                                            // Send refund notification if paid by card
+                                            if ("card".equalsIgnoreCase(paymentMethod) && !uid.isEmpty()) {
+                                                java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                                                notif.put("userId", uid);
+                                                notif.put("title", "Refund Initiated 💳");
+                                                notif.put("message", "Your order " + order.getOrderId() + " was cancelled. A refund will be processed to your card within 2 working days.");
+                                                notif.put("type", "refund");
+                                                notif.put("referenceId", order.getOrderId());
+                                                notif.put("isRead", false);
+                                                notif.put("createdAt", System.currentTimeMillis());
+                                                db.collection("notifications").add(notif);
+                                            }
+                                        })
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(this, "Failed: " + e.getMessage(),
+                                                        Toast.LENGTH_SHORT).show());
                             })
                             .addOnFailureListener(e ->
-                                    Toast.makeText(this, "Failed: " + e.getMessage(),
-                                            Toast.LENGTH_SHORT).show());
+                                    Toast.makeText(this, "Failed to load order: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                 })
                 .setNegativeButton("Keep order", null)
                 .show();

@@ -136,6 +136,18 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
 
                         orderList.add(item);
 
+                        // Fetch real rating from reviews collection
+                        db.collection("reviews").whereEqualTo("orderId", doc.getId()).get()
+                                .addOnSuccessListener(rSnap -> {
+                                    if (!rSnap.isEmpty()) {
+                                        Double r = rSnap.getDocuments().get(0).getDouble("rating");
+                                        if (r != null && r > 0) {
+                                            item.put("rating", String.format(java.util.Locale.getDefault(), "⭐ %.1f", r));
+                                            if (adapter != null) adapter.notifyDataSetChanged();
+                                        }
+                                    }
+                                });
+
                         // Fetch customer name
                         if (customerId != null) {
                             final int idx = orderList.size() - 1;

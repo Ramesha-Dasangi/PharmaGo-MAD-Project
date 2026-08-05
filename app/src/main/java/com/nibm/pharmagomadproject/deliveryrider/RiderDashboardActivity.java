@@ -156,7 +156,7 @@ public class RiderDashboardActivity extends AppCompatActivity {
                 if (!hasNew && isMyOrder && status.equalsIgnoreCase("assigned")) {
                     if (cardNewAssignment != null) cardNewAssignment.setVisibility(View.VISIBLE);
                     if (tvNewAssignmentLabel != null) tvNewAssignmentLabel.setVisibility(View.VISIBLE);
-                    if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
+                    if (tvNewOrderId != null) tvNewOrderId.setText("Order #" + doc.getId());
                     
                     if (tvNewOrderDetails != null) {
                         java.util.List<java.util.Map<String, Object>> items = (java.util.List<java.util.Map<String, Object>>) doc.get("items");
@@ -169,7 +169,7 @@ public class RiderDashboardActivity extends AppCompatActivity {
                 } else if (!hasActive && isMyOrder && (status.equalsIgnoreCase("picked_up") || status.equalsIgnoreCase("out_for_delivery"))) {
                     if (cardInProgress != null) cardInProgress.setVisibility(View.VISIBLE);
                     if (tvInProgressLabel != null) tvInProgressLabel.setVisibility(View.VISIBLE);
-                    if (tvActiveOrderId != null) tvActiveOrderId.setText("Order #" + doc.getId().substring(0, Math.min(6, doc.getId().length())).toUpperCase());
+                    if (tvActiveOrderId != null) tvActiveOrderId.setText("Order #" + doc.getId());
                     
                     if (tvActiveOrderDetails != null) {
                         String displayStatus = status.substring(0, 1).toUpperCase() + status.substring(1).replace("_", " ");

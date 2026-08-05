@@ -96,9 +96,9 @@ public class UnassignedOrdersActivity extends AppCompatActivity {
                             String status = doc.getString("status");
                             String riderId = doc.getString("riderId");
                             String riderName = doc.getString("riderName");
-                            
-                            // We only care about orders that haven't been picked up or delivered yet
-                            if ("picked_up".equals(status) || "delivered".equals(status) || "cancelled".equals(status)) {
+
+                            // Filter out orders that are not ready for rider assignment
+                            if (!isReadyForRiderAssignment(doc)) {
                                 continue;
                             }
 
@@ -133,6 +133,56 @@ public class UnassignedOrdersActivity extends AppCompatActivity {
 
                     updateUI();
                 });
+    }
+
+    /**
+     * Checks if an order is ready for rider assignment.
+     * Rules:
+     * - Order must NOT be closed (picked_up, out_for_delivery, delivered, cancelled, rejected).
+     * - Multi-pharmacy: ALL pharmacies must have responded (confirmed + rejected >= totalPharmCount).
+     * - At least 1 pharmacy must have confirmed/approved the order.
+     */
+    private boolean isReadyForRiderAssignment(DocumentSnapshot doc) {
+        String status = doc.getString("status");
+        if (status == null) return false;
+
+        String s = status.toLowerCase();
+        if ("picked_up".equals(s) || "out_for_delivery".equals(s) || "delivered".equals(s)
+                || "completed".equals(s) || "cancelled".equals(s) || "rejected".equals(s)) {
+            return false;
+        }
+
+        java.util.List<?> pharmIds = (java.util.List<?>) doc.get("pharmacyIds");
+        java.util.List<?> confirmedList = (java.util.List<?>) doc.get("confirmedPharmacies");
+        java.util.List<?> rejectedList = (java.util.List<?>) doc.get("rejectedPharmacies");
+
+        int totalPharmCount = (pharmIds != null && !pharmIds.isEmpty()) ? pharmIds.size() : 1;
+
+        // Fallback: count unique pharmacyIds from items list if pharmacyIds array is missing
+        if (pharmIds == null || pharmIds.isEmpty()) {
+            java.util.List<?> items = (java.util.List<?>) doc.get("items");
+            if (items != null && !items.isEmpty()) {
+                java.util.Set<String> set = new java.util.HashSet<>();
+                for (Object itemObj : items) {
+                    if (itemObj instanceof java.util.Map) {
+                        Object pId = ((java.util.Map<?, ?>) itemObj).get("pharmacyId");
+                        if (pId != null) set.add(pId.toString());
+                    }
+                }
+                if (!set.isEmpty()) totalPharmCount = set.size();
+            }
+        }
+
+        int confirmedCount = confirmedList != null ? confirmedList.size() : 0;
+        int rejectedCount  = rejectedList  != null ? rejectedList.size()  : 0;
+
+        // Requirement: At least 1 pharmacy must have approved/confirmed
+        if (confirmedCount < 1) {
+            return false;
+        }
+
+        // Requirement: ALL pharmacies must have responded (confirmed + rejected >= totalPharmCount)
+        return (confirmedCount + rejectedCount) >= totalPharmCount;
     }
 
     private void selectTab(boolean isUnassigned) {

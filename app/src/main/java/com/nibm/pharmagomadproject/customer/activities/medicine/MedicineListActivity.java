@@ -344,7 +344,7 @@ public class MedicineListActivity extends AppCompatActivity {
             row.setBackground(getDrawable(android.R.color.transparent));
 
             CheckBox cb = new CheckBox(this);
-            cb.setChecked(!hiddenPharmacies.contains(pharmacy));
+            cb.setChecked(hiddenPharmacies.contains(pharmacy));
             cb.setButtonTintList(
                     android.content.res.ColorStateList.valueOf(
                             getResources().getColor(R.color.pg_primary, null)));
@@ -353,7 +353,7 @@ public class MedicineListActivity extends AppCompatActivity {
                     LinearLayout.LayoutParams.WRAP_CONTENT));
 
             TextView tvPharmacy = new TextView(this);
-            tvPharmacy.setText(pharmacy);
+            tvPharmacy.setText(pharmacy + " (Hide)");
             tvPharmacy.setTextColor(getResources().getColor(R.color.pg_text, null));
             tvPharmacy.setTextSize(13);
             tvPharmacy.setPadding(dp(8), dp(10), 0, dp(10));
@@ -361,19 +361,17 @@ public class MedicineListActivity extends AppCompatActivity {
                     0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
             tvPharmacy.setLayoutParams(tvLp);
 
-            // Click row or checkbox — toggle
-            View.OnClickListener toggleListener = v -> {
-                if (hiddenPharmacies.contains(pharmacy)) {
-                    hiddenPharmacies.remove(pharmacy);
-                    cb.setChecked(true);
-                } else {
+            // Set listener on CheckBox using setOnCheckedChangeListener
+            cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
                     hiddenPharmacies.add(pharmacy);
-                    cb.setChecked(false);
+                } else {
+                    hiddenPharmacies.remove(pharmacy);
                 }
                 refreshList();
-            };
-            row.setOnClickListener(toggleListener);
-            cb.setOnClickListener(toggleListener);
+            });
+
+            row.setOnClickListener(v -> cb.setChecked(!cb.isChecked()));
 
             row.addView(cb);
             row.addView(tvPharmacy);
@@ -392,13 +390,18 @@ public class MedicineListActivity extends AppCompatActivity {
             // Hidden pharmacy
             if (hiddenPharmacies.contains(m.getPharmacy())) continue;
 
-            // Mode filter
+            // Mode filter — if a category chip is selected (activeType != "All"), activeType overrides mode filter
             boolean modeMatch = true;
-            if ("category".equals(mode)) {
-                String catClean  = m.getCategory() != null ? m.getCategory().replace(" ", "").toLowerCase() : "";
-                String typeClean = m.getType()     != null ? m.getType().replace(" ", "").toLowerCase()     : "";
-                String qClean    = query.replace(" ", "").toLowerCase();
-                modeMatch = catClean.contains(qClean) || typeClean.contains(qClean);
+            if ("All".equalsIgnoreCase(activeType)) {
+                if ("category".equals(mode)) {
+                    String catClean  = m.getCategory() != null ? m.getCategory().replace(" ", "").toLowerCase() : "";
+                    String typeClean = m.getType()     != null ? m.getType().replace(" ", "").toLowerCase()     : "";
+                    String qClean    = query.replace(" ", "").toLowerCase();
+                    modeMatch = catClean.contains(qClean) || typeClean.contains(qClean);
+                } else if ("pharmacy".equals(mode)) {
+                    modeMatch = (m.getPharmacyId() != null && m.getPharmacyId().equalsIgnoreCase(query))
+                            || (m.getPharmacy() != null && m.getPharmacy().equalsIgnoreCase(query));
+                }
             } else if ("pharmacy".equals(mode)) {
                 modeMatch = (m.getPharmacyId() != null && m.getPharmacyId().equalsIgnoreCase(query))
                         || (m.getPharmacy() != null && m.getPharmacy().equalsIgnoreCase(query));

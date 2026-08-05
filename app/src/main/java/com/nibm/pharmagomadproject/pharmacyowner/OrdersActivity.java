@@ -23,7 +23,7 @@ public class OrdersActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private BottomNavigationView bottomNavigation;
 
-    private Button btnNew, btnProcessing, btnCompleted;
+    private Button btnNew, btnProcessing, btnCompleted, btnRejected;
 
     private ArrayList<OrderModel> allOrders;
     private ArrayList<OrderModel> orderList;
@@ -49,6 +49,7 @@ public class OrdersActivity extends AppCompatActivity {
         btnNew = findViewById(R.id.btnNew);
         btnProcessing = findViewById(R.id.btnProcessing);
         btnCompleted = findViewById(R.id.btnCompleted);
+        btnRejected = findViewById(R.id.btnRejected);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -85,6 +86,14 @@ public class OrdersActivity extends AppCompatActivity {
             showOrders("Completed");
             highlightButton(btnCompleted);
         });
+
+        if (btnRejected != null) {
+            btnRejected.setOnClickListener(v -> {
+                activeFilterStatus = "Rejected";
+                showOrders("Rejected");
+                highlightButton(btnRejected);
+            });
+        }
 
         // BOTTOM NAV
         bottomNavigation.setSelectedItemId(R.id.nav_orders);
@@ -147,6 +156,7 @@ public class OrdersActivity extends AppCompatActivity {
         int newCount = 0;
         int processingCount = 0;
         int completedCount = 0;
+        int rejectedCount = 0;
 
         for (OrderModel order : allOrders) {
 
@@ -162,20 +172,26 @@ public class OrdersActivity extends AppCompatActivity {
                 case "Completed":
                     completedCount++;
                     break;
+
+                case "Rejected":
+                    rejectedCount++;
+                    break;
             }
         }
 
         btnNew.setText("New (" + newCount + ")");
         btnProcessing.setText("Processing (" + processingCount + ")");
         btnCompleted.setText("Completed (" + completedCount + ")");
+        if (btnRejected != null) btnRejected.setText("Rejected (" + rejectedCount + ")");
     }
 
     // BUTTON HIGHLIGHT
     private void highlightButton(Button selectedButton) {
 
-        Button[] buttons = {btnNew, btnProcessing, btnCompleted};
+        Button[] buttons = {btnNew, btnProcessing, btnCompleted, btnRejected};
 
         for (Button b : buttons) {
+            if (b == null) continue;
             b.setBackgroundTintList(getColorStateList(R.color.light));
             b.setTextColor(getColor(R.color.green));
         }
@@ -201,16 +217,16 @@ public class OrdersActivity extends AppCompatActivity {
                 for (com.google.firebase.firestore.DocumentSnapshot doc : orderSnaps) {
                     java.util.List<java.util.Map<String, Object>> items = (java.util.List<java.util.Map<String, Object>>) doc.get("items");
                     boolean belongsToMe = false;
-                    boolean hasRx = false;
+                    boolean hasRxForMe = false;
                     if (items != null) {
                         for (java.util.Map<String, Object> item : items) {
                             String itemPharmacyId = (String) item.get("pharmacyId");
                             if (ownerId.equals(itemPharmacyId)) {
                                 belongsToMe = true;
-                            }
-                            String typeStr = (String) item.get("type");
-                            if ("Prescription".equalsIgnoreCase(typeStr)) {
-                                hasRx = true;
+                                String typeStr = (String) item.get("type");
+                                if ("Prescription".equalsIgnoreCase(typeStr) || "Rx".equalsIgnoreCase(typeStr)) {
+                                    hasRxForMe = true;
+                                }
                             }
                         }
                     }
@@ -220,29 +236,52 @@ public class OrdersActivity extends AppCompatActivity {
                         String customerName = userNameById.get(customerId);
                         if (customerName == null) customerName = "Customer";
 
-                        // Build items description
+                        // Build items description for this pharmacy
                         StringBuilder itemsDesc = new StringBuilder();
                         if (items != null) {
                             for (java.util.Map<String, Object> item : items) {
-                                if (itemsDesc.length() > 0) itemsDesc.append(", ");
-                                itemsDesc.append(item.get("medicineName"))
-                                        .append(" x")
-                                        .append(item.get("quantity"));
+                                String itemPharmId = (String) item.get("pharmacyId");
+                                if (ownerId.equals(itemPharmId)) {
+                                    if (itemsDesc.length() > 0) itemsDesc.append(", ");
+                                    itemsDesc.append(item.get("medicineName"))
+                                            .append(" x")
+                                            .append(item.get("quantity"));
+                                }
                             }
                         }
 
-                        // Status mapping: "pending" -> "New", "processing" -> "Processing", "completed" -> "Completed"
+                        // Status mapping per-pharmacy
                         String fsStatus = doc.getString("status");
-                        String displayStatus = "New";
-                        if ("processing".equalsIgnoreCase(fsStatus)) {
-                            displayStatus = "Processing";
-                        } else if ("completed".equalsIgnoreCase(fsStatus) || "delivered".equalsIgnoreCase(fsStatus) 
-                                || "ready".equalsIgnoreCase(fsStatus) || "rejected".equalsIgnoreCase(fsStatus) 
-                                || "cancelled".equalsIgnoreCase(fsStatus)) {
-                            displayStatus = "Completed";
-                        }
+                        if (fsStatus == null) fsStatus = "pending";
 
-                        String type = hasRx || doc.getString("prescriptionUrl") != null ? "RX Required" : "OTC";
+                        java.util.List<?> confirmedPharmacies = (java.util.List<?>) doc.get("confirmedPharmacies");
+                        java.util.List<?> rejectedPharmacies  = (java.util.List<?>) doc.get("rejectedPharmacies");
+                        boolean myPharmacyConfirmed = confirmedPharmacies != null && confirmedPharmacies.contains(ownerId);
+                        boolean myPharmacyRejected  = rejectedPharmacies  != null && rejectedPharmacies.contains(ownerId);
+
+                        String type = hasRxForMe ? "RX Required" : "OTC";
+
+                        String displayStatus = "New";
+                        String stLower = fsStatus.toLowerCase();
+
+                        if (myPharmacyRejected) {
+                            // This pharmacy rejected the order
+                            displayStatus = "Rejected";
+                        } else if ("completed".equals(stLower) || "delivered".equals(stLower)
+                                || "cancelled".equals(stLower)) {
+                            displayStatus = "Completed";
+                        } else if ("rejected".equals(stLower) || "partially_rejected".equals(stLower)) {
+                            // Global rejection (not specifically by this pharmacy, or all rejected)
+                            displayStatus = "Rejected";
+                        } else if (myPharmacyConfirmed || !hasRxForMe
+                                || "processing".equals(stLower) || "partially_approved".equals(stLower)
+                                || "picked_up".equals(stLower) || "out_for_delivery".equals(stLower)) {
+                            // OTC item or responded/processing -> Processing
+                            displayStatus = "Processing";
+                        } else {
+                            // Prescription required & awaiting response -> New
+                            displayStatus = "New";
+                        }
 
                         double total = 0;
                         Object totalObj = doc.get("total");
