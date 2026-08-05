@@ -18,6 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String orderId;
 
-    private TextView tvOrderTitle, tvCustomerName, tvCustomerAddress, tvDropoffName;
+    private TextView tvOrderTitle, tvCustomerName, tvCustomerAddress, tvDropoffName, tvDropoffAddress;
     private LinearLayout stopsContainer;
 
     @Override
@@ -39,11 +40,12 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        tvOrderTitle = findViewById(R.id.tvOrderTitle);
-        tvCustomerName = findViewById(R.id.tvCustomerName);
-        tvCustomerAddress = findViewById(R.id.tvCustomerAddress);
-        tvDropoffName = findViewById(R.id.tvDropoffName);
-        stopsContainer = findViewById(R.id.stopsContainer);
+        tvOrderTitle       = findViewById(R.id.tvOrderTitle);
+        tvCustomerName     = findViewById(R.id.tvCustomerName);
+        tvCustomerAddress  = findViewById(R.id.tvCustomerAddress);
+        tvDropoffName      = findViewById(R.id.tvDropoffName);
+        tvDropoffAddress   = findViewById(R.id.tvDropoffAddress);
+        stopsContainer     = findViewById(R.id.stopsContainer);
 
         orderId = getIntent().getStringExtra("orderId");
 
@@ -82,48 +84,33 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
         com.google.android.material.button.MaterialButton btnCancelAssignment = findViewById(R.id.btnCancelAssignment);
         if (btnCancelAssignment != null && orderId != null) {
             btnCancelAssignment.setOnClickListener(v ->
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                        .setTitle("Cancel Assignment?")
-                        .setMessage("Order ID: " + orderId + "\n\nAre you sure you want to cancel?")
-                        .setPositiveButton("Yes, cancel", (dialog, which) -> {
-                            String riderId = FirebaseAuth.getInstance().getCurrentUser() != null
-                                    ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                            .setTitle("Cancel Assignment?")
+                            .setMessage("Order ID: " + orderId + "\n\nAre you sure you want to cancel?")
+                            .setPositiveButton("Yes, cancel", (dialog, which) -> {
+                                String riderId = FirebaseAuth.getInstance().getCurrentUser() != null
+                                        ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-                            db.collection("orders").document(orderId)
-                                    .update("status", "cancelled")
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(this, "Cancelled: " + orderId, Toast.LENGTH_LONG).show();
+                                db.collection("orders").document(orderId)
+                                        .update("status", "cancelled")
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(this, "Cancelled: " + orderId, Toast.LENGTH_LONG).show();
 
-                                        if (riderId != null) {
-                                            db.collection("riders").document(riderId)
-                                                    .update("activeOrderId", FieldValue.delete());
-                                        }
+                                            if (riderId != null) {
+                                                db.collection("riders").document(riderId)
+                                                        .update("activeOrderId", FieldValue.delete());
+                                            }
 
-                                        finish();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(this, "FAILED for " + orderId + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                    });
-                        })
-                        .setNegativeButton("Keep assignment", null)
-                        .show()
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(this, "FAILED for " + orderId + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        });
+                            })
+                            .setNegativeButton("Keep assignment", null)
+                            .show()
             );
         }
-
-        View navHome = findViewById(R.id.navHome);
-        if (navHome != null) navHome.setOnClickListener(v -> {
-            Intent i = new Intent(this, RiderDashboardActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(i);
-        });
-        View navMap = findViewById(R.id.navMap);
-        if (navMap != null) navMap.setOnClickListener(v -> startActivity(new Intent(this, LiveMapActivity.class)));
-
-        View navHistory = findViewById(R.id.navHistory);
-        if (navHistory != null) navHistory.setOnClickListener(v -> startActivity(new Intent(this, DeliveryHistoryActivity.class)));
-
-        View navProfile = findViewById(R.id.navProfile);
-        if (navProfile != null) navProfile.setOnClickListener(v -> startActivity(new Intent(this, RiderProfileActivity.class)));
 
         if (orderId != null && !orderId.isEmpty()) {
             fetchOrderDetails(orderId);
@@ -133,79 +120,164 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
     }
 
     private void fetchOrderDetails(String oId) {
-        tvOrderTitle.setText("Order #" + oId.substring(0, Math.min(6, oId.length())).toUpperCase());
-        
+        tvOrderTitle.setText("Order #" + oId.toUpperCase());
+
         db.collection("orders").document(oId).get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 String customerId = doc.getString("customerId");
-                String address = doc.getString("deliveryAddress");
-                if (address == null) address = doc.getString("address");
-                
-                if (address != null) tvCustomerAddress.setText(address);
+                String rawAddress = doc.getString("deliveryAddress");
+                if (rawAddress == null) rawAddress = doc.getString("address");
+                final String deliveryAddress = rawAddress;
+
+                if (deliveryAddress != null && !deliveryAddress.isEmpty()) {
+                    tvCustomerAddress.setText(deliveryAddress);
+                    if (tvDropoffAddress != null) tvDropoffAddress.setText("📍 " + deliveryAddress);
+                }
 
                 if (customerId != null) {
                     db.collection("users").document(customerId).get().addOnSuccessListener(userDoc -> {
                         if (userDoc.exists()) {
                             String name = userDoc.getString("name");
+                            String userAddr = userDoc.getString("address");
                             if (name != null) {
                                 tvCustomerName.setText(name);
-                                tvDropoffName.setText(name + "'s home");
+                                tvDropoffName.setText(name + "'s location");
+                            }
+                            // Use user's stored address as fallback if order has none
+                            if ((deliveryAddress == null || deliveryAddress.isEmpty()) && userAddr != null) {
+                                tvCustomerAddress.setText(userAddr);
+                                if (tvDropoffAddress != null) tvDropoffAddress.setText("📍 " + userAddr);
                             }
                         }
                     });
                 }
 
                 List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
+                final List<?> confirmedPharmacies = (List<?>) doc.get("confirmedPharmacies");
+
                 if (items != null && !items.isEmpty()) {
-                    // Group items by pharmacy
-                    Map<String, StringBuilder> pharmacyItemsMap = new HashMap<>();
+                    // Group items by pharmacy — only include CONFIRMED pharmacies
+                    Map<String, StringBuilder> pharmacyItemsMap = new LinkedHashMap<>();
                     for (Map<String, Object> item : items) {
                         String pId = (String) item.get("pharmacyId");
-                        if (pId == null) pId = "unknown";
-                        
+                        if (pId == null) continue; // skip items without pharmacy
+
+                        // If confirmedPharmacies exists, only show confirmed ones
+                        if (confirmedPharmacies != null && !confirmedPharmacies.isEmpty()
+                                && !confirmedPharmacies.contains(pId)) {
+                            continue; // skip rejected/unanswered pharmacies
+                        }
+
                         String medicineName = item.get("medicineName") != null ? item.get("medicineName").toString() : "Medicine";
                         String qty = item.get("quantity") != null ? item.get("quantity").toString() : "1";
                         String itemStr = medicineName + " x" + qty;
-                        
+
                         if (!pharmacyItemsMap.containsKey(pId)) {
                             pharmacyItemsMap.put(pId, new StringBuilder(itemStr));
                         } else {
                             pharmacyItemsMap.get(pId).append("\n").append(itemStr);
                         }
                     }
-                    
+
                     stopsContainer.removeAllViews();
                     int stopNum = 1;
-                    
-                    String pId1 = (String) item1.get("pharmacyId");
-                    if (pId1 != null && !pId1.trim().isEmpty()) {
-                        db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
-                            if (pDoc.exists()) {
-                                if (pDoc.getString("name") != null) tvStop1Name.setText(pDoc.getString("name"));
-                                if (tvStop1Address != null) tvStop1Address.setText("Address: " + (pDoc.getString("address") != null ? pDoc.getString("address") : "N/A"));
-                                if (tvStop1Phone != null) tvStop1Phone.setText("Phone: " + (pDoc.getString("phone") != null ? pDoc.getString("phone") : "N/A"));
+
+                    for (Map.Entry<String, StringBuilder> entry : pharmacyItemsMap.entrySet()) {
+                        String pId = entry.getKey();
+                        String itemsListStr = entry.getValue().toString();
+
+                        View stopView = LayoutInflater.from(this).inflate(R.layout.item_assignment_stop, stopsContainer, false);
+                        TextView tvStopNum = stopView.findViewById(R.id.tvStopNum);
+                        TextView tvStopName = stopView.findViewById(R.id.tvStopName);
+                        TextView tvStopItems = stopView.findViewById(R.id.tvStopItems);
+                        TextView tvStopAddress = stopView.findViewById(R.id.tvStopAddress);
+                        TextView tvStopPhone = stopView.findViewById(R.id.tvStopPhone);
+                        ImageView btnExpandStop = stopView.findViewById(R.id.btnExpandStop);
+                        View layoutStopDetails = stopView.findViewById(R.id.layoutStopDetails);
+
+                        if (tvStopNum != null) tvStopNum.setText(String.valueOf(stopNum));
+                        if (tvStopItems != null) tvStopItems.setText(itemsListStr);
+
+                        // Expand by default so address is immediately visible
+                        if (layoutStopDetails != null) {
+                            layoutStopDetails.setVisibility(View.VISIBLE);
+                        }
+                        if (btnExpandStop != null && layoutStopDetails != null) {
+                            btnExpandStop.setOnClickListener(v -> {
+                                boolean isVisible = layoutStopDetails.getVisibility() == View.VISIBLE;
+                                layoutStopDetails.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+                            });
+                        }
+
+                        String inlinePharmName = null;
+                        String inlinePharmAddr = null;
+                        if (items != null) {
+                            for (Map<String, Object> item : items) {
+                                String itemPid = (String) item.get("pharmacyId");
+                                if (pId.equals(itemPid)) {
+                                    if (item.get("pharmacyName") != null) inlinePharmName = item.get("pharmacyName").toString();
+                                    if (item.get("pharmacyAddress") != null) inlinePharmAddr = item.get("pharmacyAddress").toString();
+                                }
                             }
-                        });
-                        
-                        String pId2 = (String) item2.get("pharmacyId");
-                        if (pId2 != null && !pId2.trim().isEmpty()) {
-                            db.collection("users").document(pId2).get().addOnSuccessListener(pDoc -> {
-                                if (pDoc.exists()) {
-                                    if (pDoc.getString("name") != null) tvStop2Name.setText(pDoc.getString("name"));
-                                    if (tvStop2Address != null) tvStop2Address.setText("Address: " + (pDoc.getString("address") != null ? pDoc.getString("address") : "N/A"));
-                                    if (tvStop2Phone != null) tvStop2Phone.setText("Phone: " + (pDoc.getString("phone") != null ? pDoc.getString("phone") : "N/A"));
+                        }
+
+                        if (inlinePharmName != null && tvStopName != null) tvStopName.setText(inlinePharmName);
+                        if (inlinePharmAddr != null && tvStopAddress != null) tvStopAddress.setText("📍 " + inlinePharmAddr);
+
+                        if (!"unknown".equals(pId)) {
+                            final String fallbackName = inlinePharmName;
+                            final String fallbackAddr = inlinePharmAddr;
+
+                            // 1. Try pharmacies collection by doc ID first
+                            db.collection("pharmacies").document(pId).get().addOnSuccessListener(pharDoc -> {
+                                if (pharDoc.exists()) {
+                                    String phName = pharDoc.getString("pharmacyName") != null ? pharDoc.getString("pharmacyName") : pharDoc.getString("name");
+                                    String phAddr = pharDoc.getString("address") != null ? pharDoc.getString("address") : (pharDoc.getString("pharmacyAddress") != null ? pharDoc.getString("pharmacyAddress") : pharDoc.getString("locationAddress"));
+                                    String phPhone = pharDoc.getString("phone") != null ? pharDoc.getString("phone") : pharDoc.getString("phoneNumber");
+
+                                    if (phName != null && !phName.isEmpty() && tvStopName != null) tvStopName.setText(phName);
+                                    if (phAddr != null && !phAddr.isEmpty() && tvStopAddress != null) tvStopAddress.setText("📍 " + phAddr);
+                                    if (phPhone != null && !phPhone.isEmpty() && tvStopPhone != null) tvStopPhone.setText("📞 " + phPhone);
+                                } else {
+                                    // 2. Try querying pharmacies collection where ownerId == pId
+                                    db.collection("pharmacies").whereEqualTo("ownerId", pId).limit(1).get().addOnSuccessListener(querySnap -> {
+                                        if (querySnap != null && !querySnap.isEmpty()) {
+                                            com.google.firebase.firestore.DocumentSnapshot doc2 = querySnap.getDocuments().get(0);
+                                            String phName = doc2.getString("pharmacyName") != null ? doc2.getString("pharmacyName") : doc2.getString("name");
+                                            String phAddr = doc2.getString("address") != null ? doc2.getString("address") : (doc2.getString("pharmacyAddress") != null ? doc2.getString("pharmacyAddress") : doc2.getString("locationAddress"));
+                                            String phPhone = doc2.getString("phone") != null ? doc2.getString("phone") : doc2.getString("phoneNumber");
+
+                                            if (phName != null && !phName.isEmpty() && tvStopName != null) tvStopName.setText(phName);
+                                            if (phAddr != null && !phAddr.isEmpty() && tvStopAddress != null) tvStopAddress.setText("📍 " + phAddr);
+                                            if (phPhone != null && !phPhone.isEmpty() && tvStopPhone != null) tvStopPhone.setText("📞 " + phPhone);
+                                        } else {
+                                            // 3. Fallback to users collection — check pharmacyName specifically
+                                            db.collection("users").document(pId).get().addOnSuccessListener(pDoc -> {
+                                                if (pDoc.exists()) {
+                                                    String phName = pDoc.getString("pharmacyName");
+                                                    String phAddr = pDoc.getString("pharmacyAddress") != null ? pDoc.getString("pharmacyAddress") : pDoc.getString("address");
+                                                    String phPhone = pDoc.getString("phone") != null ? pDoc.getString("phone") : pDoc.getString("phoneNumber");
+
+                                                    if (phName != null && !phName.isEmpty() && tvStopName != null) tvStopName.setText(phName);
+                                                    if (phAddr != null && !phAddr.isEmpty() && tvStopAddress != null) tvStopAddress.setText("📍 " + phAddr);
+                                                    if (phPhone != null && !phPhone.isEmpty() && tvStopPhone != null) tvStopPhone.setText("📞 " + phPhone);
+                                                } else if (fallbackAddr == null && tvStopAddress != null) {
+                                                    tvStopAddress.setText("📍 Address not available");
+                                                }
+                                            });
+                                        }
+                                    });
                                 }
                             });
                         } else {
-                            tvStopName.setText("Unknown Pharmacy");
-                            tvStopAddress.setText("Address: N/A");
-                            tvStopPhone.setText("Phone: N/A");
+                            if (tvStopName    != null) tvStopName.setText("Pharmacy");
+                            if (tvStopAddress != null) tvStopAddress.setText("📍 Address not available");
                         }
-                        
+
                         stopsContainer.addView(stopView);
                         stopNum++;
                     }
-                    
+
                     TextView tvStopsCount = findViewById(R.id.tvStopsCount);
                     if (tvStopsCount != null) {
                         tvStopsCount.setText(pharmacyItemsMap.size() + " stops");

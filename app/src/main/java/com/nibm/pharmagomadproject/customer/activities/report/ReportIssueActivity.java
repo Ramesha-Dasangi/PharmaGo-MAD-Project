@@ -47,11 +47,29 @@ public class ReportIssueActivity extends AppCompatActivity {
             FirebaseFirestore.getInstance().collection("orders").document(orderId).get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
-                            String pharmacyName = doc.getString("pharmacyName");
-                            String riderId      = doc.getString("riderId");
-
-                            String pharmacyText = (pharmacyName != null && !pharmacyName.isEmpty())
-                                    ? pharmacyName : "Pharmacy";
+                            java.util.List<?> items = (java.util.List<?>) doc.get("items");
+                            java.util.Set<String> pharmNames = new java.util.LinkedHashSet<>();
+                            if (items != null) {
+                                for (Object itemObj : items) {
+                                    if (itemObj instanceof java.util.Map) {
+                                        Object pName = ((java.util.Map<?, ?>) itemObj).get("pharmacyName");
+                                        if (pName != null && !pName.toString().trim().isEmpty()) {
+                                            pharmNames.add(pName.toString().trim());
+                                        }
+                                    }
+                                }
+                            }
+                            if (pharmNames.isEmpty()) {
+                                String singleName = doc.getString("pharmacyName");
+                                if (singleName != null && !singleName.trim().isEmpty()) pharmNames.add(singleName.trim());
+                            }
+                            StringBuilder sb = new StringBuilder();
+                            for (String name : pharmNames) {
+                                if (sb.length() > 0) sb.append(", ");
+                                sb.append(name);
+                            }
+                            String pharmacyText = sb.length() > 0 ? sb.toString() : "Pharmacy";
+                            String riderId = doc.getString("riderId");
 
                             TextView tvSummary = findViewById(R.id.tvOrderSummary);
 

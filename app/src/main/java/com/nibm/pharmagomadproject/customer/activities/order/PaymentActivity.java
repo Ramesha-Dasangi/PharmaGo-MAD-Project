@@ -110,18 +110,83 @@ public class PaymentActivity extends AppCompatActivity {
 
         existingOrderId = getIntent().getStringExtra("orderId");
         if (existingOrderId != null && !existingOrderId.isEmpty()) {
-            // Prescription approved flow — load order from Firestore
+            // Prescription/existing order approved flow — load order from Firestore
             db.collection("orders").document(existingOrderId).get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
-                            Double orderSubtotal   = doc.getDouble("subtotal");
-                            Double orderTotal      = doc.getDouble("total");
-                            Double orderDeliveryFee= doc.getDouble("deliveryFee");
-                            if (orderSubtotal    != null) subtotal    = orderSubtotal.intValue();
-                            if (orderTotal       != null) total       = orderTotal.intValue();
-                            if (orderDeliveryFee != null) deliveryFee = orderDeliveryFee.intValue();
+                            // Read rejected pharmacies
+                            java.util.List<?> rejectedList = (java.util.List<?>) doc.get("rejectedPharmacies");
+
+                            // Calculate payable total: exclude items from rejected pharmacies
+                            java.util.List<java.util.Map<String, Object>> items =
+                                    (java.util.List<java.util.Map<String, Object>>) doc.get("items");
+
+                            double payableSubtotal = 0;
+                            int rejectedItemCount = 0;
+                            java.util.List<String> rejectedPharmNames = new java.util.ArrayList<>();
+
+                            if (items != null) {
+                                for (java.util.Map<String, Object> item : items) {
+                                    String pId = item.get("pharmacyId") != null ? item.get("pharmacyId").toString() : "";
+                                    boolean isRejected = rejectedList != null && rejectedList.contains(pId);
+
+                                    if (isRejected) {
+                                        rejectedItemCount++;
+                                        Object pName = item.get("pharmacyName");
+                                        if (pName != null && !rejectedPharmNames.contains(pName.toString())) {
+                                            rejectedPharmNames.add(pName.toString());
+                                        }
+                                    } else {
+                                        Object price = item.get("price");
+                                        Object qty   = item.get("quantity");
+                                        if (price instanceof Number && qty instanceof Number) {
+                                            payableSubtotal += ((Number) price).doubleValue() * ((Number) qty).doubleValue();
+                                        }
+                                    }
+                                }
+                            }
+
+                            // If all items rejected — show nothing to pay
+                            if (payableSubtotal == 0 && items != null && !items.isEmpty()) {
+                                if (btnPlaceOrder != null) {
+                                    btnPlaceOrder.setEnabled(false);
+                                    btnPlaceOrder.setAlpha(0.5f);
+                                    btnPlaceOrder.setText("No payable items");
+                                }
+                                android.widget.Toast.makeText(this,
+                                        "All prescription items were rejected. Nothing to pay.",
+                                        android.widget.Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+                            Double orderDeliveryFee = doc.getDouble("deliveryFee");
+                            deliveryFee = orderDeliveryFee != null ? orderDeliveryFee.intValue() : 100;
+                            subtotal    = (int) payableSubtotal;
+                            total       = subtotal + deliveryFee;
+
+                            // Update Firestore total to reflect only payable items
+                            java.util.Map<String, Object> recalc = new java.util.HashMap<>();
+                            recalc.put("subtotal", (double) subtotal);
+                            recalc.put("total",    (double) total);
+                            db.collection("orders").document(existingOrderId).update(recalc);
+
                             tvPaySubtotal.setText("Rs. " + subtotal);
                             tvPayTotal.setText("Rs. " + total);
+
+                            // Show note if some items were rejected
+                            if (rejectedItemCount > 0 && !rejectedPharmNames.isEmpty()) {
+                                TextView tvRxWarningMsg = findViewById(R.id.tvRxWarningMsg);
+                                if (cardRxWarning != null) cardRxWarning.setVisibility(android.view.View.VISIBLE);
+                                if (tvRxWarningMsg != null) {
+                                    String rejectedNote = rejectedItemCount + " item(s) from "
+                                            + android.text.TextUtils.join(", ", rejectedPharmNames)
+                                            + " were rejected and won't be charged.";
+                                    tvRxWarningMsg.setText(rejectedNote);
+                                }
+                                // Hide the upload Rx button since this is the payment stage
+                                android.view.View btnUpload = findViewById(R.id.btnUploadRxFromPayment);
+                                if (btnUpload != null) btnUpload.setVisibility(android.view.View.GONE);
+                            }
 
                             // Show delivery address from order
                             String addr = doc.getString("deliveryAddress");
@@ -264,6 +329,8 @@ public class PaymentActivity extends AppCompatActivity {
             Map<String, Object> updates = new HashMap<>();
             updates.put("status",        "processing");
             updates.put("paymentMethod", selectedMethod);
+            updates.put("paidSubtotal",  (double) subtotal);
+            updates.put("paidTotal",     (double) total);
 
             db.collection("orders").document(existingOrderId)
                     .update(updates)

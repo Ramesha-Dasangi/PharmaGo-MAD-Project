@@ -54,6 +54,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
+            android:id="@+id/reviewRootContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -73,6 +74,7 @@
                     android:orientation="vertical"
                     android:padding="14dp">
                     <TextView
+                        android:id="@+id/tvOrderHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Order #PG-00234"
@@ -91,6 +93,7 @@
 
             <!-- Rate pharmacy -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardPharmacy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -131,6 +134,7 @@
                             android:layout_weight="1"
                             android:orientation="vertical">
                             <TextView
+                                android:id="@+id/tvPharmacyRateLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Rate MediCare Pharmacy"
@@ -201,8 +205,16 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- Container for extra pharmacy rating cards (multi-pharmacy orders) -->
+            <LinearLayout
+                android:id="@+id/extraPharmacyContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <!-- Rate rider -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardRider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -243,6 +255,7 @@
                             android:layout_weight="1"
                             android:orientation="vertical">
                             <TextView
+                                android:id="@+id/tvRiderRateLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Rate Kamal — your rider"

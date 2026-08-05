@@ -42,24 +42,49 @@ public class NotificationsActivity extends AppCompatActivity {
 
         rvNotifications = findViewById(R.id.rvNotifications);
         if (rvNotifications != null) {
-            adapter = new NotificationAdapter(notifications, notif -> {
-                // Mark as read on click
-                if (!notif.isRead()) {
-                    notif.setRead(true);
-                    if (notif.getNotificationId() != null) {
-                        FirebaseFirestore.getInstance()
-                                .collection("notifications")
-                                .document(notif.getNotificationId())
-                                .update("isRead", true);
+            adapter = new NotificationAdapter(notifications, new NotificationAdapter.NotifListener() {
+                @Override
+                public void onClick(Notification notif) {
+                    // Mark as read on click
+                    if (!notif.isRead()) {
+                        notif.setRead(true);
+                        if (notif.getNotificationId() != null) {
+                            FirebaseFirestore.getInstance()
+                                    .collection("notifications")
+                                    .document(notif.getNotificationId())
+                                    .update("isRead", true);
+                        }
+                        adapter.notifyDataSetChanged();
                     }
-                    adapter.notifyDataSetChanged();
+
+                    // If it is prescription approved, click navigates to payment
+                    if ("prescription_approved".equalsIgnoreCase(notif.getType()) && notif.getReferenceId() != null && !notif.getReferenceId().isEmpty()) {
+                        Intent intent = new Intent(NotificationsActivity.this, PaymentActivity.class);
+                        intent.putExtra("orderId", notif.getReferenceId());
+                        startActivity(intent);
+                    }
                 }
-                
-                // If it is prescription approved, click navigates to payment
-                if ("prescription_approved".equalsIgnoreCase(notif.getType()) && notif.getReferenceId() != null && !notif.getReferenceId().isEmpty()) {
-                    Intent intent = new Intent(this, PaymentActivity.class);
-                    intent.putExtra("orderId", notif.getReferenceId());
-                    startActivity(intent);
+
+                @Override
+                public void onDelete(Notification notif) {
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(NotificationsActivity.this)
+                            .setTitle("Delete Notification?")
+                            .setMessage("Remove this notification?")
+                            .setPositiveButton("Delete", (dialog, which) -> {
+                                if (notif.getNotificationId() != null) {
+                                    FirebaseFirestore.getInstance()
+                                            .collection("notifications")
+                                            .document(notif.getNotificationId())
+                                            .delete()
+                                            .addOnSuccessListener(v -> {
+                                                notifications.remove(notif);
+                                                adapter.notifyDataSetChanged();
+                                                Toast.makeText(NotificationsActivity.this, "Notification deleted", Toast.LENGTH_SHORT).show();
+                                            });
+                                }
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
                 }
             });
             rvNotifications.setLayoutManager(new LinearLayoutManager(this));
@@ -144,6 +169,14 @@ public class NotificationsActivity extends AppCompatActivity {
         );
         notif.setNotificationId(doc.getId());
         if (Boolean.TRUE.equals(isRead)) notif.setRead(true);
+
+        Object createdAtObj = doc.get("createdAt");
+        if (createdAtObj instanceof com.google.firebase.Timestamp) {
+            notif.setCreatedAt((com.google.firebase.Timestamp) createdAtObj);
+        } else if (createdAtObj instanceof Number) {
+            notif.setCreatedAt(new com.google.firebase.Timestamp(((Number) createdAtObj).longValue() / 1000, 0));
+        }
+
         notifications.add(notif);
     }
 

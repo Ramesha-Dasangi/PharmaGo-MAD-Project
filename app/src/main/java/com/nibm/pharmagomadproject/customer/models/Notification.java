@@ -33,4 +33,11 @@ public class Notification {
     public Timestamp getCreatedAt()      { return createdAt; }
     public void setNotificationId(String v) { this.notificationId = v; }
     public void setRead(boolean v)          { this.isRead = v; }
+    public void setCreatedAt(Timestamp v)   { this.createdAt = v; }
+
+    public String getFormattedTime() {
+        if (createdAt == null) return "";
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM yyyy · hh:mm a", java.util.Locale.getDefault());
+        return sdf.format(createdAt.toDate());
+    }
 }

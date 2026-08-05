@@ -29,40 +29,61 @@
 
     <!-- Filter Buttons -->
 
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:scrollbars="none"
+        android:paddingHorizontal="10dp">
 
-        <Button
-            android:id="@+id/btnNew"
-            android:layout_width="95dp"
-            android:layout_height="40dp"
-            android:background="@drawable/report_selected"
-            android:text="New"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnProcessing"
-            android:layout_width="124dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/report_unselected"
-            android:text="Processing"
-            android:textAllCaps="false" />
+            <Button
+                android:id="@+id/btnNew"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="90dp"
+                android:background="@drawable/report_selected"
+                android:text="New"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
 
-        <Button
-            android:id="@+id/btnCompleted"
-            android:layout_width="110dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/report_unselected"
-            android:text="Completed"
-            android:textAllCaps="false"/>
+            <Button
+                android:id="@+id/btnProcessing"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="110dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/report_unselected"
+                android:text="Processing"
+                android:textAllCaps="false" />
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/btnCompleted"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="100dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/report_unselected"
+                android:text="Completed"
+                android:textAllCaps="false"/>
+
+            <Button
+                android:id="@+id/btnRejected"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="100dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/report_unselected"
+                android:text="Rejected"
+                android:textAllCaps="false"/>
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
 
     <!-- Orders List -->
 

@@ -81,10 +81,11 @@
                     android:layout_marginEnd="10dp" />
 
                 <TextView
+                    android:id="@+id/tvWarningText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Paracetamol 500mg requires a valid prescription from a registered doctor."
+                    android:text="A valid prescription from a registered doctor is required for prescription items."
                     android:textColor="#92400E"
                     android:textSize="12sp"
                     android:lineSpacingExtra="2dp" />
