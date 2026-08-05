@@ -96,6 +96,10 @@ public class OrderDetailsActivity extends AppCompatActivity {
         btnReject  = findViewById(R.id.btnReject);
         btnApprove = findViewById(R.id.btnApprove);
 
+        if (btnReject != null) {
+            btnReject.setOnClickListener(v -> handleRejectAction());
+        }
+
         // Optional status label (may not exist in older layout)
         int resId = getResources().getIdentifier("txtStatus", "id", getPackageName());
         txtStatus = resId != 0 ? findViewById(resId) : null;
@@ -135,73 +139,155 @@ public class OrderDetailsActivity extends AppCompatActivity {
 
         // ── Load full order from Firestore ──
         if (currentOrderId != null) {
+            String pharmUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                    ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+
             db.collection("orders").document(currentOrderId).get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
                             java.util.List<java.util.Map<String, Object>> items =
                                      (java.util.List<java.util.Map<String, Object>>) doc.get("items");
+
+                            // Only show items belonging to this pharmacy owner
                             if (items != null) {
                                 StringBuilder desc = new StringBuilder();
+                                double myTotal = 0;
                                 for (java.util.Map<String, Object> item : items) {
+                                    String itemPharmId = item.get("pharmacyId") != null ? item.get("pharmacyId").toString() : "";
+                                    if (!pharmUid.isEmpty() && !pharmUid.equals(itemPharmId)) continue;
                                     if (desc.length() > 0) desc.append("\n");
                                     desc.append(item.get("medicineName"))
                                         .append(" x").append(item.get("quantity"))
                                         .append("  —  Rs. ")
                                         .append(String.format("%.0f", ((Number) item.getOrDefault("price", 0)).doubleValue()));
+                                    Object price = item.get("price");
+                                    Object qty   = item.get("quantity");
+                                    if (price instanceof Number && qty instanceof Number) {
+                                        myTotal += ((Number) price).doubleValue() * ((Number) qty).doubleValue();
+                                    }
+                                }
+                                if (txtItems != null) {
+                                    txtItems.setText(desc.length() > 0 ? desc.toString() : "No items found for your pharmacy");
+                                }
+                                if (myTotal > 0 && txtTotal != null) {
+                                    txtTotal.setText("Your Items Total : Rs. " + (int) myTotal);
                                 }
                             }
+
                             // Show prescription if present
                             String presUrl = doc.getString("prescriptionUrl");
                             if (presUrl != null && !presUrl.isEmpty()) {
                                 isPrescriptionOrder = true;
+                                View.OnClickListener viewPresListener = pv -> {
+                                    android.content.Intent viewIntent = new android.content.Intent(
+                                            android.content.Intent.ACTION_VIEW,
+                                            android.net.Uri.parse(presUrl));
+                                    startActivity(viewIntent);
+                                };
+                                if (btnUploadPrescription != null) {
+                                    btnUploadPrescription.setVisibility(android.view.View.VISIBLE);
+                                    btnUploadPrescription.setText("VIEW PRESCRIPTION");
+                                    btnUploadPrescription.setOnClickListener(viewPresListener);
+                                }
+                                if (imgPrescription != null) {
+                                    imgPrescription.setVisibility(android.view.View.VISIBLE);
+                                    com.bumptech.glide.Glide.with(this)
+                                            .load(presUrl)
+                                            .placeholder(android.R.drawable.ic_menu_gallery)
+                                            .into(imgPrescription);
+                                    imgPrescription.setOnClickListener(viewPresListener);
+                                }
                                 if (txtFileName != null) {
-                                    txtFileName.setText("Prescription attached — tap to view");
+                                    txtFileName.setText("Prescription attached — tap image or button to view");
+                                }
+                            } else {
+                                // Not a prescription order or no prescription attached
+                                if (btnUploadPrescription != null) {
+                                    btnUploadPrescription.setVisibility(android.view.View.GONE);
+                                }
+                                if (txtFileName != null) {
+                                    txtFileName.setText("No Prescription attached to this order");
                                 }
                             }
+                            String st = doc.getString("status");
+                            if (st != null) {
+                                currentStatus = st;
+                                updateStatusBadge(currentStatus);
+                                refreshActionButtons(currentStatus);
+                            }
+
                             Double total = doc.getDouble("total");
-                            if (total != null) txtTotal.setText("Total : Rs. " + total.intValue());
+                            if (total != null && txtTotal != null && txtTotal.getText().toString().startsWith("Total")) {
+                                txtTotal.setText("Total : Rs. " + total.intValue());
+                            }
                         }
                     });
         }
 
-        btnUploadPrescription.setOnClickListener(v -> showImagePickerDialog());
 
-        // Approve — set status to 'approved_pending_payment' for Rx orders or 'processing' for OTC
+        // Approve — set status to 'approved_pending_payment' for Rx orders, 'processing' if all pharmacies confirmed, or 'partially_approved'
         btnApprove.setOnClickListener(v -> {
             if (currentOrderId == null) return;
             btnApprove.setEnabled(false);
 
-            String nextStatus = isPrescriptionOrder ? "approved_pending_payment" : "processing";
+            String pharmUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                    ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                    : "";
 
-            db.collection("orders").document(currentOrderId)
-                    .update("status", nextStatus)
-                    .addOnSuccessListener(unused -> {
-                        // Notify customer
-                        if (customerId != null && !customerId.isEmpty()) {
-                            java.util.Map<String, Object> notif = new java.util.HashMap<>();
-                            notif.put("userId",      customerId);
-                            if (isPrescriptionOrder) {
-                                notif.put("title",       "Prescription Approved 💊");
-                                notif.put("message",     "Order " + currentOrderId + " prescription approved. Tap to pay now.");
-                                notif.put("type",        "prescription_approved");
-                            } else {
-                                notif.put("title",       "Pharmacy preparing your order 💊");
-                                notif.put("message",     "Order " + currentOrderId + " has been approved and is being prepared.");
-                                notif.put("type",        "order_processing");
+            db.collection("orders").document(currentOrderId).get().addOnSuccessListener(orderDoc -> {
+                if (!orderDoc.exists()) {
+                    btnApprove.setEnabled(true);
+                    return;
+                }
+
+                java.util.List<?> pharmIds = (java.util.List<?>) orderDoc.get("pharmacyIds");
+                java.util.List<?> confirmedPharmacies = (java.util.List<?>) orderDoc.get("confirmedPharmacies");
+                java.util.List<String> updatedConfirmed = new java.util.ArrayList<>();
+                if (confirmedPharmacies != null) {
+                    for (Object o : confirmedPharmacies) if (o != null) updatedConfirmed.add(o.toString());
+                }
+                if (!pharmUid.isEmpty() && !updatedConfirmed.contains(pharmUid)) {
+                    updatedConfirmed.add(pharmUid);
+                }
+
+                int totalPharmCount = pharmIds != null && !pharmIds.isEmpty() ? pharmIds.size() : 1;
+                boolean allConfirmed = updatedConfirmed.size() >= totalPharmCount;
+                String nextStatus = isPrescriptionOrder ? "approved_pending_payment" : (allConfirmed ? "processing" : "partially_approved");
+
+                db.collection("orders").document(currentOrderId)
+                        .update("status", nextStatus,
+                                "confirmedPharmacies", com.google.firebase.firestore.FieldValue.arrayUnion(pharmUid))
+                        .addOnSuccessListener(unused -> {
+                            if (customerId != null && !customerId.isEmpty()) {
+                                java.util.Map<String, Object> notif = new java.util.HashMap<>();
+                                notif.put("userId", customerId);
+                                if (isPrescriptionOrder) {
+                                    notif.put("title", "Prescription Approved 💊");
+                                    notif.put("message", "Order " + currentOrderId + " prescription approved. Tap to pay now.");
+                                    notif.put("type", "prescription_approved");
+                                } else if (allConfirmed) {
+                                    notif.put("title", "Order Approved 💊");
+                                    notif.put("message", "All pharmacies confirmed order " + currentOrderId + ". Now being prepared!");
+                                    notif.put("type", "order_processing");
+                                } else {
+                                    notif.put("title", "Order Update 💊");
+                                    notif.put("message", "A pharmacy confirmed items in order " + currentOrderId + ". Waiting for remaining pharmacies.");
+                                    notif.put("type", "order_processing");
+                                }
+                                notif.put("referenceId", currentOrderId);
+                                notif.put("isRead", false);
+                                notif.put("createdAt", System.currentTimeMillis());
+                                db.collection("notifications").add(notif);
                             }
-                            notif.put("referenceId", currentOrderId);
-                            notif.put("isRead",      false);
-                            notif.put("createdAt",   System.currentTimeMillis());
-                            db.collection("notifications").add(notif);
-                        }
-                        String msg = isPrescriptionOrder ? "Order approved — awaiting payment!" : "Order approved — now processing!";
-                        Toast.makeText(OrderDetailsActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        btnApprove.setEnabled(true);
-                        Toast.makeText(OrderDetailsActivity.this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+                            String msg = isPrescriptionOrder ? "Order approved — awaiting payment!" : "Order approved!";
+                            Toast.makeText(OrderDetailsActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            btnApprove.setEnabled(true);
+                            Toast.makeText(OrderDetailsActivity.this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            }).addOnFailureListener(e -> btnApprove.setEnabled(true));
         });
     }
 
@@ -211,7 +297,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private void handleRejectAction() {
         if (currentOrderId == null) return;
 
-        // If order is already closed/completed, tapping CLOSE simply exits the screen
         switch (currentStatus.toLowerCase()) {
             case "completed":
             case "rejected":
@@ -220,25 +305,66 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 return;
         }
 
-        String nextStatus = currentStatus.equalsIgnoreCase("pending") ? "rejected" : "cancelled";
-
         btnReject.setEnabled(false);
-        db.collection("orders").document(currentOrderId)
-                .update("status", nextStatus)
-                .addOnSuccessListener(unused -> {
-                    sendCustomerNotification(
-                            "Order Update ⚠️",
-                            "Order " + currentOrderId + " was " + nextStatus + " by the pharmacy.",
-                            nextStatus);
-                    Toast.makeText(this, "Order " + nextStatus + ".", Toast.LENGTH_SHORT).show();
-                    currentStatus = nextStatus;
-                    refreshActionButtons(currentStatus);
-                    updateStatusBadge(currentStatus);
-                })
-                .addOnFailureListener(e -> {
-                    btnReject.setEnabled(true);
-                    Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+
+        String pharmUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "";
+
+        db.collection("orders").document(currentOrderId).get().addOnSuccessListener(orderDoc -> {
+            if (!orderDoc.exists()) {
+                btnReject.setEnabled(true);
+                return;
+            }
+
+            java.util.List<?> pharmIds = (java.util.List<?>) orderDoc.get("pharmacyIds");
+            java.util.List<?> rejectedPharmacies = (java.util.List<?>) orderDoc.get("rejectedPharmacies");
+            java.util.List<String> updatedRejected = new java.util.ArrayList<>();
+            if (rejectedPharmacies != null) {
+                for (Object o : rejectedPharmacies) if (o != null) updatedRejected.add(o.toString());
+            }
+            if (!pharmUid.isEmpty() && !updatedRejected.contains(pharmUid)) {
+                updatedRejected.add(pharmUid);
+            }
+
+            int totalPharmCount = pharmIds != null && !pharmIds.isEmpty() ? pharmIds.size() : 1;
+            boolean allRejected = updatedRejected.size() >= totalPharmCount;
+            String nextStatus = allRejected ? "rejected" : "partially_rejected";
+
+            db.collection("orders").document(currentOrderId)
+                    .update("status", nextStatus,
+                            "rejectedPharmacies", com.google.firebase.firestore.FieldValue.arrayUnion(pharmUid))
+                    .addOnSuccessListener(unused -> {
+                        sendCustomerNotification(
+                                "Order Update ⚠️",
+                                allRejected ? "Order " + currentOrderId + " was rejected by all pharmacies."
+                                            : "A pharmacy rejected items in Order " + currentOrderId + ". Remaining items are still active.",
+                                nextStatus);
+
+                        // Refund notification if order was paid by card
+                        String paymentMethod = orderDoc.getString("paymentMethod");
+                        if ("card".equalsIgnoreCase(paymentMethod) && customerId != null && !customerId.isEmpty()) {
+                            java.util.Map<String, Object> refundNotif = new java.util.HashMap<>();
+                            refundNotif.put("userId", customerId);
+                            refundNotif.put("title", "Refund Initiated 💳");
+                            refundNotif.put("message", "Your order " + currentOrderId + " was rejected. A refund will be processed to your card within 2 working days.");
+                            refundNotif.put("type", "refund");
+                            refundNotif.put("referenceId", currentOrderId);
+                            refundNotif.put("isRead", false);
+                            refundNotif.put("createdAt", System.currentTimeMillis());
+                            db.collection("notifications").add(refundNotif);
+                        }
+
+                        Toast.makeText(this, "Order status updated.", Toast.LENGTH_SHORT).show();
+                        currentStatus = nextStatus;
+                        refreshActionButtons(currentStatus);
+                        updateStatusBadge(currentStatus);
+                    })
+                    .addOnFailureListener(e -> {
+                        btnReject.setEnabled(true);
+                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        }).addOnFailureListener(e -> btnReject.setEnabled(true));
     }
 
     // ═══════════════════════════════════════════════════
@@ -453,28 +579,75 @@ public class OrderDetailsActivity extends AppCompatActivity {
     // ═══════════════════════════════════════════════════
     private void refreshActionButtons(String status) {
         if (status == null) return;
-        switch (status.toLowerCase()) {
-            case "pending":
-                if (btnApprove != null) btnApprove.setVisibility(android.view.View.VISIBLE);
-                if (btnReject != null) {
-                    btnReject.setVisibility(android.view.View.VISIBLE);
-                    btnReject.setText("Reject");
+        String ownerId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+
+        // Re-check if this pharmacy owner already confirmed, to decide button state
+        if (currentOrderId != null && !currentOrderId.isEmpty()) {
+            db.collection("orders").document(currentOrderId).get().addOnSuccessListener(orderDoc -> {
+                if (!orderDoc.exists()) return;
+                java.util.List<?> confirmedList = (java.util.List<?>) orderDoc.get("confirmedPharmacies");
+                java.util.List<?> rejectedList  = (java.util.List<?>) orderDoc.get("rejectedPharmacies");
+                boolean alreadyConfirmed = confirmedList != null && confirmedList.contains(ownerId);
+                boolean alreadyRejected  = rejectedList  != null && rejectedList.contains(ownerId);
+
+                if (alreadyConfirmed) {
+                    if (btnApprove != null) {
+                        btnApprove.setVisibility(android.view.View.VISIBLE);
+                        btnApprove.setText("ORDER CONFIRMED ✓");
+                        btnApprove.setEnabled(false);
+                    }
+                    if (btnReject != null) btnReject.setVisibility(android.view.View.GONE);
+                } else if (alreadyRejected) {
+                    if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
+                    if (btnReject != null) {
+                        btnReject.setVisibility(android.view.View.VISIBLE);
+                        btnReject.setText("ORDER REJECTED ✗");
+                        btnReject.setEnabled(false);
+                    }
+                } else {
+                    switch (status.toLowerCase()) {
+                        case "pending":
+                        case "awaiting_approval":
+                        case "partially_approved":
+                        case "partially_rejected":
+                        case "processing":
+                        case "approved_pending_payment":
+                            if (btnApprove != null) {
+                                btnApprove.setVisibility(android.view.View.VISIBLE);
+                                btnApprove.setEnabled(true);
+                                btnApprove.setText("Approve");
+                            }
+                            if (btnReject != null) {
+                                btnReject.setVisibility(android.view.View.VISIBLE);
+                                btnReject.setEnabled(true);
+                                btnReject.setText("Reject");
+                            }
+                            break;
+                        case "rejected":
+                        case "cancelled":
+                        case "delivered":
+                        case "completed":
+                        default:
+                            if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
+                            if (btnReject != null) btnReject.setVisibility(android.view.View.GONE);
+                            break;
+                    }
                 }
-                break;
-            case "approved_pending_payment":
-            case "processing":
-            case "ready_for_pickup":
-            case "out_for_delivery":
-                if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
-                if (btnReject != null) {
-                    btnReject.setVisibility(android.view.View.VISIBLE);
-                    btnReject.setText("Cancel Order");
-                }
-                break;
-            default:
-                if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
-                if (btnReject != null) btnReject.setVisibility(android.view.View.GONE);
-                break;
+            });
+        } else {
+            // Fallback without DB check
+            switch (status.toLowerCase()) {
+                case "pending":
+                case "awaiting_approval":
+                case "partially_approved":
+                    if (btnApprove != null) { btnApprove.setVisibility(android.view.View.VISIBLE); btnApprove.setEnabled(true); }
+                    if (btnReject != null)  { btnReject.setVisibility(android.view.View.VISIBLE); btnReject.setEnabled(true); }
+                    break;
+                default:
+                    if (btnApprove != null) btnApprove.setVisibility(android.view.View.GONE);
+                    if (btnReject != null)  btnReject.setVisibility(android.view.View.GONE);
+            }
         }
     }
 

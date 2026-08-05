@@ -56,6 +56,16 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
         if (tvProgress  != null) tvProgress.setVisibility(View.GONE);
         if (progressBar != null) progressBar.setVisibility(View.GONE);
 
+        TextView tvWarningText = findViewById(R.id.tvWarningText);
+        if (tvWarningText != null) {
+            String medName = getIntent().getStringExtra("medicine_name");
+            if (medName != null && !medName.trim().isEmpty()) {
+                tvWarningText.setText(" Prescription required for: " + medName);
+            } else if (getIntent().getBooleanExtra("is_cart_rx_order", false)) {
+                tvWarningText.setText(" Prescription required for item(s) in your cart.");
+            }
+        }
+
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // Gallery launcher
@@ -245,6 +255,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                     com.nibm.pharmagomadproject.customer.activities.order.CartActivity.clearCart();
                     Intent intent = new Intent(PrescriptionUploadActivity.this, OrderTrackingActivity.class);
                     intent.putExtra("orderId", orderId);
+                    intent.putExtra("is_prescription_order", true);  // hint to show awaiting banner
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     finish();

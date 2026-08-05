@@ -45,11 +45,54 @@ public class ComplaintPharmacyActivity extends AppCompatActivity {
             db.collection("orders").document(orderId).get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
-                            String pName = doc.getString("pharmacyName");
-                            if (pName != null && !pName.isEmpty()) {
-                                selectedPharmacy = pName;
-                                TextView tvPharmacyName = findViewById(R.id.tvPharmacyName);
+                            // Collect all unique pharmacy names from items
+                            java.util.List<String> pharmNames = new java.util.ArrayList<>();
+                            java.util.List<?> items = (java.util.List<?>) doc.get("items");
+                            if (items != null) {
+                                for (Object obj : items) {
+                                    if (obj instanceof java.util.Map) {
+                                        Object pn = ((java.util.Map<?, ?>) obj).get("pharmacyName");
+                                        if (pn != null && !pn.toString().isEmpty()
+                                                && !pharmNames.contains(pn.toString())) {
+                                            pharmNames.add(pn.toString());
+                                        }
+                                    }
+                                }
+                            }
+                            // Fallback to top-level pharmacyName (may be comma-separated)
+                            if (pharmNames.isEmpty()) {
+                                String pName = doc.getString("pharmacyName");
+                                if (pName != null && !pName.isEmpty()) {
+                                    if (pName.contains(",")) {
+                                        for (String s : pName.split(","))
+                                            if (!s.trim().isEmpty()) pharmNames.add(s.trim());
+                                    } else {
+                                        pharmNames.add(pName);
+                                    }
+                                }
+                            }
+
+                            TextView tvPharmacyName = findViewById(R.id.tvPharmacyName);
+                            if (pharmNames.size() == 1) {
+                                selectedPharmacy = pharmNames.get(0);
                                 if (tvPharmacyName != null) tvPharmacyName.setText(selectedPharmacy);
+                            } else if (pharmNames.size() > 1) {
+                                // Multi-pharmacy — let user pick
+                                selectedPharmacy = pharmNames.get(0);
+                                if (tvPharmacyName != null) {
+                                    tvPharmacyName.setText(selectedPharmacy + "  ▼");
+                                    final java.util.List<String> finalNames = pharmNames;
+                                    tvPharmacyName.setOnClickListener(v -> {
+                                        String[] arr = finalNames.toArray(new String[0]);
+                                        new android.app.AlertDialog.Builder(ComplaintPharmacyActivity.this)
+                                            .setTitle("Select pharmacy")
+                                            .setItems(arr, (dialog, which) -> {
+                                                selectedPharmacy = arr[which];
+                                                tvPharmacyName.setText(selectedPharmacy + "  ▼");
+                                            })
+                                            .show();
+                                    });
+                                }
                             }
                         }
                     });

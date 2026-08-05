@@ -123,7 +123,9 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
                                 }
                             }
                             if (ratingVal != null) {
-                                ((TextView) findViewById(R.id.tvRating)).setText("⭐ " + String.format("%.1f", ratingVal));
+                                Long countVal = doc.getLong("ratingCount");
+                                String countStr = (countVal != null && countVal > 0) ? " (" + countVal + " reviews)" : "";
+                                ((TextView) findViewById(R.id.tvRating)).setText("⭐ " + String.format("%.1f", ratingVal) + countStr);
                             }
                         }
                     });
@@ -171,182 +173,63 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
 
 
-    private void buildFilterChips(){
-
-
+    private void buildFilterChips() {
         String[] filters = {
-                "All",
-                "OTC",
-                "Prescription",
-                "Price Low",
-                "Price High"
+                "All", "Price: Low to High", "Price: High to Low", "OTC", "Prescription", "Rx",
+                "First Aid", "Vitamins", "Chronic", "Baby", "Eye Care", "Dental"
         };
-
 
         filterChipsContainer.removeAllViews();
 
-
-
-        for(String filter:filters){
-
-
+        for (String filter : filters) {
             TextView chip = new TextView(this);
-
             chip.setText(filter);
-
             chip.setTextSize(12);
+            chip.setPadding(dp(15), dp(7), dp(15), dp(7));
 
-            chip.setPadding(
-                    dp(15),
-                    dp(7),
-                    dp(15),
-                    dp(7)
-            );
-
-
-
-            applyChipStyle(
-                    chip,
-                    filter.equals(activeFilter)
-            );
-
-
+            applyChipStyle(chip, filter.equals(activeFilter));
 
             chip.setOnClickListener(v -> {
-
                 activeFilter = filter;
-
                 buildFilterChips();
-
                 renderMedicines();
-
             });
 
-
-
             filterChipsContainer.addView(chip);
-
         }
-
     }
 
-
-
-
-
-    private void applyChipStyle(TextView chip, boolean selected){
-
-
-        if(selected){
-
-            chip.setBackgroundResource(
-                    R.drawable.bg_chip_selected
-            );
-
-
-            chip.setTextColor(
-                    getColor(R.color.pg_primary)
-            );
-
-
-            chip.setTypeface(
-                    null,
-                    Typeface.BOLD
-            );
-
-
+    private void applyChipStyle(TextView chip, boolean selected) {
+        if (selected) {
+            chip.setBackgroundResource(R.drawable.bg_chip_selected);
+            chip.setTextColor(getColor(R.color.pg_primary));
+            chip.setTypeface(null, Typeface.BOLD);
+        } else {
+            chip.setBackgroundResource(R.drawable.bg_chip_unselected);
+            chip.setTextColor(getColor(R.color.pg_sub));
+            chip.setTypeface(null, Typeface.NORMAL);
         }
-        else{
-
-
-            chip.setBackgroundResource(
-                    R.drawable.bg_chip_unselected
-            );
-
-
-            chip.setTextColor(
-                    getColor(R.color.pg_sub)
-            );
-
-
-        }
-
-
     }
 
-
-
-
-
-    private void renderMedicines(){
-
-
+    private void renderMedicines() {
         medicineListContainer.removeAllViews();
+        List<Medicine> list = new ArrayList<>();
 
-
-
-        List<Medicine> list =
-                new ArrayList<>();
-
-
-
-        for(Medicine m:allMedicines){
-
-
-            if(activeFilter.equals("All") || activeFilter.startsWith("Price")){
-
+        for (Medicine m : allMedicines) {
+            if ("All".equalsIgnoreCase(activeFilter) || activeFilter.startsWith("Price")) {
                 list.add(m);
-
-            }
-
-
-            else if(activeFilter.equals("OTC")
-                    &&
-                    "OTC".equalsIgnoreCase(m.getType())){
-
-
+            } else if ((m.getType() != null && m.getType().equalsIgnoreCase(activeFilter))
+                    || (m.getCategory() != null && m.getCategory().equalsIgnoreCase(activeFilter))
+                    || (m.getType() != null && activeFilter.replace(" ", "").equalsIgnoreCase(m.getType().replace(" ", "")))
+                    || (m.getCategory() != null && activeFilter.replace(" ", "").equalsIgnoreCase(m.getCategory().replace(" ", "")))) {
                 list.add(m);
-
             }
-
-
-            else if(activeFilter.equals("Prescription")
-                    &&
-                    "Prescription".equalsIgnoreCase(m.getType())){
-
-
-                list.add(m);
-
-            }
-
-
         }
 
-
-
-
-
-        if(activeFilter.equals("Price Low")){
-
-
-            list.sort((a,b)->Double.compare(
-                    a.getPrice(),
-                    b.getPrice()
-            ));
-
-        }
-
-
-
-        if(activeFilter.equals("Price High")){
-
-
-            list.sort((a,b)->Double.compare(
-                    b.getPrice(),
-                    a.getPrice()
-            ));
-
-
+        if (activeFilter.contains("Low to High") || activeFilter.equals("Price Low")) {
+            list.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
+        } else if (activeFilter.contains("High to Low") || activeFilter.equals("Price High")) {
+            list.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
         }
 
 

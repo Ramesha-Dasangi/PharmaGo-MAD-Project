@@ -91,10 +91,10 @@
                     android:gravity="center"
                     android:padding="20dp">
 
-                    <!-- Medicine icon / image container -->
+                    <!-- Medicine image - full width banner -->
                     <FrameLayout
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
                         android:background="@drawable/bg_medicine_icon"
                         android:layout_marginBottom="12dp">
                         <ImageView
@@ -103,8 +103,7 @@
                             android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_pill"
-                            app:tint="@color/pg_primary"
-                            android:padding="16dp" />
+                            android:scaleType="centerCrop" />
                     </FrameLayout>
 
                     <!-- Medicine name -->

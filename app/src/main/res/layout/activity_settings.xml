@@ -92,8 +92,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@android:drawable/arrow_up_float"
-                    android:rotation="90"
+                    android:src="@drawable/ic_chevron_right"
                     app:tint="@color/pg_sub" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -136,8 +135,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@android:drawable/arrow_up_float"
-                    android:rotation="90"
+                    android:src="@drawable/ic_chevron_right"
                     app:tint="@color/pg_sub" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

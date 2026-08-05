@@ -189,7 +189,8 @@ public class DeliveryProgressActivity extends AppCompatActivity {
 
     private void fetchOrderDetails(String oId) {
         if (tvOrderTitle != null) {
-            tvOrderTitle.setText("Order #" + oId.substring(0, Math.min(6, oId.length())).toUpperCase());
+            // Show full order ID
+            tvOrderTitle.setText("Order #" + oId.toUpperCase());
         }
         
         db.collection("orders").document(oId).get().addOnSuccessListener(doc -> {
@@ -223,35 +224,46 @@ public class DeliveryProgressActivity extends AppCompatActivity {
                     setupButton();
                 }
 
-                // Check for multiple pharmacies
-                List<String> pIds = (List<String>) doc.get("pharmacyIds");
-                if (pIds != null && pIds.size() > 1) {
-                    if (tvStep3Title != null) tvStep3Title.setText("Heading to Pharmacies (" + pIds.size() + ")");
-                    updateTimelineUI(status);
-                } else {
-                    List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
-                    if (items != null && !items.isEmpty()) {
-                        Map<String, Object> item1 = items.get(0);
-                        String pId1 = (String) item1.get("pharmacyId");
-                        if (pId1 != null && !pId1.trim().isEmpty()) {
-                            db.collection("pharmacies").whereEqualTo("ownerId", pId1).get().addOnSuccessListener(qSnap -> {
-                                if (!qSnap.isEmpty() && qSnap.getDocuments().get(0).getString("name") != null) {
-                                    String pName = qSnap.getDocuments().get(0).getString("name");
-                                    if (tvStep3Title != null) tvStep3Title.setText("Heading to " + pName);
-                                } else {
-                                    String fallback = doc.getString("pharmacyName");
-                                    if (tvStep3Title != null) tvStep3Title.setText("Heading to " + (fallback != null ? fallback : "Pharmacy"));
-                                }
-                                // Update timeline colors after setting text
-                                updateTimelineUI(status);
-                            });
+                // Extract unique pharmacy names from items — list each participating pharmacy separately
+                List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");
+                java.util.List<String> pharmNamesList = new java.util.ArrayList<>();
+                java.util.Set<String> seenPharmIds = new java.util.LinkedHashSet<>();
+                if (items != null) {
+                    java.util.List<?> confirmedList = (java.util.List<?>) doc.get("confirmedPharmacies");
+                    for (Map<String, Object> item : items) {
+                        if (item == null) continue;
+                        String pId = (String) item.get("pharmacyId");
+                        if (pId == null || seenPharmIds.contains(pId)) continue;
+                        if (confirmedList != null && !confirmedList.isEmpty() && !confirmedList.contains(pId)) continue;
+                        String pName = (String) item.get("pharmacyName");
+                        if (pName != null && !pName.trim().isEmpty()) {
+                            pharmNamesList.add(pName.trim());
                         } else {
-                            updateTimelineUI(status);
+                            // Fallback default label if name not in item
+                            pharmNamesList.add("Pharmacy (" + pId.substring(0, Math.min(5, pId.length())) + ")");
                         }
-                    } else {
-                        updateTimelineUI(status);
+                        seenPharmIds.add(pId);
                     }
                 }
+                if (pharmNamesList.isEmpty()) {
+                    String pName = doc.getString("pharmacyName");
+                    if (pName != null && !pName.trim().isEmpty()) pharmNamesList.add(pName.trim());
+                }
+                if (tvStep3Title != null) {
+                    if (pharmNamesList.size() == 1) {
+                        tvStep3Title.setText("Pickup from " + pharmNamesList.get(0));
+                    } else if (pharmNamesList.size() > 1) {
+                        StringBuilder sb = new StringBuilder("Pickup from:\n");
+                        for (int i2 = 0; i2 < pharmNamesList.size(); i2++) {
+                            if (i2 > 0) sb.append("\n");
+                            sb.append("• ").append(pharmNamesList.get(i2));
+                        }
+                        tvStep3Title.setText(sb.toString());
+                    } else {
+                        tvStep3Title.setText("Heading to Pharmacy");
+                    }
+                }
+                updateTimelineUI(status);
             } else {
                 Toast.makeText(this, "Order not found", Toast.LENGTH_SHORT).show();
             }

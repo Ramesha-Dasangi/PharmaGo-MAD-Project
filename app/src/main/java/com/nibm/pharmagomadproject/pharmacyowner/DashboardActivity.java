@@ -238,8 +238,13 @@ public class DashboardActivity extends AppCompatActivity {
 
                                 if (!belongsToMe) continue; // skip other pharmacies' orders
 
-                                // A. New / Pending orders
-                                if ("pending".equalsIgnoreCase(fsStatus)) pendingCount++;
+                                // A. New / Pending orders (exclude if this pharmacy owner already confirmed)
+                                java.util.List<?> confirmedPharmacies = (java.util.List<?>) doc.get("confirmedPharmacies");
+                                boolean iHaveConfirmed = confirmedPharmacies != null && confirmedPharmacies.contains(ownerId);
+
+                                if (("pending".equalsIgnoreCase(fsStatus) || "awaiting_approval".equalsIgnoreCase(fsStatus)) && !iHaveConfirmed) {
+                                    pendingCount++;
+                                }
 
                                 // B. Completed TODAY — use completedAt timestamp
                                 if ("completed".equalsIgnoreCase(fsStatus) && completedAt >= startOfDay) {

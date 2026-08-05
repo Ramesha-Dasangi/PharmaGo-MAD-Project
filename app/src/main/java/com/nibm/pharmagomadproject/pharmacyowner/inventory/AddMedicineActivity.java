@@ -53,6 +53,8 @@ public class AddMedicineActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<Intent> galleryLauncher;
 
+    private android.net.Uri selectedImageUri = null;  // tracks picked image
+
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -160,7 +162,7 @@ public class AddMedicineActivity extends AppCompatActivity {
                                     result.getData() != null) {
 
                                 Uri uri = result.getData().getData();
-
+                                selectedImageUri = uri;  // track
                                 imgMedicine.setImageURI(uri);
                             }
                         });
@@ -298,115 +300,128 @@ public class AddMedicineActivity extends AppCompatActivity {
             btnSave.setEnabled(false);
             final String finalPharmacyId = pharmacyId;
 
-            // Duplicate Medicine check
-            db.collection("medicines")
-                    .whereEqualTo("pharmacyId", finalPharmacyId)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (!task.isSuccessful()) {
-                            btnSave.setEnabled(true);
-                            Toast.makeText(AddMedicineActivity.this, "Database error checking duplicates: " + 
-                                    (task.getException() != null ? task.getException().getMessage() : "Unknown"), Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        boolean duplicate = false;
-                        if (task.getResult() != null) {
-                            for (com.google.firebase.firestore.QueryDocumentSnapshot doc : task.getResult()) {
-                                String nameInDb = doc.getString("medicineName");
-                                String brandInDb = doc.getString("brand");
-                                Boolean isDeletedInDb = doc.getBoolean("deleted");
-                                boolean active = (isDeletedInDb == null || !isDeletedInDb);
-                                if (active && nameInDb != null && brandInDb != null &&
-                                        nameInDb.equalsIgnoreCase(medicineName) &&
-                                        brandInDb.equalsIgnoreCase(brand)) {
-                                    duplicate = true;
-                                    break;
-                                }
+            // If an image was selected, upload it first then save
+            if (selectedImageUri != null) {
+                Toast.makeText(this, "Uploading image...", Toast.LENGTH_SHORT).show();
+                new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper(this)
+                    .uploadFile(
+                        com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.BUCKET_MEDICINES,
+                        finalPharmacyId + "/medicine_" + System.currentTimeMillis(),
+                        selectedImageUri,
+                        new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.UploadCallback() {
+                            @Override
+                            public void onSuccess(String publicUrl) {
+                                saveMedicineToFirestore(finalPharmacyId, medicineName, category,
+                                    brand, type, price, stock, expiryDate, description, publicUrl);
+                            }
+                            @Override
+                            public void onFailure(String error) {
+                                // Save without image if upload fails
+                                Toast.makeText(AddMedicineActivity.this,
+                                    "Image upload failed, saving without image.", Toast.LENGTH_SHORT).show();
+                                saveMedicineToFirestore(finalPharmacyId, medicineName, category,
+                                    brand, type, price, stock, expiryDate, description, "");
                             }
                         }
-
-                        if (duplicate) {
-                            btnSave.setEnabled(true);
-                            Toast.makeText(AddMedicineActivity.this, "This medicine (name and brand) already exists in your inventory.", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        // Save new medicine
-                        Medicine medicine = new Medicine(
-                                medicineName,
-                                category,
-                                brand,
-                                type,
-                                price,
-                                stock,
-                                expiryDate,
-                                description,
-                                "",   // imageUrl
-                                finalPharmacyId,
-                                System.currentTimeMillis()
-                        );
-                        medicine.setDeleted(false);
-                        medicine.setUpdatedAt(System.currentTimeMillis());
-
-                        db.collection("medicines")
-                                .add(medicine)
-                                .addOnSuccessListener(documentReference -> {
-                                    String docId = documentReference.getId();
-
-                                    // Create Stock History record
-                                    String histId = db.collection("stock_history").document().getId();
-                                    StockHistory history = new StockHistory(
-                                            histId,
-                                            docId,
-                                            medicineName,
-                                            0,
-                                            stock,
-                                            stock,
-                                            "Initial Stock Add",
-                                            finalPharmacyId,
-                                            System.currentTimeMillis()
-                                    );
-                                    db.collection("stock_history").document(histId).set(history);
-
-                                    // Create Audit Log entry
-                                    String auditId = db.collection("inventory_audit_log").document().getId();
-                                    InventoryAuditLog audit = new InventoryAuditLog(
-                                            auditId,
-                                            "ADD",
-                                            docId,
-                                            medicineName,
-                                            "Added new medicine. Price: Rs." + price + ", Stock: " + stock + " units.",
-                                            finalPharmacyId,
-                                            System.currentTimeMillis()
-                                    );
-                                    db.collection("inventory_audit_log").document(auditId).set(audit);
-
-                                    NotificationHelper.addNotification(
-                                            "Medicine Added",
-                                            medicineName + " was added successfully.",
-                                            "inventory"
-                                    );
-
-                                    Toast.makeText(
-                                            AddMedicineActivity.this,
-                                            "Medicine Added Successfully",
-                                            Toast.LENGTH_SHORT
-                                    ).show();
-
-                                    finish();
-                                })
-                                .addOnFailureListener(e -> {
-                                    btnSave.setEnabled(true);
-                                    Toast.makeText(
-                                            AddMedicineActivity.this,
-                                            "Failed to save: " + e.getMessage(),
-                                            Toast.LENGTH_LONG
-                                    ).show();
-                                });
-                    });
+                    );
+                return; // saveMedicineToFirestore will be called from callback
+            }
+            // No image selected — save directly
+            saveMedicineToFirestore(finalPharmacyId, medicineName, category,
+                brand, type, price, stock, expiryDate, description, "");
         });
+    }
 
+    private void saveMedicineToFirestore(String finalPharmacyId, String medicineName,
+            String category, String brand, String type, double price, int stock,
+            String expiryDate, String description, String imageUrl) {
+
+        // Duplicate Medicine check
+        db.collection("medicines")
+                .whereEqualTo("pharmacyId", finalPharmacyId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        btnSave.setEnabled(true);
+                        Toast.makeText(this, "Database error checking duplicates: " +
+                                (task.getException() != null ? task.getException().getMessage() : "Unknown"), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    boolean duplicate = false;
+                    if (task.getResult() != null) {
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot doc : task.getResult()) {
+                            String nameInDb = doc.getString("medicineName");
+                            String brandInDb = doc.getString("brand");
+                            Boolean isDeletedInDb = doc.getBoolean("deleted");
+                            boolean active = (isDeletedInDb == null || !isDeletedInDb);
+                            if (active && nameInDb != null && brandInDb != null &&
+                                    nameInDb.equalsIgnoreCase(medicineName) &&
+                                    brandInDb.equalsIgnoreCase(brand)) {
+                                duplicate = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (duplicate) {
+                        btnSave.setEnabled(true);
+                        Toast.makeText(this, "This medicine (name and brand) already exists in your inventory.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // Save new medicine with imageUrl
+                    Medicine medicine = new Medicine(
+                            medicineName,
+                            category,
+                            brand,
+                            type,
+                            price,
+                            stock,
+                            expiryDate,
+                            description,
+                            imageUrl,   // real imageUrl from Supabase (or "")
+                            finalPharmacyId,
+                            System.currentTimeMillis()
+                    );
+                    medicine.setDeleted(false);
+                    medicine.setUpdatedAt(System.currentTimeMillis());
+
+                    db.collection("medicines")
+                            .add(medicine)
+                            .addOnSuccessListener(documentReference -> {
+                                String docId = documentReference.getId();
+
+                                // Create Stock History record
+                                String histId = db.collection("stock_history").document().getId();
+                                StockHistory history = new StockHistory(
+                                        histId, docId, medicineName, 0, stock, stock,
+                                        "Initial Stock Add", finalPharmacyId, System.currentTimeMillis());
+                                db.collection("stock_history").document(histId).set(history);
+
+                                // Create Audit Log entry
+                                String auditId = db.collection("inventory_audit_log").document().getId();
+                                InventoryAuditLog audit = new InventoryAuditLog(
+                                        auditId, "ADD", docId, medicineName,
+                                        "Added new medicine. Price: Rs." + price + ", Stock: " + stock + " units.",
+                                        finalPharmacyId, System.currentTimeMillis());
+                                db.collection("inventory_audit_log").document(auditId).set(audit);
+
+                                NotificationHelper.addNotification(
+                                        "Medicine Added",
+                                        medicineName + " was added successfully.",
+                                        "inventory");
+
+                                Toast.makeText(AddMedicineActivity.this,
+                                        "Medicine Added Successfully", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                btnSave.setEnabled(true);
+                                Toast.makeText(AddMedicineActivity.this,
+                                        "Failed to save: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            });
+                });
     }
 
     //========================
