@@ -34,12 +34,14 @@
             android:name="firebase_analytics_collection_enabled"
             android:value="true" />
 
+        <!-- Customer -->
+
         <activity
             android:name=".customer.activities.review.ReviewActivity"
             android:exported="false" />
         <activity
             android:name=".customer.activities.order.PaymentActivity"
-            android:exported="false" /> <!-- Customer -->
+            android:exported="false" />
         <activity
             android:name=".customer.activities.pharmacy.PharmacyDetailsActivity"
             android:exported="false" />
@@ -50,9 +52,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- <activity -->
-        <!-- android:name=".customer.dialog_logout" -->
-        <!-- android:exported="false" /> -->
+        </activity>
         <activity
             android:name=".customer.activities.auth.ChangePasswordActivity"
             android:exported="false" />
@@ -115,7 +115,10 @@
             android:exported="false" />
         <activity
             android:name=".customer.activities.auth.LoginActivity"
-            android:exported="false" /> <!-- Pharmacy Owner -->
+            android:exported="false" />
+
+        <!-- Pharmacy Owner -->
+
         <activity
             android:name=".pharmacyowner.profile.ChangePasswordActivity"
             android:exported="false" />
@@ -158,9 +161,9 @@
         <activity
             android:name=".pharmacyowner.inventory.LowStockActivity"
             android:exported="false" />
-        <activity
-            android:name=".pharmacyowner.profile.ForgotPasswordActivity"
-            android:exported="false" /> <!-- Delivery Rider -->
+
+        <!-- Delivery Rider -->
+
         <activity
             android:name=".deliveryrider.RiderDashboardActivity"
             android:exported="false" />
@@ -190,10 +193,9 @@
             android:exported="false" />
         <activity
             android:name=".deliveryrider.RiderProfileActivity"
-            android:exported="false" /> <!-- Admin -->
-        <activity
-            android:name=".Admin.AdminLogin1Activity"
             android:exported="false" />
+
+        <!-- Admin -->
         <activity
             android:name=".Admin.AdminDashboardActivity"
             android:exported="false" />
@@ -229,9 +231,6 @@
             android:exported="false" />
         <activity
             android:name=".Admin.ComplaintsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Admin.MainActivity1"
             android:exported="false" />
 
         <provider

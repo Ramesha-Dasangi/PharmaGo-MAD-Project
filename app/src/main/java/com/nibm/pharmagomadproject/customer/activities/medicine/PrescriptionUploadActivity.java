@@ -255,14 +255,7 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     com.nibm.pharmagomadproject.customer.activities.order.CartActivity.clearCart();
 
-                    // Rebuild the back stack as Home -> OrderTracking, instead of just
-                    // pushing OrderTracking on top of the existing stack. The old
-                    // behaviour left PaymentActivity underneath in the back stack;
-                    // since the cart was just cleared, pressing back from
-                    // OrderTracking landed on a stale PaymentActivity whose
-                    // "Place order" button re-enabled itself (empty-cart Rx check
-                    // passed) and could create a broken duplicate order.
-                    // Going through Home guarantees a clean screen on back-press.
+                    // Rebuild the back stack as Home -> OrderTracking
                     Intent homeIntent = new Intent(PrescriptionUploadActivity.this, HomeActivity.class);
 
                     Intent trackingIntent = new Intent(PrescriptionUploadActivity.this, OrderTrackingActivity.class);

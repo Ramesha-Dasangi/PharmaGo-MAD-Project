@@ -130,21 +130,12 @@ public class PharmacyAdapter
 
     }
 
-
-
-
     @Override
     public int getItemCount(){
 
         return list.size();
 
     }
-
-
-
-
-
-
 
     public static class ViewHolder
             extends RecyclerView.ViewHolder{
@@ -178,9 +169,5 @@ public class PharmacyAdapter
                     itemView.findViewById(R.id.btnCallPharmacy);
 
         }
-
-
     }
-
-
 }

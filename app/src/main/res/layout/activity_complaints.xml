@@ -9,7 +9,7 @@
         android:id="@+id/topBackground"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/pg_primary"
+        android:background="@color/pg_text"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView

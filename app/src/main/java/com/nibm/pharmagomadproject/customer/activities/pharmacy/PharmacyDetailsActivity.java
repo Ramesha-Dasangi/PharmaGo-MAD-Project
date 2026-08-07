@@ -257,9 +257,6 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
                 list.size()+" medicines available"
         );
 
-
-
-
         LayoutInflater inflater =
                 LayoutInflater.from(this);
 
@@ -353,10 +350,6 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
     }
 
-
-
-
-
     private int dp(int value){
 
         return (int)(
@@ -367,6 +360,4 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
         );
 
     }
-
-
 }

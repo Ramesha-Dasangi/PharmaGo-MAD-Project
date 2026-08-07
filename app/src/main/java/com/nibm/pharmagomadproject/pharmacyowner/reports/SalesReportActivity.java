@@ -40,7 +40,7 @@ import java.util.Map;
 
 public class SalesReportActivity extends AppCompatActivity {
 
-    // ──────────── Views ────────────
+    // Views
     private RecyclerView recyclerChart;
     private ReportBarAdapter adapter;
     private ArrayList<SalesReportModel> reportList;
@@ -49,11 +49,11 @@ public class SalesReportActivity extends AppCompatActivity {
     private TextView txtTotalRevenue, txtOrderCount, txtBestSeller, txtChartTitle;
     private BottomNavigationView bottomNavigation;
 
-    // ──────────── Firebase
+    // Firebase
     private FirebaseFirestore db;
     private String ownerId = "";
 
-    // ──────────── Cached report data for PDF export ────────────
+    // Cached report data for PDF export
     private double cachedRevenue    = 0;
     private int    cachedOrderCount = 0;
     private String cachedBestSeller = "—";
@@ -65,12 +65,12 @@ public class SalesReportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sales_report);
 
-        // ── Firebase auth ──
+        // Firebase auth
         db = FirebaseFirestore.getInstance();
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) ownerId = user.getUid();
 
-        // ── View binding ──
+        // View binding
         recyclerChart = findViewById(R.id.recyclerChart);
         btnToday      = findViewById(R.id.btnToday);
         btnWeek       = findViewById(R.id.btnWeek);
@@ -89,7 +89,7 @@ public class SalesReportActivity extends AppCompatActivity {
         adapter    = new ReportBarAdapter(reportList);
         recyclerChart.setAdapter(adapter);
 
-        // ── Default: today ──
+        // Default: today
         highlightButton(btnToday);
         loadReportData("today");
 
@@ -127,9 +127,7 @@ public class SalesReportActivity extends AppCompatActivity {
         loadReportData(currentPeriod);
     }
 
-    // ═══════════════════════════════════════════════════
     //  Load report data from Firestore based on period
-    // ═══════════════════════════════════════════════════
     private void loadReportData(String period) {
         if (ownerId.isEmpty()) {
             Toast.makeText(this, "Not authenticated", Toast.LENGTH_SHORT).show();
@@ -163,9 +161,7 @@ public class SalesReportActivity extends AppCompatActivity {
                         Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    // ═══════════════════════════════════════════════════
     //  Process query results into bar chart + summary
-    // ═══════════════════════════════════════════════════
     private void processReportData(
             com.google.firebase.firestore.QuerySnapshot snapshots,
             String period,
@@ -175,7 +171,7 @@ public class SalesReportActivity extends AppCompatActivity {
         int orderCount = 0;
         Map<String, Integer> medicineCountMap = new HashMap<>();
 
-        // ── Bucket map for bar chart (label → total) ──
+        // Bucket map for bar chart (label → total)
         Map<String, Double> buckets = new java.util.LinkedHashMap<>();
         initBuckets(buckets, period);
 
@@ -210,7 +206,7 @@ public class SalesReportActivity extends AppCompatActivity {
 
             orderCount++;
 
-            // ── Only count revenue / items that actually belong to THIS pharmacy ──
+            // Only count revenue / items that actually belong to THIS pharmacy -
             // (a single order can span multiple pharmacies, so the order-level
             // "total" field is NOT this pharmacy's revenue — it can include
             // other pharmacies' items too. Sum only this owner's line items.)
@@ -238,7 +234,7 @@ public class SalesReportActivity extends AppCompatActivity {
                     medicineCountMap.merge(medName, qty, Integer::sum);
                 }
             } else {
-                // Fallback: no items array — only trust order total when the
+                // only trust order total when the
                 // order itself is explicitly tagged as this pharmacy's own order.
                 if (ownerId.equals(topPharmacyId)) {
                     Object totalObj = doc.get("total");
@@ -254,7 +250,7 @@ public class SalesReportActivity extends AppCompatActivity {
             buckets.merge(label, myShare, Double::sum);
         }
 
-        // ── Best seller ranked list ──
+        // Best seller ranked list
         String bestSellerText;
         if (medicineCountMap.isEmpty()) {
             bestSellerText = "— No sales data for this period";
@@ -285,7 +281,7 @@ public class SalesReportActivity extends AppCompatActivity {
             bestSellerText = sb.toString();
         }
 
-        // ── Cache for PDF ──
+        // Cache for PDF
         cachedRevenue    = totalRevenue;
         cachedOrderCount = orderCount;
         cachedBestSeller = medicineCountMap.isEmpty() ? "—" :
@@ -293,7 +289,7 @@ public class SalesReportActivity extends AppCompatActivity {
 
         final String finalBestSellerText = bestSellerText;
 
-        // ── Summary TextViews ──
+        // Summary TextViews
         double finalRevenue = totalRevenue;
         final int finalOrderCount = orderCount;
         runOnUiThread(() -> {
@@ -305,7 +301,7 @@ public class SalesReportActivity extends AppCompatActivity {
                 txtBestSeller.setText(finalBestSellerText);
         });
 
-        // ── Build bar chart ──
+        // Build bar chart
         reportList.clear();
         double maxVal = Collections.max(buckets.values().isEmpty()
                 ? Collections.singletonList(1.0) : buckets.values());
@@ -318,9 +314,7 @@ public class SalesReportActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-    // ═══════════════════════════════════════════════════
     //  Build ordered bucket map for chart axis labels
-    // ═══════════════════════════════════════════════════
     private void initBuckets(Map<String, Double> buckets, String period) {
         switch (period) {
             case "today":
@@ -347,9 +341,7 @@ public class SalesReportActivity extends AppCompatActivity {
         return (hour - 12) + "PM";
     }
 
-    // ═══════════════════════════════════════════════════
     //  Map a timestamp to the right bucket label
-    // ═══════════════════════════════════════════════════
     private String getBucketLabel(long ms, String period) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(ms);
@@ -374,9 +366,7 @@ public class SalesReportActivity extends AppCompatActivity {
         return "—";
     }
 
-    // ═══════════════════════════════════════════════════
     //  Get start-of-period timestamp in milliseconds
-    // ═══════════════════════════════════════════════════
     private long getStartMillis(String period) {
         Calendar cal = Calendar.getInstance();
         switch (period) {
@@ -404,9 +394,7 @@ public class SalesReportActivity extends AppCompatActivity {
         return cal.getTimeInMillis();
     }
 
-    // ═══════════════════════════════════════════════════
     //  Button highlight toggle
-    // ═══════════════════════════════════════════════════
     private void highlightButton(Button selected) {
         Button[] all = {btnToday, btnWeek, btnMonth};
         for (Button b : all) {
@@ -417,9 +405,7 @@ public class SalesReportActivity extends AppCompatActivity {
         selected.setTextColor(Color.WHITE);
     }
 
-    // ═══════════════════════════════════════════════════
     //  PDF Export with real computed data
-    // ═══════════════════════════════════════════════════
     private void exportPDF() {
         PdfDocument pdfDoc = new PdfDocument();
 
@@ -482,8 +468,8 @@ public class SalesReportActivity extends AppCompatActivity {
 
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                // ── Android 10+: save into the public Downloads collection via MediaStore
-                // so it actually shows up in Downloads / the file manager ──
+                // Android 10+: save into the public Downloads collection via MediaStore
+                // so it actually shows up in Downloads / the file manager
                 android.content.ContentValues values = new android.content.ContentValues();
                 values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                 values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
@@ -511,7 +497,7 @@ public class SalesReportActivity extends AppCompatActivity {
                     // No PDF viewer installed — the file is still safely in Downloads
                 }
             } else {
-                // ── Pre-Android 10 fallback: legacy public Downloads directory ──
+                // Pre-Android 10 fallback: legacy public Downloads directory
                 File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 if (!downloadsDir.exists()) downloadsDir.mkdirs();
                 File file = new File(downloadsDir, fileName);

@@ -136,9 +136,7 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-    // ═══════════════════════════════════════════════════
     //  Load real pharmacy profile from Firestore
-    // ═══════════════════════════════════════════════════
     private void loadPharmacyProfile() {
         com.google.firebase.auth.FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -208,11 +206,6 @@ public class ProfileActivity extends AppCompatActivity {
                     }
 
                     // Load reviews for this pharmacy.
-                    // NOTE: reviews are written with pharmacyId = the owner's UID
-                    // (see AddMedicineActivity -> Cart -> Order -> ReviewActivity chain),
-                    // NOT the "pharmacies" collection's auto-generated document ID.
-                    // Passing pharmacyDocId here was the bug: it never matched any
-                    // review, so the list always looked empty.
                     loadPharmacyReviews(uid);
                 })
                 .addOnFailureListener(e ->
@@ -222,9 +215,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void loadPharmacyReviews(String ownerUid) {
         if (ownerUid == null || ownerUid.isEmpty() || layoutPharmacyReviewsList == null) return;
-        // NOTE: no .orderBy() here on purpose — whereEqualTo + orderBy on different
-        // fields needs a Firestore composite index. We sort client-side instead so
-        // this works immediately without any Firebase Console setup.
+
         db.collection("reviews").whereEqualTo("pharmacyId", ownerUid)
                 .get().addOnSuccessListener(snap -> {
                     layoutPharmacyReviewsList.removeAllViews();

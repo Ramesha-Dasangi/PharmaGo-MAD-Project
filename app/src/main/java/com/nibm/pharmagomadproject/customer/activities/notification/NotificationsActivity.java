@@ -184,6 +184,7 @@ public class NotificationsActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // Remove listener to prevent memory leaks
-        if (listenerRegistration != null) listenerRegistration.remove();
+        if (listenerRegistration != null)
+            listenerRegistration.remove();
     }
 }
