@@ -128,7 +128,7 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
 
                                         long now = System.currentTimeMillis();
                                         java.util.Map<String, Object> orderUpdates = new java.util.HashMap<>();
-                                        orderUpdates.put("status", "completed");
+                                        orderUpdates.put("status", "delivered");
                                         orderUpdates.put("deliveredAt", now);
                                         orderUpdates.put("completedAt", now);
                                         transaction.update(db.collection("orders").document(deliveryOrderId), orderUpdates);

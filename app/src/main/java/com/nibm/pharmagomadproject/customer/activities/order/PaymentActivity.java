@@ -347,7 +347,7 @@ public class PaymentActivity extends AppCompatActivity {
                             notif.put("referenceId", existingOrderId);
                             notif.put("isRead",      false);
                             notif.put("createdAt",   System.currentTimeMillis());
-                            db.collection("notifications").add(notif);
+                            com.nibm.pharmagomadproject.customer.CustomerNotificationHelper.sendNotification(uid, notif);
                         }
 
                         Intent intent = new Intent(this, OrderTrackingActivity.class);
@@ -448,7 +448,7 @@ public class PaymentActivity extends AppCompatActivity {
                         notif.put("referenceId", orderId);
                         notif.put("isRead",      false);
                         notif.put("createdAt",   System.currentTimeMillis());
-                        db.collection("notifications").add(notif);
+                        com.nibm.pharmagomadproject.customer.CustomerNotificationHelper.sendNotification(notifUid, notif);
                     }
 
                     // ── Notify every pharmacy involved in this order ──

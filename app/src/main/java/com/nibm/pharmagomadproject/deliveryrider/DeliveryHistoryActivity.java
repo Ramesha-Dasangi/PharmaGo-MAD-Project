@@ -137,6 +137,9 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
                             }
                         }
 
+                        Long createdAtStr = doc.getLong("createdAt");
+                        item.put("createdAt", createdAtStr != null ? String.valueOf(createdAtStr) : "0");
+
                         orderList.add(item);
 
                         // Fetch real rating from reviews collection
@@ -164,6 +167,11 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
                         }
                     }
 
+                    java.util.Collections.sort(orderList, (a, b) -> {
+                        long timeA = Long.parseLong(a.containsKey("createdAt") ? a.get("createdAt") : "0");
+                        long timeB = Long.parseLong(b.containsKey("createdAt") ? b.get("createdAt") : "0");
+                        return Long.compare(timeB, timeA);
+                    });
                     adapter.notifyDataSetChanged();
                     updateEmptyState();
                     
@@ -274,6 +282,9 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
                         }
                     }
 
+                    Long createdAtStr = doc.getLong("createdAt");
+                    item.put("createdAt", createdAtStr != null ? String.valueOf(createdAtStr) : "0");
+
                     orderList.add(item);
 
                     // Fetch customer name
@@ -290,6 +301,11 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
                 }
             }
 
+            java.util.Collections.sort(orderList, (a, b) -> {
+                long timeA = Long.parseLong(a.containsKey("createdAt") ? a.get("createdAt") : "0");
+                long timeB = Long.parseLong(b.containsKey("createdAt") ? b.get("createdAt") : "0");
+                return Long.compare(timeB, timeA);
+            });
             adapter.notifyDataSetChanged();
             updateEmptyState();
             
