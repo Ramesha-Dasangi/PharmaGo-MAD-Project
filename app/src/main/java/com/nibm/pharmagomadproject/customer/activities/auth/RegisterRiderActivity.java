@@ -103,6 +103,22 @@ public class RegisterRiderActivity extends AppCompatActivity {
                     finish();
         });
 
+        // Role navigation
+        TextView roleCustomer = findViewById(R.id.roleCustomer);
+        TextView rolePharmacy = findViewById(R.id.rolePharmacy);
+
+        if (roleCustomer != null) {
+            roleCustomer.setOnClickListener(v -> {
+                startActivity(new Intent(this, RegisterActivity.class));
+                finish();
+            });
+        }
+        if (rolePharmacy != null) {
+            rolePharmacy.setOnClickListener(v -> {
+                startActivity(new Intent(this, RegisterPharmacyActivity.class));
+                finish();
+            });
+        }
     }
 
     @Override

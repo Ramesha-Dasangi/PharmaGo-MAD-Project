@@ -234,7 +234,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
     }
 
 
-    // ─── OrderAdapter.OrderListener ──────────────────
+    // OrderAdapter.OrderListener
 
     @Override
     public void onTrackOrder(Order order) {

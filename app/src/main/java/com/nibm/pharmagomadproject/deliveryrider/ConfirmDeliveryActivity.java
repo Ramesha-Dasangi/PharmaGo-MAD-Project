@@ -18,6 +18,7 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_CODE = 100;
     private ImageView ivPhotoResult;
     private TextView tvCustomerName, tvCustomerAddress;
+    private android.graphics.Bitmap capturedPhotoBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,80 +74,23 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
                     btnConfirmDelivered.setText("Confirming...");
 
                     String deliveryOrderId = getIntent().getStringExtra("orderId");
-                    com.google.firebase.auth.FirebaseAuth mAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
-                    String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
-
-                    if (uid != null) {
-                        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
-
-                        // Clear rider's activeOrderId (separate from the order-completion transaction)
-                        java.util.Map<String, Object> riderUpdates = new java.util.HashMap<>();
-                        riderUpdates.put("activeOrderId", null);
-                        com.google.firebase.firestore.WriteBatch riderBatch = db.batch();
-                        riderBatch.update(db.collection("riders").document(uid), riderUpdates);
-                        riderBatch.update(db.collection("users").document(uid), riderUpdates);
-
-                        if (deliveryOrderId == null || deliveryOrderId.isEmpty()) {
-                            riderBatch.commit().addOnCompleteListener(task -> goToRiderDashboard());
-                            return;
-                        }
-
-                        // ── Mark order COMPLETED + deduct medicine stock ──
-                        // (This is the only place in the app that finalizes an order,
-                        // so Sales Reports / revenue / top-sellers depend on this running.)
-                        db.collection("orders").document(deliveryOrderId).get()
-                                .addOnSuccessListener(orderDoc -> {
-                                    java.util.List<java.util.Map<String, Object>> items =
-                                            (java.util.List<java.util.Map<String, Object>>) orderDoc.get("items");
-
-                                    java.util.Map<String, Long> deductions = new java.util.HashMap<>();
-                                    if (items != null) {
-                                        for (java.util.Map<String, Object> item : items) {
-                                            Object medIdObj = item.get("medicineId");
-                                            Object qtyObj   = item.get("quantity");
-                                            if (medIdObj == null) continue;
-                                            long qty = qtyObj instanceof Number ? ((Number) qtyObj).longValue() : 1L;
-                                            deductions.merge(medIdObj.toString(), qty, Long::sum);
-                                        }
-                                    }
-
-                                    db.runTransaction(transaction -> {
-                                        java.util.Map<String, com.google.firebase.firestore.DocumentSnapshot> medDocs = new java.util.HashMap<>();
-                                        for (String medId : deductions.keySet()) {
-                                            medDocs.put(medId, transaction.get(db.collection("medicines").document(medId)));
-                                        }
-                                        for (java.util.Map.Entry<String, Long> entry : deductions.entrySet()) {
-                                            com.google.firebase.firestore.DocumentSnapshot snap = medDocs.get(entry.getKey());
-                                            if (snap == null || !snap.exists()) continue;
-                                            Long currentStock = snap.getLong("stock");
-                                            if (currentStock == null) currentStock = 0L;
-                                            long newStock = Math.max(0, currentStock - entry.getValue());
-                                            transaction.update(db.collection("medicines").document(entry.getKey()),
-                                                    "stock", newStock,
-                                                    "updatedAt", System.currentTimeMillis());
-                                        }
-
-                                        long now = System.currentTimeMillis();
-                                        java.util.Map<String, Object> orderUpdates = new java.util.HashMap<>();
-                                        orderUpdates.put("status", "delivered");
-                                        orderUpdates.put("deliveredAt", now);
-                                        orderUpdates.put("completedAt", now);
-                                        transaction.update(db.collection("orders").document(deliveryOrderId), orderUpdates);
-                                        return null;
-                                    }).addOnCompleteListener(task ->
-                                            riderBatch.commit().addOnCompleteListener(t -> {
-                                                android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "✅ Delivery confirmed!", android.widget.Toast.LENGTH_SHORT).show();
-                                                goToRiderDashboard();
-                                            }));
-                                })
-                                .addOnFailureListener(e -> {
-                                    android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
-                                    btnConfirmDelivered.setEnabled(true);
-                                    btnConfirmDelivered.setText("Confirm Delivered");
-                                });
-                    } else {
-                        goToRiderDashboard();
+                    SignatureView signatureView = findViewById(R.id.boxSignature);
+                    
+                    android.net.Uri photoUri = null;
+                    if (capturedPhotoBitmap != null) {
+                        photoUri = saveBitmapToTempFile(capturedPhotoBitmap, "photo_");
                     }
+                    android.net.Uri signatureUri = null;
+                    if (signatureView != null && signatureView.hasSignature()) {
+                        android.graphics.Bitmap signatureBitmap = signatureView.getSignatureBitmap();
+                        if (signatureBitmap != null) {
+                            signatureUri = saveBitmapToTempFile(signatureBitmap, "signature_");
+                        }
+                    }
+
+                    com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper storageHelper = new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper(ConfirmDeliveryActivity.this);
+                    
+                    uploadFilesAndUpdateFirestore(storageHelper, deliveryOrderId, photoUri, signatureUri);
                 }
             });
         }
@@ -157,6 +101,189 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private android.net.Uri saveBitmapToTempFile(android.graphics.Bitmap bitmap, String prefix) {
+        try {
+            java.io.File cacheDir = getCacheDir();
+            java.io.File tempFile = java.io.File.createTempFile(prefix, ".jpg", cacheDir);
+            java.io.FileOutputStream out = new java.io.FileOutputStream(tempFile);
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
+            return android.net.Uri.fromFile(tempFile);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void uploadFilesAndUpdateFirestore(
+            com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper storageHelper,
+            String deliveryOrderId,
+            android.net.Uri photoUri,
+            android.net.Uri signatureUri) {
+        
+        final String[] uploadedPhotoUrl = {null};
+        final String[] uploadedSignatureUrl = {null};
+        
+        Runnable updateFirestore = () -> {
+            updateFirestoreOrder(deliveryOrderId, uploadedPhotoUrl[0], uploadedSignatureUrl[0]);
+        };
+
+        if (photoUri != null && signatureUri != null) {
+            storageHelper.uploadFile(com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.BUCKET_DELIVERIES, deliveryOrderId + "/photo_" + System.currentTimeMillis() + ".jpg", photoUri, new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.UploadCallback() {
+                @Override
+                public void onSuccess(String publicUrl1) {
+                    uploadedPhotoUrl[0] = publicUrl1;
+                    storageHelper.uploadFile(com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.BUCKET_DELIVERIES, deliveryOrderId + "/signature_" + System.currentTimeMillis() + ".jpg", signatureUri, new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.UploadCallback() {
+                        @Override
+                        public void onSuccess(String publicUrl2) {
+                            uploadedSignatureUrl[0] = publicUrl2;
+                            updateFirestore.run();
+                        }
+                        @Override
+                        public void onFailure(String error) {
+                            runOnUiThread(() -> android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Signature upload failed: " + error, android.widget.Toast.LENGTH_LONG).show());
+                            updateFirestore.run();
+                        }
+                    });
+                }
+                @Override
+                public void onFailure(String error) {
+                    runOnUiThread(() -> android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Photo upload failed: " + error, android.widget.Toast.LENGTH_LONG).show());
+                    // try signature anyway
+                    storageHelper.uploadFile(com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.BUCKET_DELIVERIES, deliveryOrderId + "/signature_" + System.currentTimeMillis() + ".jpg", signatureUri, new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.UploadCallback() {
+                        @Override
+                        public void onSuccess(String publicUrl2) {
+                            uploadedSignatureUrl[0] = publicUrl2;
+                            updateFirestore.run();
+                        }
+                        @Override
+                        public void onFailure(String error2) {
+                            runOnUiThread(() -> android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Signature upload failed: " + error2, android.widget.Toast.LENGTH_LONG).show());
+                            updateFirestore.run();
+                        }
+                    });
+                }
+            });
+        } else if (photoUri != null) {
+            storageHelper.uploadFile(com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.BUCKET_DELIVERIES, deliveryOrderId + "/photo_" + System.currentTimeMillis() + ".jpg", photoUri, new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.UploadCallback() {
+                @Override
+                public void onSuccess(String publicUrl) {
+                    uploadedPhotoUrl[0] = publicUrl;
+                    updateFirestore.run();
+                }
+                @Override
+                public void onFailure(String error) {
+                    runOnUiThread(() -> android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Photo upload failed: " + error, android.widget.Toast.LENGTH_LONG).show());
+                    updateFirestore.run();
+                }
+            });
+        } else if (signatureUri != null) {
+            storageHelper.uploadFile(com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.BUCKET_DELIVERIES, deliveryOrderId + "/signature_" + System.currentTimeMillis() + ".jpg", signatureUri, new com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper.UploadCallback() {
+                @Override
+                public void onSuccess(String publicUrl) {
+                    uploadedSignatureUrl[0] = publicUrl;
+                    updateFirestore.run();
+                }
+                @Override
+                public void onFailure(String error) {
+                    runOnUiThread(() -> android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Signature upload failed: " + error, android.widget.Toast.LENGTH_LONG).show());
+                    updateFirestore.run();
+                }
+            });
+        } else {
+            updateFirestore.run();
+        }
+    }
+
+    private void updateFirestoreOrder(String deliveryOrderId, String photoUrl, String signatureUrl) {
+        com.google.firebase.auth.FirebaseAuth mAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+
+        if (uid != null) {
+            com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+
+            // Clear rider's activeOrderId (separate from the order-completion transaction)
+            java.util.Map<String, Object> riderUpdates = new java.util.HashMap<>();
+            riderUpdates.put("activeOrderId", null);
+            com.google.firebase.firestore.WriteBatch riderBatch = db.batch();
+            riderBatch.update(db.collection("riders").document(uid), riderUpdates);
+            riderBatch.update(db.collection("users").document(uid), riderUpdates);
+
+            if (deliveryOrderId == null || deliveryOrderId.isEmpty()) {
+                riderBatch.commit().addOnCompleteListener(task -> goToRiderDashboard());
+                return;
+            }
+
+            // Mark order COMPLETED + deduct medicine stock
+            db.collection("orders").document(deliveryOrderId).get()
+                    .addOnSuccessListener(orderDoc -> {
+                        java.util.List<java.util.Map<String, Object>> items =
+                                (java.util.List<java.util.Map<String, Object>>) orderDoc.get("items");
+
+                        java.util.Map<String, Long> deductions = new java.util.HashMap<>();
+                        if (items != null) {
+                            for (java.util.Map<String, Object> item : items) {
+                                Object medIdObj = item.get("medicineId");
+                                Object qtyObj   = item.get("quantity");
+                                if (medIdObj == null) continue;
+                                long qty = qtyObj instanceof Number ? ((Number) qtyObj).longValue() : 1L;
+                                deductions.merge(medIdObj.toString(), qty, Long::sum);
+                            }
+                        }
+
+                        db.runTransaction(transaction -> {
+                            java.util.Map<String, com.google.firebase.firestore.DocumentSnapshot> medDocs = new java.util.HashMap<>();
+                            for (String medId : deductions.keySet()) {
+                                medDocs.put(medId, transaction.get(db.collection("medicines").document(medId)));
+                            }
+                            for (java.util.Map.Entry<String, Long> entry : deductions.entrySet()) {
+                                com.google.firebase.firestore.DocumentSnapshot snap = medDocs.get(entry.getKey());
+                                if (snap == null || !snap.exists()) continue;
+                                Long currentStock = snap.getLong("stock");
+                                if (currentStock == null) currentStock = 0L;
+                                long newStock = Math.max(0, currentStock - entry.getValue());
+                                transaction.update(db.collection("medicines").document(entry.getKey()),
+                                        "stock", newStock,
+                                        "updatedAt", System.currentTimeMillis());
+                            }
+
+                            long now = System.currentTimeMillis();
+                            java.util.Map<String, Object> orderUpdates = new java.util.HashMap<>();
+                            orderUpdates.put("status", "delivered");
+                            orderUpdates.put("deliveredAt", now);
+                            orderUpdates.put("completedAt", now);
+                            if (photoUrl != null) {
+                                orderUpdates.put("deliveryPhotoUrl", photoUrl);
+                            }
+                            if (signatureUrl != null) {
+                                orderUpdates.put("signatureUrl", signatureUrl);
+                            }
+                            transaction.update(db.collection("orders").document(deliveryOrderId), orderUpdates);
+                            return null;
+                        }).addOnCompleteListener(task ->
+                                riderBatch.commit().addOnCompleteListener(t -> {
+                                    runOnUiThread(() -> {
+                                        android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "✅ Delivery confirmed!", android.widget.Toast.LENGTH_SHORT).show();
+                                        goToRiderDashboard();
+                                    });
+                                }));
+                    })
+                    .addOnFailureListener(e -> {
+                        runOnUiThread(() -> {
+                            android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                            Button btnConfirmDelivered = findViewById(R.id.btnConfirmDelivered);
+                            if (btnConfirmDelivered != null) {
+                                btnConfirmDelivered.setEnabled(true);
+                                btnConfirmDelivered.setText("Confirm Delivered");
+                            }
+                        });
+                    });
+        } else {
+            runOnUiThread(this::goToRiderDashboard);
+        }
     }
 
     private void loadOrderDetails(String oId) {
@@ -224,6 +351,7 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
                 if (extras != null) {
                     android.graphics.Bitmap imageBitmap = (android.graphics.Bitmap) extras.get("data");
                     if (ivPhotoResult != null && imageBitmap != null) {
+                        capturedPhotoBitmap = imageBitmap;
                         ivPhotoResult.setImageBitmap(imageBitmap);
                         ivPhotoResult.setVisibility(View.VISIBLE);
                         View iconCamera = findViewById(R.id.iconCamera);

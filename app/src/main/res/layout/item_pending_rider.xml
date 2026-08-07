@@ -82,7 +82,7 @@
                 android:text="Review"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                app:backgroundTint="@color/pg_primary"
+                app:backgroundTint="@color/pg_text"
                 app:cornerRadius="8dp" />
                 
             <com.google.android.material.button.MaterialButton

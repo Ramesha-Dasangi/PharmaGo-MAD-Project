@@ -14,7 +14,7 @@ public class Medicine {
     private String pharmacyId;
     private long createdAt;
 
-    // Empty constructor (Firestore වලට අවශ්‍යයි)
+    // Empty constructor required for Firestore
     public Medicine() {
     }
 

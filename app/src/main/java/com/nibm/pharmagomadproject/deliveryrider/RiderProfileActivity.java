@@ -212,6 +212,9 @@ public class RiderProfileActivity extends AppCompatActivity {
         View itemLogout = findViewById(R.id.itemLogout);
         if (itemLogout != null) {
             itemLogout.setOnClickListener(v -> {
+                if (mAuth != null) {
+                    mAuth.signOut();
+                }
                 Intent intent = new Intent(this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
@@ -282,9 +285,7 @@ public class RiderProfileActivity extends AppCompatActivity {
         if (mAuth.getCurrentUser() == null) return;
         if (layoutReviewsList == null) return;
         String uid = mAuth.getCurrentUser().getUid();
-        // NOTE: no .orderBy() here on purpose — whereEqualTo + orderBy on different
-        // fields needs a Firestore composite index. We sort client-side instead so
-        // this works immediately without any Firebase Console setup.
+        // no .orderBy() here on purpose
         db.collection("reviews").whereEqualTo("riderId", uid)
                 .get().addOnSuccessListener(snap -> {
                     layoutReviewsList.removeAllViews();

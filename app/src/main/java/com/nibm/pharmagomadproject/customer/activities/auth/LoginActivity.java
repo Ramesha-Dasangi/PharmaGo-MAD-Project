@@ -77,9 +77,6 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-
-
-
             mAuth.sendPasswordResetEmail(email)
                     .addOnSuccessListener(unused -> {
                         Toast.makeText(
