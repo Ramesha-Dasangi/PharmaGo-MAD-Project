@@ -9,6 +9,7 @@ public class Pharmacy {
     private String address;
     private String email;
     private double rating;
+    private long ratingCount;
     private String ownerId;
     private boolean isApproved;
     private double latitude;
@@ -39,5 +40,8 @@ public class Pharmacy {
     public String getAddress(){ return address; }
     public String getEmail(){ return email; }
     public double getRating(){ return rating; }
+    public void setRating(double rating){ this.rating = rating; }
+    public long getRatingCount(){ return ratingCount; }
+    public void setRatingCount(long ratingCount){ this.ratingCount = ratingCount; }
     public boolean isApproved(){ return isApproved; }
 }

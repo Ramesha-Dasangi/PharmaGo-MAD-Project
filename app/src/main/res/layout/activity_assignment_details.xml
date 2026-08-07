@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@color/background_gray"
     tools:context=".deliveryrider.AssignmentDetailsActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="24dp">
 
     <!-- Top Orange Header -->
     <View
@@ -180,13 +186,15 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:id="@+id/tvDropoffAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="2.1 km from last stop"
+            android:text="Customer address"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             android:layout_marginTop="4dp"
             app:layout_constraintStart_toStartOf="@id/tvDropoffName"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvDropoffName" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -201,9 +209,9 @@
         android:background="@drawable/bg_rounded_orange"
         app:backgroundTint="@null"
         android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="24dp"
         android:paddingVertical="12dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnCancelAssignment"
+        app:layout_constraintTop_toBottomOf="@id/cardDropoff"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -219,10 +227,12 @@
         app:strokeColor="#EF4444"
         app:cornerRadius="10dp"
         android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginTop="12dp"
         android:paddingVertical="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnStartNavigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

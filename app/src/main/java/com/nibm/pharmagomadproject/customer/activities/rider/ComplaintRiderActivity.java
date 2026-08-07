@@ -39,19 +39,28 @@ public class ComplaintRiderActivity extends AppCompatActivity {
         
         orderId = getIntent().getStringExtra("orderId");
         if (orderId == null) orderId = "";
-        
+
+        // Show rider name in the form header
+        TextView tvRiderName = findViewById(R.id.tvComplaintRiderName);
+
         if (!orderId.isEmpty()) {
             db.collection("orders").document(orderId).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String riderId = doc.getString("riderId");
-                        if (riderId != null && !riderId.isEmpty()) {
+                        // Try riderName field first (set at assignment time)
+                        String storedRiderName = doc.getString("riderName");
+                        if (storedRiderName != null && !storedRiderName.isEmpty()) {
+                            targetRiderName = storedRiderName;
+                            if (tvRiderName != null) tvRiderName.setText("Complaining about: " + targetRiderName);
+                        } else if (riderId != null && !riderId.isEmpty()) {
                             db.collection("users").document(riderId).get()
                                 .addOnSuccessListener(riderDoc -> {
                                     if (riderDoc.exists()) {
                                         String rName = riderDoc.getString("name");
                                         if (rName != null && !rName.isEmpty()) {
                                             targetRiderName = rName;
+                                            if (tvRiderName != null) tvRiderName.setText("Complaining about: " + targetRiderName);
                                         }
                                     }
                                 });

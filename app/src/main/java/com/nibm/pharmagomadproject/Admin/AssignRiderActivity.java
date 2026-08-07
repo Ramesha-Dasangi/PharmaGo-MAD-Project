@@ -99,42 +99,64 @@ public class AssignRiderActivity extends AppCompatActivity {
         rvRiders.setVisibility(View.GONE);
         tvEmptyRiders.setVisibility(View.GONE);
 
-        db.collection("riders")
-                .whereEqualTo("status", "approved")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    progressRiders.setVisibility(View.GONE);
-                    List<UserModel> riders = new ArrayList<>();
-                    
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        // Skip if the rider already has an active order
-                        String activeOrderId = doc.getString("activeOrderId");
-                        if (activeOrderId != null && !activeOrderId.isEmpty()) {
-                            continue; 
-                        }
+        Map<String, UserModel> riderMap = new HashMap<>();
 
-                        UserModel u = new UserModel();
-                        u.setId(doc.getId());
-                        u.setName(doc.getString("name"));
-                        u.setPhone(doc.getString("phone"));
-                        u.setRole("rider");
-                        u.setStatus("approved");
-                        riders.add(u);
-                    }
-                    
-                    adapter.setRiders(riders);
-                    
-                    if (riders.isEmpty()) {
-                        tvEmptyRiders.setVisibility(View.VISIBLE);
-                        rvRiders.setVisibility(View.GONE);
-                    } else {
-                        rvRiders.setVisibility(View.VISIBLE);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    progressRiders.setVisibility(View.GONE);
-                    Toast.makeText(this, "Failed to load riders: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        // 1. Fetch from riders collection
+        db.collection("riders").get().addOnSuccessListener(ridersSnap -> {
+            for (DocumentSnapshot doc : ridersSnap.getDocuments()) {
+                addRiderIfApproved(doc, riderMap);
+            }
+
+            // 2. Also fetch from users collection where role == "rider"
+            db.collection("users").whereEqualTo("role", "rider").get().addOnSuccessListener(usersSnap -> {
+                for (DocumentSnapshot doc : usersSnap.getDocuments()) {
+                    addRiderIfApproved(doc, riderMap);
+                }
+
+                finishRiderLoad(riderMap);
+            }).addOnFailureListener(e -> finishRiderLoad(riderMap));
+        }).addOnFailureListener(e -> finishRiderLoad(riderMap));
+    }
+
+    private void addRiderIfApproved(DocumentSnapshot doc, Map<String, UserModel> riderMap) {
+        if (riderMap.containsKey(doc.getId())) return;
+
+        String status = doc.getString("status");
+        Boolean isApproved = doc.getBoolean("isApproved");
+
+        boolean approved = "approved".equalsIgnoreCase(status) || Boolean.TRUE.equals(isApproved);
+        if (!approved) return;
+
+        String activeOrderId = doc.getString("activeOrderId");
+        if (activeOrderId != null && !activeOrderId.trim().isEmpty()) {
+            return; // Skip if currently on an active delivery
+        }
+
+        String name = doc.getString("name");
+        if (name == null || name.isEmpty()) name = doc.getString("fullName");
+        if (name == null || name.isEmpty()) name = "Rider #" + doc.getId().substring(0, Math.min(4, doc.getId().length()));
+
+        UserModel u = new UserModel();
+        u.setId(doc.getId());
+        u.setName(name);
+        u.setPhone(doc.getString("phone") != null ? doc.getString("phone") : "N/A");
+        u.setRole("rider");
+        u.setStatus("approved");
+        riderMap.put(doc.getId(), u);
+    }
+
+    private void finishRiderLoad(Map<String, UserModel> riderMap) {
+        progressRiders.setVisibility(View.GONE);
+        List<UserModel> ridersList = new ArrayList<>(riderMap.values());
+        adapter.setRiders(ridersList);
+
+        if (ridersList.isEmpty()) {
+            tvEmptyRiders.setVisibility(View.VISIBLE);
+            rvRiders.setVisibility(View.GONE);
+        } else {
+            tvEmptyRiders.setVisibility(View.GONE);
+            rvRiders.setVisibility(View.VISIBLE);
+        }
     }
 
     private void assignRiderToOrder() {

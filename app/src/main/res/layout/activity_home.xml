@@ -66,14 +66,22 @@
                 android:src="@drawable/ic_bell"
                 app:tint="@android:color/white" />
 
-            <!-- Red dot -->
-            <View
-                android:layout_width="8dp"
-                android:layout_height="8dp"
+            <!-- Notification count badge -->
+            <TextView
+                android:id="@+id/notifDot"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="top|end"
                 android:background="@drawable/bg_notif_dot"
+                android:gravity="center"
+                android:text="1"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:textStyle="bold"
                 android:layout_marginTop="2dp"
-                android:layout_marginEnd="2dp" />
+                android:layout_marginEnd="2dp"
+                android:visibility="gone" />
+
 
         </FrameLayout>
 

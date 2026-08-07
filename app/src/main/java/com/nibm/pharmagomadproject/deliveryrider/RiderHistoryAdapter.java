@@ -42,7 +42,7 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
         String customerName = order.get("customerName");
 
         if (orderId != null) {
-            holder.tvOrderId.setText("#" + orderId.substring(0, Math.min(8, orderId.length())).toUpperCase());
+            holder.tvOrderId.setText("#" + orderId.toUpperCase());
         }
 
         if (customerName != null) {
@@ -90,17 +90,16 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
             holder.tvEarnings.setVisibility(View.GONE);
         }
 
-        // Only show report issue for delivered or cancelled
-        if ("delivered".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
-            holder.btnReportIssue.setVisibility(View.VISIBLE);
-            holder.btnReportIssue.setOnClickListener(v -> {
-                Intent i = new Intent(context, ReportIssueByRiderActivity.class);
-                i.putExtra("orderId", orderId);
-                context.startActivity(i);
-            });
+        String ratingStr = order.get("rating");
+        if (ratingStr != null && !ratingStr.isEmpty()) {
+            holder.tvRating.setVisibility(View.VISIBLE);
+            holder.tvRating.setText(ratingStr);
         } else {
-            holder.btnReportIssue.setVisibility(View.GONE);
+            holder.tvRating.setVisibility(View.GONE);
         }
+
+        // Remove report issue button from rider delivery history
+        if (holder.btnReportIssue != null) holder.btnReportIssue.setVisibility(View.GONE);
     }
 
     @Override
@@ -109,7 +108,7 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderId, tvBadge, tvCustomerName, tvEarnings;
+        TextView tvOrderId, tvBadge, tvCustomerName, tvEarnings, tvRating;
         MaterialButton btnReportIssue;
 
         ViewHolder(@NonNull View itemView) {
@@ -118,6 +117,7 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
             tvBadge = itemView.findViewById(R.id.tvBadge);
             tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
             tvEarnings = itemView.findViewById(R.id.tvEarnings);
+            tvRating = itemView.findViewById(R.id.tvRating);
             btnReportIssue = itemView.findViewById(R.id.btnReportIssue);
         }
     }

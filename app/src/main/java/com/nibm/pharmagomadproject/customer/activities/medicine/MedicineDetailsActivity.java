@@ -83,17 +83,9 @@ public class MedicineDetailsActivity extends AppCompatActivity {
             }
         }
 
-        // Load image if available
-        ImageView imgMed = findViewById(R.id.imgMedicine);
-        String image    = getIntent().getStringExtra("medicine_image");
-        if (imgMed != null && image != null && !image.trim().isEmpty()) {
-            imgMed.setPadding(0, 0, 0, 0);
-            imgMed.setImageTintList(null); // Clear tint
-            com.bumptech.glide.Glide.with(this)
-                .load(image.trim())
-                .placeholder(R.drawable.ic_pill)
-                .into(imgMed);
-        }
+        // Load initial image if passed via Intent
+        String imageExtra = getIntent().getStringExtra("medicine_image");
+        bindMedicineImage(imageExtra);
 
         // Price comparison bars
         loadPriceComparisons(name, price, pharmacy);
@@ -139,7 +131,7 @@ public class MedicineDetailsActivity extends AppCompatActivity {
             startActivity(new Intent(this, CartActivity.class));
         });
 
-        // Fetch description dynamically from Firestore
+        // Fetch description AND imageUrl from Firestore
         if (id != null && !id.isEmpty()) {
             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("medicines")
@@ -147,6 +139,7 @@ public class MedicineDetailsActivity extends AppCompatActivity {
                     .get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
+                            // Description
                             String desc = doc.getString("description");
                             if (desc != null && !desc.trim().isEmpty()) {
                                 TextView tvDesc = findViewById(R.id.tvDescription);
@@ -154,10 +147,39 @@ public class MedicineDetailsActivity extends AppCompatActivity {
                                 if (tvDesc != null) tvDesc.setText(desc);
                                 if (cardDesc != null) cardDesc.setVisibility(View.VISIBLE);
                             }
+
+                            // Image — fetch fresh from Firestore
+                            String firestoreImage = doc.getString("imageUrl");
+                            if (firestoreImage != null && !firestoreImage.trim().isEmpty()) {
+                                bindMedicineImage(firestoreImage);
+                            }
                         }
                     });
         }
     }
+
+    private void bindMedicineImage(String imageUrl) {
+        ImageView imgView = findViewById(R.id.imgMedicine);
+        if (imgView == null) return;
+
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            imgView.setPadding(0, 0, 0, 0);
+            imgView.setImageTintList(null);
+            imgView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            com.bumptech.glide.Glide.with(this)
+                    .load(imageUrl.trim())
+                    .placeholder(R.drawable.ic_pill)
+                    .error(R.drawable.ic_pill)
+                    .into(imgView);
+        } else {
+            imgView.setPadding(64, 64, 64, 64);
+            imgView.setImageTintList(android.content.res.ColorStateList.valueOf(
+                    getResources().getColor(R.color.pg_primary, null)));
+            imgView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imgView.setImageResource(R.drawable.ic_pill);
+        }
+    }
+
 
     private void loadPriceComparisons(String medicineName, int basePrice, String sourcePharmacy) {
         if (medicineName == null || medicineName.isEmpty()) return;

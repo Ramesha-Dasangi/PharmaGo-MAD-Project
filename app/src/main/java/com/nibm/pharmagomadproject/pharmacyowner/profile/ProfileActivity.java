@@ -33,9 +33,14 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView txtLicense;
     private TextView txtAddress;
     private TextView txtHours;
+    private TextView txtPharmacyRating;
+    private TextView txtPharmacyRatingCount;
+    private LinearLayout layoutPharmacyReviewsList;
+    private LinearLayout expandPharmacyReviews;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private String pharmacyDocId; // Firestore document ID for the pharmacy
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,21 @@ public class ProfileActivity extends AppCompatActivity {
         txtLicense = findViewById(R.id.txtLicense);
         txtAddress = findViewById(R.id.txtAddress);
         txtHours   = findViewById(R.id.txtHours);
+
+        // Rating & Reviews views
+        txtPharmacyRating      = findViewById(R.id.txtPharmacyRating);
+        txtPharmacyRatingCount = findViewById(R.id.txtPharmacyRatingCount);
+        layoutPharmacyReviewsList = findViewById(R.id.layoutPharmacyReviewsList);
+        expandPharmacyReviews  = findViewById(R.id.expandPharmacyReviews);
+
+        // Reviews expand/collapse toggle
+        LinearLayout rowPharmacyReviews = findViewById(R.id.rowPharmacyReviews);
+        if (rowPharmacyReviews != null && expandPharmacyReviews != null) {
+            rowPharmacyReviews.setOnClickListener(v -> {
+                boolean visible = expandPharmacyReviews.getVisibility() == android.view.View.VISIBLE;
+                expandPharmacyReviews.setVisibility(visible ? android.view.View.GONE : android.view.View.VISIBLE);
+            });
+        }
 
         // Load real pharmacy data from Firestore
         loadPharmacyProfile();
@@ -120,7 +140,7 @@ public class ProfileActivity extends AppCompatActivity {
     //  Load real pharmacy profile from Firestore
     // ═══════════════════════════════════════════════════
     private void loadPharmacyProfile() {
-        FirebaseUser user = mAuth.getCurrentUser();
+        com.google.firebase.auth.FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
 
         String uid = user.getUid();
@@ -134,6 +154,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                     com.google.firebase.firestore.DocumentSnapshot doc =
                             snapshots.getDocuments().get(0);
+                    pharmacyDocId = doc.getId();
 
                     // Pharmacy name
                     String name = doc.getString("name");
@@ -167,9 +188,165 @@ public class ProfileActivity extends AppCompatActivity {
                         txtHours.setText(hours);
                     }
                     // else: leaves the default XML text "8:00 AM - 10:00 PM"
+
+                    // Rating from Firestore
+                    Double rating = doc.getDouble("rating");
+                    Long ratingCount = doc.getLong("ratingCount");
+                    if (txtPharmacyRating != null) {
+                        if (rating != null && rating > 0) {
+                            txtPharmacyRating.setText(String.format(java.util.Locale.getDefault(), "★  %.1f", rating));
+                        } else {
+                            txtPharmacyRating.setText("★  —");
+                        }
+                    }
+                    if (txtPharmacyRatingCount != null) {
+                        if (ratingCount != null && ratingCount > 0) {
+                            txtPharmacyRatingCount.setText("(" + ratingCount + " reviews)");
+                        } else {
+                            txtPharmacyRatingCount.setText("No reviews yet");
+                        }
+                    }
+
+                    // Load reviews for this pharmacy.
+                    // NOTE: reviews are written with pharmacyId = the owner's UID
+                    // (see AddMedicineActivity -> Cart -> Order -> ReviewActivity chain),
+                    // NOT the "pharmacies" collection's auto-generated document ID.
+                    // Passing pharmacyDocId here was the bug: it never matched any
+                    // review, so the list always looked empty.
+                    loadPharmacyReviews(uid);
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to load profile: " + e.getMessage(),
                                 Toast.LENGTH_SHORT).show());
+    }
+
+    private void loadPharmacyReviews(String ownerUid) {
+        if (ownerUid == null || ownerUid.isEmpty() || layoutPharmacyReviewsList == null) return;
+        // NOTE: no .orderBy() here on purpose — whereEqualTo + orderBy on different
+        // fields needs a Firestore composite index. We sort client-side instead so
+        // this works immediately without any Firebase Console setup.
+        db.collection("reviews").whereEqualTo("pharmacyId", ownerUid)
+                .get().addOnSuccessListener(snap -> {
+                    layoutPharmacyReviewsList.removeAllViews();
+
+                    // Live count update — update ratingCount and average rating from reviews
+                    if (snap != null && !snap.isEmpty()) {
+                        int count = snap.size();
+                        double sum = 0;
+                        for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+                            Long r = d.getLong("rating");
+                            if (r != null) sum += r;
+                        }
+                        double avg = count > 0 ? sum / count : 0;
+                        // Update Firestore pharmacy doc with real count
+                        if (pharmacyDocId != null && !pharmacyDocId.isEmpty()) {
+                            java.util.Map<String, Object> upd = new java.util.HashMap<>();
+                            upd.put("ratingCount", (long) count);
+                            upd.put("rating", avg);
+                            db.collection("pharmacies").document(pharmacyDocId).update(upd);
+                        }
+                        // Update UI immediately
+                        if (txtPharmacyRating != null)
+                            txtPharmacyRating.setText(String.format(java.util.Locale.getDefault(), "★  %.1f", avg));
+                        if (txtPharmacyRatingCount != null)
+                            txtPharmacyRatingCount.setText("(" + count + " reviews)");
+                    } else {
+                        if (txtPharmacyRatingCount != null)
+                            txtPharmacyRatingCount.setText("No reviews yet");
+                    }
+
+                    if (snap == null || snap.isEmpty()) {
+                        TextView tv = new TextView(this);
+                        tv.setText("No reviews yet.");
+                        tv.setTextColor(0xFF888888);
+                        tv.setTextSize(13);
+                        tv.setPadding(0, 8, 0, 8);
+                        layoutPharmacyReviewsList.addView(tv);
+                        return;
+                    }
+
+                    java.util.List<com.google.firebase.firestore.DocumentSnapshot> docs =
+                            new java.util.ArrayList<>(snap.getDocuments());
+                    docs.sort((a, b) -> {
+                        Long ta = a.getLong("createdAt");
+                        Long tb = b.getLong("createdAt");
+                        long va = ta != null ? ta : 0L;
+                        long vb = tb != null ? tb : 0L;
+                        return Long.compare(vb, va); // descending — newest first
+                    });
+
+                    for (com.google.firebase.firestore.DocumentSnapshot d : docs) {
+                        String customerName = d.getString("customerName");
+                        if (customerName == null || customerName.isEmpty()) customerName = "Customer";
+                        String reviewOrderId = d.getString("orderId");
+                        Long rating = d.getLong("rating");
+                        String comment = d.getString("comment");
+
+                        android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+                        row.setOrientation(android.widget.LinearLayout.VERTICAL);
+                        row.setPadding(0, 12, 0, 12);
+
+                        // Divider
+                        android.view.View divider = new android.view.View(this);
+                        android.widget.LinearLayout.LayoutParams divLp = new android.widget.LinearLayout.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1);
+                        divider.setLayoutParams(divLp);
+                        divider.setBackgroundColor(0xFFEEEEEE);
+                        layoutPharmacyReviewsList.addView(divider);
+
+                        // Name + stars
+                        android.widget.LinearLayout nameRow = new android.widget.LinearLayout(this);
+                        nameRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                        nameRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+                        TextView tvName = new TextView(this);
+                        tvName.setText(customerName);
+                        tvName.setTextColor(0xFF212121);
+                        tvName.setTextSize(14);
+                        tvName.setTypeface(null, android.graphics.Typeface.BOLD);
+                        android.widget.LinearLayout.LayoutParams nlp = new android.widget.LinearLayout.LayoutParams(
+                                0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+                        tvName.setLayoutParams(nlp);
+
+                        TextView tvStars = new TextView(this);
+                        StringBuilder stars = new StringBuilder();
+                        int r = rating != null ? rating.intValue() : 0;
+                        for (int i = 0; i < 5; i++) stars.append(i < r ? "★" : "☆");
+                        tvStars.setText(stars.toString());
+                        tvStars.setTextColor(0xFFFFC107);
+                        tvStars.setTextSize(15);
+
+                        nameRow.addView(tvName);
+                        nameRow.addView(tvStars);
+                        row.addView(nameRow);
+
+                        // Order ID subtitle
+                        if (reviewOrderId != null && !reviewOrderId.isEmpty()) {
+                            TextView tvOrderRef = new TextView(this);
+                            tvOrderRef.setText("Order #" + reviewOrderId.toUpperCase());
+                            tvOrderRef.setTextColor(0xFF9E9E9E);
+                            tvOrderRef.setTextSize(11);
+                            android.widget.LinearLayout.LayoutParams oidLp = new android.widget.LinearLayout.LayoutParams(
+                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                            oidLp.topMargin = 2;
+                            tvOrderRef.setLayoutParams(oidLp);
+                            row.addView(tvOrderRef);
+                        }
+
+                        if (comment != null && !comment.isEmpty()) {
+                            TextView tvComment = new TextView(this);
+                            tvComment.setText(comment);
+                            tvComment.setTextColor(0xFF555555);
+                            tvComment.setTextSize(13);
+                            android.widget.LinearLayout.LayoutParams clp = new android.widget.LinearLayout.LayoutParams(
+                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                            clp.topMargin = 4;
+                            tvComment.setLayoutParams(clp);
+                            row.addView(tvComment);
+                        }
+                        layoutPharmacyReviewsList.addView(row);
+                    }
+                }).addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load reviews: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

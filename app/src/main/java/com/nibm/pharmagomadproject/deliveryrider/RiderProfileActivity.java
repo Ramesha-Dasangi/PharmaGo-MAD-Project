@@ -16,6 +16,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RiderProfileActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
@@ -24,6 +27,8 @@ public class RiderProfileActivity extends AppCompatActivity {
     private TextView tvAvatarInitials, tvProfileName, tvProfileVehicle;
     private TextView tvExpandName, tvExpandPhone, tvExpandVehicle;
     private TextView tvProfileTodayEarnings, tvProfileWeekEarnings, tvProfileDeliveries;
+    private TextView tvProfileRating;
+    private android.widget.LinearLayout layoutReviewsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +50,15 @@ public class RiderProfileActivity extends AppCompatActivity {
         tvProfileTodayEarnings = findViewById(R.id.tvProfileTodayEarnings);
         tvProfileWeekEarnings = findViewById(R.id.tvProfileWeekEarnings);
         tvProfileDeliveries = findViewById(R.id.tvProfileDeliveries);
+        tvProfileRating = findViewById(R.id.tvProfileRating);
+        layoutReviewsList = findViewById(R.id.layoutRiderReviewsList);
 
         setupExpandableItems();
         setupBottomNav();
 
         fetchUserData();
         fetchEarnings();
+        loadRiderReviews();
     }
 
     private void fetchUserData() {
@@ -82,15 +90,41 @@ public class RiderProfileActivity extends AppCompatActivity {
                 Toast.makeText(this, "Failed to load profile", Toast.LENGTH_SHORT).show();
             });
 
-            // Fetch vehicle info from riders collection
+            // Fetch vehicle & rating info from riders collection
             db.collection("riders").document(uid).get().addOnSuccessListener(doc -> {
                 if (doc.exists()) {
                     String vNumber = doc.getString("vehicleReg");
                     String vType = doc.getString("vehicleType");
                     String vehicleStr = (vNumber != null ? vNumber : "Unknown") + " · " + (vType != null ? vType : "Unknown");
-                    
+
                     if (tvProfileVehicle != null) tvProfileVehicle.setText(vehicleStr);
                     if (tvExpandVehicle != null) tvExpandVehicle.setText(vehicleStr);
+                }
+            });
+
+            // Compute live avg rating from reviews collection
+            db.collection("reviews").whereEqualTo("riderId", uid).get().addOnSuccessListener(snap -> {
+                if (snap != null && !snap.isEmpty()) {
+                    double sum = 0;
+                    int count = 0;
+                    for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+                        Double r = d.getDouble("rating");
+                        if (r != null) { sum += r; count++; }
+                    }
+                    if (count > 0) {
+                        double avg = sum / count;
+                        String ratingStr = String.format(java.util.Locale.getDefault(), "%.1f (%d)", avg, count);
+                        if (tvProfileRating != null) tvProfileRating.setText(ratingStr);
+                        // Update stored rating in Firestore
+                        java.util.Map<String, Object> upd = new java.util.HashMap<>();
+                        upd.put("rating", avg);
+                        upd.put("ratingCount", (long) count);
+                        db.collection("riders").document(uid).update(upd);
+                    } else {
+                        if (tvProfileRating != null) tvProfileRating.setText("No ratings");
+                    }
+                } else {
+                    if (tvProfileRating != null) tvProfileRating.setText("No ratings");
                 }
             });
         }
@@ -123,7 +157,7 @@ public class RiderProfileActivity extends AppCompatActivity {
                         for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                             Long deliveryFee = doc.getLong("deliveryFee");
                             long fee = deliveryFee != null ? deliveryFee : 100L;
-                            
+
                             Long completedAt = doc.getLong("completedAt");
                             if (completedAt == null) {
                                 completedAt = doc.getLong("createdAt");
@@ -167,6 +201,13 @@ public class RiderProfileActivity extends AppCompatActivity {
                 R.id.chevronNotif
         );
 
+        // Customer Reviews
+        setupExpandable(
+                R.id.rowReviews,
+                R.id.expandReviews,
+                R.id.chevronReviews
+        );
+
         // Log out
         View itemLogout = findViewById(R.id.itemLogout);
         if (itemLogout != null) {
@@ -177,7 +218,7 @@ public class RiderProfileActivity extends AppCompatActivity {
                 finish();
             });
         }
-        
+
         // Notifications switch
         android.widget.Switch switchOrderAlerts = findViewById(R.id.switchOrderAlerts);
         if (switchOrderAlerts != null) {
@@ -235,5 +276,109 @@ public class RiderProfileActivity extends AppCompatActivity {
 
         View navProfile = findViewById(R.id.navProfile);
         if (navProfile != null) navProfile.setOnClickListener(v -> { /* already here */ });
+    }
+
+    private void loadRiderReviews() {
+        if (mAuth.getCurrentUser() == null) return;
+        if (layoutReviewsList == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+        // NOTE: no .orderBy() here on purpose — whereEqualTo + orderBy on different
+        // fields needs a Firestore composite index. We sort client-side instead so
+        // this works immediately without any Firebase Console setup.
+        db.collection("reviews").whereEqualTo("riderId", uid)
+                .get().addOnSuccessListener(snap -> {
+                    layoutReviewsList.removeAllViews();
+                    if (snap == null || snap.isEmpty()) {
+                        TextView tv = new TextView(this);
+                        tv.setText("No reviews yet.");
+                        tv.setTextColor(0xFF888888);
+                        tv.setTextSize(13);
+                        tv.setPadding(0, 8, 0, 8);
+                        layoutReviewsList.addView(tv);
+                        return;
+                    }
+
+                    List<com.google.firebase.firestore.DocumentSnapshot> docs = new ArrayList<>(snap.getDocuments());
+                    docs.sort((a, b) -> {
+                        Long ta = a.getLong("createdAt");
+                        Long tb = b.getLong("createdAt");
+                        long va = ta != null ? ta : 0L;
+                        long vb = tb != null ? tb : 0L;
+                        return Long.compare(vb, va); // descending — newest first
+                    });
+
+                    for (com.google.firebase.firestore.DocumentSnapshot d : docs) {
+                        String customerName = d.getString("customerName");
+                        if (customerName == null || customerName.isEmpty()) customerName = "Customer";
+                        String reviewOrderId = d.getString("orderId");
+                        Long rating = d.getLong("rating");
+                        String comment = d.getString("comment");
+
+                        android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+                        row.setOrientation(android.widget.LinearLayout.VERTICAL);
+                        row.setPadding(0, 12, 0, 12);
+
+                        // Divider
+                        View divider = new View(this);
+                        android.widget.LinearLayout.LayoutParams dp = new android.widget.LinearLayout.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1);
+                        divider.setLayoutParams(dp);
+                        divider.setBackgroundColor(0xFFF0F0F0);
+                        layoutReviewsList.addView(divider);
+
+                        // Name + stars row
+                        android.widget.LinearLayout nameRow = new android.widget.LinearLayout(this);
+                        nameRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                        nameRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+                        TextView tvName = new TextView(this);
+                        tvName.setText(customerName);
+                        tvName.setTextColor(0xFF212121);
+                        tvName.setTextSize(14);
+                        tvName.setTypeface(null, android.graphics.Typeface.BOLD);
+                        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                                0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+                        tvName.setLayoutParams(lp);
+
+                        TextView tvStars = new TextView(this);
+                        StringBuilder stars = new StringBuilder();
+                        int r = (rating != null) ? rating.intValue() : 0;
+                        for (int i = 0; i < 5; i++) stars.append(i < r ? "★" : "☆");
+                        tvStars.setText(stars.toString());
+                        tvStars.setTextColor(0xFFFFC107);
+                        tvStars.setTextSize(15);
+
+                        nameRow.addView(tvName);
+                        nameRow.addView(tvStars);
+                        row.addView(nameRow);
+
+                        // Order ID subtitle
+                        if (reviewOrderId != null && !reviewOrderId.isEmpty()) {
+                            TextView tvOrderRef = new TextView(this);
+                            tvOrderRef.setText("Order #" + reviewOrderId.toUpperCase());
+                            tvOrderRef.setTextColor(0xFF9E9E9E);
+                            tvOrderRef.setTextSize(11);
+                            android.widget.LinearLayout.LayoutParams oidLp = new android.widget.LinearLayout.LayoutParams(
+                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                            oidLp.topMargin = 2;
+                            tvOrderRef.setLayoutParams(oidLp);
+                            row.addView(tvOrderRef);
+                        }
+
+                        if (comment != null && !comment.isEmpty()) {
+                            TextView tvComment = new TextView(this);
+                            tvComment.setText(comment);
+                            tvComment.setTextColor(0xFF555555);
+                            tvComment.setTextSize(13);
+                            android.widget.LinearLayout.LayoutParams cLp = new android.widget.LinearLayout.LayoutParams(
+                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                            cLp.topMargin = 4;
+                            tvComment.setLayoutParams(cLp);
+                            row.addView(tvComment);
+                        }
+                        layoutReviewsList.addView(row);
+                    }
+                }).addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load reviews: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

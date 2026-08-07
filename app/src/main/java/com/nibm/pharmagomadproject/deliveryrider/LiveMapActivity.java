@@ -24,7 +24,8 @@ import android.preference.PreferenceManager;
 import java.util.List;
 import java.util.Map;
 
-public class LiveMapActivity extends AppCompatActivity {
+public class
+LiveMapActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -104,7 +105,7 @@ public class LiveMapActivity extends AppCompatActivity {
                         // Show the first active order
                         if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("picked_up") || status.equalsIgnoreCase("out_for_delivery")) {
                             String docId = doc.getId();
-                            String shortId = "#" + docId.substring(0, Math.min(8, docId.length())).toUpperCase();
+                            String shortId = "#" + docId;
 
                             if (tvOrderId != null) tvOrderId.setText(shortId);
 

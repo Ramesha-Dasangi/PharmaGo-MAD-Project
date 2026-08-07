@@ -80,6 +80,9 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
             holder.btnType.setOnClickListener(v -> {
                 Intent intent = new Intent(context, VerifyPrescriptionActivity.class);
+                intent.putExtra("orderId", order.getOrderId());
+                intent.putExtra("customerName", order.getCustomerName());
+                intent.putExtra("customerId", order.getCustomerId());
                 context.startActivity(intent);
             });
 

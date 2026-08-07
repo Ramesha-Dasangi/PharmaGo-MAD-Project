@@ -149,7 +149,7 @@
                     android:id="@+id/tvHours"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="8:00 AM – 10:00 PM"
+                    android:text="7:00 AM – 10:00 PM"
                     android:textColor="@color/pg_sub"
                     android:textSize="12sp"/>
 

@@ -67,8 +67,8 @@ public class RiderNotificationsActivity extends AppCompatActivity {
                         TextView tvDesc = card.findViewById(R.id.tvNotifDesc);
                         
                         String orderId = doc.getId();
-                        String shortId = "#" + orderId.substring(0, Math.min(8, orderId.length())).toUpperCase();
-                        
+                        String shortId = "#" + orderId;
+
                         tvTitle.setText("New Assignment: " + shortId);
                         
                         List<Map<String, Object>> items = (List<Map<String, Object>>) doc.get("items");

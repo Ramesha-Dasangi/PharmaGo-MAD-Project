@@ -88,9 +88,11 @@ public class PharmacyAdapter
         );
 
 
-        holder.rating.setText(
-                "⭐ "+pharmacy.getRating()
-        );
+        if (pharmacy.getRatingCount() > 0 && pharmacy.getRating() > 0) {
+            holder.rating.setText(String.format(java.util.Locale.getDefault(), "⭐ %.1f (%d)", pharmacy.getRating(), pharmacy.getRatingCount()));
+        } else {
+            holder.rating.setText("⭐ New");
+        }
 
         holder.phone.setText(
                 pharmacy.getPhone()

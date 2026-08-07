@@ -3,6 +3,7 @@ package com.nibm.pharmagomadproject.customer.activities.home;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -268,8 +269,11 @@ public class HomeActivity extends AppCompatActivity {
                                  intent.putExtra("pharmacy_distance", "0.5 km away");
                              }
 
-                             intent.putExtra("pharmacy_rating", "⭐ " + String.format("%.1f", pharmacy.getRating()));
-
+                            if (pharmacy.getRatingCount() > 0 && pharmacy.getRating() > 0) {
+                                intent.putExtra("pharmacy_rating", "⭐ " + String.format("%.1f", pharmacy.getRating()));
+                            } else {
+                                intent.putExtra("pharmacy_rating", "⭐ New");
+                            }
                              startActivity(intent);
 
                         }
@@ -464,6 +468,8 @@ public class HomeActivity extends AppCompatActivity {
                         Pharmacy pharmacy = doc.toObject(Pharmacy.class);
                         if (pharmacy != null) {
                             pharmacy.setId(doc.getId());
+                            Long rCount = doc.getLong("ratingCount");
+                            if (rCount != null) pharmacy.setRatingCount(rCount);
 
                             // Compute distance if we have user coordinates
                             if (userLatitude != 0.0 && userLongitude != 0.0) {
@@ -599,11 +605,55 @@ public class HomeActivity extends AppCompatActivity {
         );
     }
 
+    private com.google.firebase.firestore.ListenerRegistration notifListenerRegistration;
+
     @Override
     protected void onResume() {
         super.onResume();
         loadGreetingAndName();
+        checkUnreadNotifications();
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (notifListenerRegistration != null) {
+            notifListenerRegistration.remove();
+            notifListenerRegistration = null;
+        }
+    }
+
+    private void checkUnreadNotifications() {
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) return;
+        String uid = auth.getCurrentUser().getUid();
+        TextView dot = findViewById(R.id.notifDot);
+        if (dot == null) return;
+
+        if (notifListenerRegistration != null) {
+            notifListenerRegistration.remove();
+        }
+
+        notifListenerRegistration = db.collection("notifications")
+                .whereEqualTo("userId", uid)
+                .addSnapshotListener((query, error) -> {
+                    if (error != null || query == null) return;
+                    int unreadCount = 0;
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : query) {
+                        Boolean read = doc.getBoolean("isRead");
+                        if (read == null || !read) {
+                            unreadCount++;
+                        }
+                    }
+                    if (unreadCount > 0) {
+                        dot.setText(unreadCount > 99 ? "99+" : String.valueOf(unreadCount));
+                        dot.setVisibility(View.VISIBLE);
+                    } else {
+                        dot.setVisibility(View.GONE);
+                    }
+                });
+    }
+
 
     private void loadGreetingAndName() {
         // Time-aware greeting
