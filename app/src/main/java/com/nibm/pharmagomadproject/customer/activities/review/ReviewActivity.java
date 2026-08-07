@@ -563,7 +563,7 @@ public class ReviewActivity extends AppCompatActivity {
                 });
     }
 
-    /** Recalculate and persist the average rating for a rider */
+    // Recalculate and persist the average rating for a rider
     private void updateRiderAverageRating(String rId) {
         if (rId == null || rId.isEmpty()) return;
         db.collection("reviews").whereEqualTo("riderId", rId).get()

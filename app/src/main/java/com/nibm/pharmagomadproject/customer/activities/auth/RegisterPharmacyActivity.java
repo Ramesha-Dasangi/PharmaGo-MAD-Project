@@ -86,6 +86,23 @@ public class RegisterPharmacyActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
+
+        // Role navigation
+        TextView roleCustomer = findViewById(R.id.roleCustomer);
+        TextView roleRider = findViewById(R.id.roleRider);
+
+        if (roleCustomer != null) {
+            roleCustomer.setOnClickListener(v -> {
+                startActivity(new Intent(this, RegisterActivity.class));
+                finish();
+            });
+        }
+        if (roleRider != null) {
+            roleRider.setOnClickListener(v -> {
+                startActivity(new Intent(this, RegisterRiderActivity.class));
+                finish();
+            });
+        }
     }
 
     private void registerPharmacy() {

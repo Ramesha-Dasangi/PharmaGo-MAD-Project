@@ -93,9 +93,7 @@ public class DeliveryProgressActivity extends AppCompatActivity {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
     //  Fetch order and build the dynamic pickup step cards
-    // ─────────────────────────────────────────────────────────
     private void fetchOrderDetails() {
         db.collection("orders").document(orderId).get().addOnSuccessListener(doc -> {
             if (!doc.exists()) {
@@ -191,9 +189,7 @@ public class DeliveryProgressActivity extends AppCompatActivity {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
     //  Build one card per pharmacy in the dynamic container
-    // ─────────────────────────────────────────────────────────
     private void buildPickupStepCards() {
         if (containerPickupSteps == null) return;
         containerPickupSteps.removeAllViews();
@@ -219,7 +215,7 @@ public class DeliveryProgressActivity extends AppCompatActivity {
             boolean pickedUp = pickedUpPharmacies.contains(pId);
             boolean isNext   = (i == firstPendingIdx);
 
-            // ── Connector line above each step ──────────────────
+            // Connector line above each step
             View connector = new View(this);
             LinearLayout.LayoutParams connLp = new LinearLayout.LayoutParams(
                     dpToPx(2), dpToPx(20));
@@ -228,7 +224,7 @@ public class DeliveryProgressActivity extends AppCompatActivity {
             connector.setBackgroundColor(pickedUp ? colorGreen : colorGray);
             containerPickupSteps.addView(connector);
 
-            // ── Step row ────────────────────────────────────────
+            // Step row
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
@@ -328,7 +324,7 @@ public class DeliveryProgressActivity extends AppCompatActivity {
         updateBottomButton(allPickedUp);
     }
 
-    /** Opens turn-by-turn navigation (Google Maps) to a single pharmacy's real location. */
+    // Opens turn-by-turn navigation (Google Maps) to a single pharmacy's real location.
     private void openNavigation(double lat, double lng, String label) {
         try {
             Uri gmmIntentUri = Uri.parse("google.navigation:q=" + lat + "," + lng);

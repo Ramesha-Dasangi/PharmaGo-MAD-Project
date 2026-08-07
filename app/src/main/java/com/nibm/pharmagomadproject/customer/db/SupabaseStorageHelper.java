@@ -34,6 +34,9 @@ public class SupabaseStorageHelper {
     public static final String BUCKET_LICENSES =
             "licenses";
 
+    public static final String BUCKET_DELIVERIES =
+            "deliveries";
+
 
 
     public interface UploadCallback {

@@ -108,7 +108,7 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:layout_marginTop="12dp"
-            app:backgroundTint="@color/pg_primary"
+            app:backgroundTint="@color/pg_text"
             app:cornerRadius="10dp"
             app:layout_constraintTop_toBottomOf="@id/tvOrderTotal"
             app:layout_constraintStart_toStartOf="parent"

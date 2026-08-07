@@ -63,11 +63,9 @@ public class AddMedicineActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_medicine);
 
-        //========================
-        // Initialize Views
-        //========================
+// Initialize Views
 
-        edtName = findViewById(R.id.edtName);
+edtName = findViewById(R.id.edtName);
         edtCategory = findViewById(R.id.edtCategory);
         edtBrand = findViewById(R.id.edtBrand);
         edtPrice = findViewById(R.id.edtPrice);
@@ -89,11 +87,9 @@ public class AddMedicineActivity extends AppCompatActivity {
         // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        //========================
-        // Category Dropdown
-        //========================
+// Category Dropdown
 
-        String[] categories = {
+String[] categories = {
                 "Rx",
                 "First Aid",
                 "Vitamins",
@@ -121,17 +117,13 @@ public class AddMedicineActivity extends AppCompatActivity {
             }
         });
 
-        //========================
-        // Date Picker
-        //========================
+// Date Picker
 
-        edtDate.setOnClickListener(v -> showDatePicker());
+edtDate.setOnClickListener(v -> showDatePicker());
 
-        //========================
-        // Camera Launcher
-        //========================
+// Camera Launcher
 
-        cameraLauncher =
+cameraLauncher =
                 registerForActivityResult(
                         new ActivityResultContracts.StartActivityForResult(),
                         result -> {
@@ -149,11 +141,9 @@ public class AddMedicineActivity extends AppCompatActivity {
                             }
                         });
 
-        //========================
-        // Gallery Launcher
-        //========================
+// Gallery Launcher
 
-        galleryLauncher =
+galleryLauncher =
                 registerForActivityResult(
                         new ActivityResultContracts.StartActivityForResult(),
                         result -> {
@@ -167,17 +157,13 @@ public class AddMedicineActivity extends AppCompatActivity {
                             }
                         });
 
-        //========================
-        // Upload Image
-        //========================
+// Upload Image
 
-        layoutImage.setOnClickListener(v -> showImagePickerDialog());
+layoutImage.setOnClickListener(v -> showImagePickerDialog());
 
-        //========================
-        // Save Button
-        //========================
+// Save Button
 
-        btnSave.setOnClickListener(v -> {
+btnSave.setOnClickListener(v -> {
 
             if (!NetworkUtils.isNetworkAvailable(AddMedicineActivity.this)) {
                 Toast.makeText(AddMedicineActivity.this, "No Internet Connection. Please check your connection and try again.", Toast.LENGTH_SHORT).show();
@@ -424,11 +410,9 @@ public class AddMedicineActivity extends AppCompatActivity {
                 });
     }
 
-    //========================
-    // Date Picker
-    //========================
+// Date Picker
 
-    private void showDatePicker() {
+private void showDatePicker() {
 
         Calendar calendar = Calendar.getInstance();
 
@@ -449,11 +433,9 @@ public class AddMedicineActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    //========================
-    // Image Picker Dialog
-    //========================
+// Image Picker Dialog
 
-    private void showImagePickerDialog() {
+private void showImagePickerDialog() {
 
         String[] options = {
                 "Camera",
@@ -478,11 +460,9 @@ public class AddMedicineActivity extends AppCompatActivity {
                 .show();
     }
 
-    //========================
-    // Camera Permission
-    //========================
+// Camera Permission
 
-    private void checkCameraPermission() {
+private void checkCameraPermission() {
 
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -502,11 +482,9 @@ public class AddMedicineActivity extends AppCompatActivity {
 
     }
 
-    //========================
-    // Open Camera
-    //========================
+// Open Camera
 
-    private void openCamera() {
+private void openCamera() {
 
         Intent intent =
                 new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -515,11 +493,9 @@ public class AddMedicineActivity extends AppCompatActivity {
 
     }
 
-    //========================
-    // Open Gallery
-    //========================
+// Open Gallery
 
-    private void openGallery() {
+private void openGallery() {
 
         Intent intent =
                 new Intent(
@@ -530,11 +506,9 @@ public class AddMedicineActivity extends AppCompatActivity {
 
     }
 
-    //========================
-    // Permission Result
-    //========================
+// Permission Result
 
-    @Override
+@Override
     public void onRequestPermissionsResult(
             int requestCode,
             @NonNull String[] permissions,

@@ -66,12 +66,14 @@ public class RegisterActivity extends AppCompatActivity {
                     selectedRole = "pharmacy";
                     updateRoleUI();
                     startActivity(new Intent(this, RegisterPharmacyActivity.class));
+                    finish();
         });
         roleRider.setOnClickListener(
                 v -> {
                     selectedRole = "rider";
                     updateRoleUI();
                     startActivity(new Intent(this, RegisterRiderActivity.class));
+                    finish();
         });
 
         // Already have account
