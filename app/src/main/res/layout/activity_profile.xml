@@ -268,7 +268,7 @@
                         android:id="@+id/txtHours"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="8:00 AM - 10:00 PM"
+                        android:text="7:00 AM - 10:00 PM"
                         android:textColor="#777777"/>
 
                 </LinearLayout>
@@ -341,7 +341,9 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@android:drawable/ic_media_next"/>
+                    android:src="@drawable/ic_arrow_back"
+                    android:scaleX="-1"/>
+
 
             </LinearLayout>
 

@@ -37,7 +37,7 @@ import java.util.Map;
 
 public class DashboardActivity extends AppCompatActivity {
 
-    // ──────────────────── Views ────────────────────
+    // Views
     private TextView txtGreeting, txtPharmacy;
     private ImageView imgNotification;
     private TextView txtNotificationBadge;          // unread notification count badge
@@ -56,12 +56,12 @@ public class DashboardActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigation;
 
-    // ──────────────────── Firebase ────────────────────
+    // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private String ownerId = "";
 
-    // ──────────────────── Realtime Listeners ────────────────────
+    // Realtime Listeners
     private ListenerRegistration ordersListener;
     private ListenerRegistration medicinesListener;
     private ListenerRegistration notificationsListener;
@@ -75,7 +75,7 @@ public class DashboardActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        // ── Firebase init ──
+        // Firebase init
         db    = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
@@ -87,7 +87,7 @@ public class DashboardActivity extends AppCompatActivity {
         }
         ownerId = user.getUid();
 
-        // ── View binding ──
+        // View binding
         txtGreeting  = findViewById(R.id.txtGreeting);
         txtPharmacy  = findViewById(R.id.txtPharmacy);
         imgNotification = findViewById(R.id.imgNotification);
@@ -104,30 +104,30 @@ public class DashboardActivity extends AppCompatActivity {
 
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        // ── Recent orders RecyclerView setup ──
+        // Recent orders RecyclerView setup
         recentOrderList = new ArrayList<>();
         recentOrderAdapter = new RecentOrderAdapter(this, recentOrderList);
         recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
         recyclerRecentOrders.setAdapter(recentOrderAdapter);
 
-        // ── Greeting ──
+        // Greeting
         setGreeting();
 
-        // ── Pharmacy name ──
+        // Pharmacy name
         loadPharmacyName();
 
-        // ── Notification bell ──
+        // Notification bell
         imgNotification.setOnClickListener(v ->
                 startActivity(new Intent(this, NotificationsActivity.class)));
 
-        // ── "See All" orders link ──
+        // "See All" orders link
         TextView txtSeeAll = findViewById(R.id.txtSeeAllOrders);
         if (txtSeeAll != null) {
             txtSeeAll.setOnClickListener(v ->
                     startActivity(new Intent(this, OrdersActivity.class)));
         }
 
-        // ── Bottom navigation ──
+        // Bottom navigation
         bottomNavigation.setSelectedItemId(R.id.nav_home);
         bottomNavigation.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
             @Override
@@ -172,9 +172,8 @@ public class DashboardActivity extends AppCompatActivity {
         stopRealtimeListeners();
     }
 
-    // ═══════════════════════════════════════════════════
     //  Start real-time Firestore listeners
-    // ═══════════════════════════════════════════════════
+
     private void startRealtimeListeners() {
         if (!NetworkUtils.isNetworkAvailable(this)) {
             Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
@@ -373,9 +372,8 @@ public class DashboardActivity extends AppCompatActivity {
                 });
     }
 
-    // ═══════════════════════════════════════════════════
     //  Stop real-time Firestore listeners
-    // ═══════════════════════════════════════════════════
+
     private void stopRealtimeListeners() {
         if (ordersListener != null) {
             ordersListener.remove();
@@ -391,9 +389,8 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    // ═══════════════════════════════════════════════════
     //  Load pharmacy name from Firestore
-    // ═══════════════════════════════════════════════════
+
     private void loadPharmacyName() {
         db.collection("pharmacies")
                 .whereEqualTo("ownerId", ownerId)
@@ -407,9 +404,9 @@ public class DashboardActivity extends AppCompatActivity {
                 });
     }
 
-    // ═══════════════════════════════════════════════════
+
     //  Greeting based on time of day
-    // ═══════════════════════════════════════════════════
+
     private void setGreeting() {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         if      (hour >= 5  && hour < 12) txtGreeting.setText("Good Morning ☀️");

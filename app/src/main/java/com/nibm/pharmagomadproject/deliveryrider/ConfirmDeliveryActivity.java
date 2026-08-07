@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,6 +17,7 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private ImageView ivPhotoResult;
+    private TextView tvCustomerName, tvCustomerAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +26,12 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
+
+        tvCustomerName    = findViewById(R.id.tvCustomerName);
+        tvCustomerAddress = findViewById(R.id.tvCustomerAddress);
+
+        String confirmOrderId = getIntent().getStringExtra("orderId");
+        loadOrderDetails(confirmOrderId);
 
         ImageView ivBack = findViewById(R.id.ivBack);
         if (ivBack != null) {
@@ -34,7 +42,7 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
                 }
             });
         }
-        
+
         View boxPhoto = findViewById(R.id.boxPhoto);
         ivPhotoResult = findViewById(R.id.ivPhotoResult); // Need to add this to XML
         if (boxPhoto != null) {
@@ -70,39 +78,120 @@ public class ConfirmDeliveryActivity extends AppCompatActivity {
 
                     if (uid != null) {
                         com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
-                        
-                        com.google.firebase.firestore.WriteBatch batch = db.batch();
-                        
-                        // Update order status to delivered
-                        if (deliveryOrderId != null && !deliveryOrderId.isEmpty()) {
-                            java.util.Map<String, Object> orderUpdates = new java.util.HashMap<>();
-                            orderUpdates.put("status", "delivered");
-                            orderUpdates.put("deliveredAt", System.currentTimeMillis());
-                            batch.update(db.collection("orders").document(deliveryOrderId), orderUpdates);
-                        }
-                        
-                        // Clear rider's activeOrderId
+
+                        // Clear rider's activeOrderId (separate from the order-completion transaction)
                         java.util.Map<String, Object> riderUpdates = new java.util.HashMap<>();
                         riderUpdates.put("activeOrderId", null);
-                        batch.update(db.collection("riders").document(uid), riderUpdates);
-                        batch.update(db.collection("users").document(uid), riderUpdates);
-                        
-                        batch.commit().addOnCompleteListener(task -> {
-                            android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "✅ Delivery confirmed!", android.widget.Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
-                        });
+                        com.google.firebase.firestore.WriteBatch riderBatch = db.batch();
+                        riderBatch.update(db.collection("riders").document(uid), riderUpdates);
+                        riderBatch.update(db.collection("users").document(uid), riderUpdates);
+
+                        if (deliveryOrderId == null || deliveryOrderId.isEmpty()) {
+                            riderBatch.commit().addOnCompleteListener(task -> goToRiderDashboard());
+                            return;
+                        }
+
+                        // ── Mark order COMPLETED + deduct medicine stock ──
+                        // (This is the only place in the app that finalizes an order,
+                        // so Sales Reports / revenue / top-sellers depend on this running.)
+                        db.collection("orders").document(deliveryOrderId).get()
+                                .addOnSuccessListener(orderDoc -> {
+                                    java.util.List<java.util.Map<String, Object>> items =
+                                            (java.util.List<java.util.Map<String, Object>>) orderDoc.get("items");
+
+                                    java.util.Map<String, Long> deductions = new java.util.HashMap<>();
+                                    if (items != null) {
+                                        for (java.util.Map<String, Object> item : items) {
+                                            Object medIdObj = item.get("medicineId");
+                                            Object qtyObj   = item.get("quantity");
+                                            if (medIdObj == null) continue;
+                                            long qty = qtyObj instanceof Number ? ((Number) qtyObj).longValue() : 1L;
+                                            deductions.merge(medIdObj.toString(), qty, Long::sum);
+                                        }
+                                    }
+
+                                    db.runTransaction(transaction -> {
+                                        java.util.Map<String, com.google.firebase.firestore.DocumentSnapshot> medDocs = new java.util.HashMap<>();
+                                        for (String medId : deductions.keySet()) {
+                                            medDocs.put(medId, transaction.get(db.collection("medicines").document(medId)));
+                                        }
+                                        for (java.util.Map.Entry<String, Long> entry : deductions.entrySet()) {
+                                            com.google.firebase.firestore.DocumentSnapshot snap = medDocs.get(entry.getKey());
+                                            if (snap == null || !snap.exists()) continue;
+                                            Long currentStock = snap.getLong("stock");
+                                            if (currentStock == null) currentStock = 0L;
+                                            long newStock = Math.max(0, currentStock - entry.getValue());
+                                            transaction.update(db.collection("medicines").document(entry.getKey()),
+                                                    "stock", newStock,
+                                                    "updatedAt", System.currentTimeMillis());
+                                        }
+
+                                        long now = System.currentTimeMillis();
+                                        java.util.Map<String, Object> orderUpdates = new java.util.HashMap<>();
+                                        orderUpdates.put("status", "completed");
+                                        orderUpdates.put("deliveredAt", now);
+                                        orderUpdates.put("completedAt", now);
+                                        transaction.update(db.collection("orders").document(deliveryOrderId), orderUpdates);
+                                        return null;
+                                    }).addOnCompleteListener(task ->
+                                            riderBatch.commit().addOnCompleteListener(t -> {
+                                                android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "✅ Delivery confirmed!", android.widget.Toast.LENGTH_SHORT).show();
+                                                goToRiderDashboard();
+                                            }));
+                                })
+                                .addOnFailureListener(e -> {
+                                    android.widget.Toast.makeText(ConfirmDeliveryActivity.this, "Failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                                    btnConfirmDelivered.setEnabled(true);
+                                    btnConfirmDelivered.setText("Confirm Delivered");
+                                });
                     } else {
-                        Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        finish();
+                        goToRiderDashboard();
                     }
                 }
             });
         }
+    }
+
+    private void goToRiderDashboard() {
+        Intent intent = new Intent(ConfirmDeliveryActivity.this, RiderDashboardActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void loadOrderDetails(String oId) {
+        if (oId == null || oId.isEmpty()) return;
+        com.google.firebase.firestore.FirebaseFirestore db =
+                com.google.firebase.firestore.FirebaseFirestore.getInstance();
+
+        db.collection("orders").document(oId).get().addOnSuccessListener(doc -> {
+            if (!doc.exists()) return;
+
+            String customerId = doc.getString("customerId");
+            String rawAddress = doc.getString("deliveryAddress");
+            if (rawAddress == null) rawAddress = doc.getString("address");
+            final String deliveryAddress = rawAddress;
+
+            if (deliveryAddress != null && !deliveryAddress.isEmpty() && tvCustomerAddress != null) {
+                tvCustomerAddress.setText(deliveryAddress);
+            }
+
+            if (customerId != null) {
+                db.collection("users").document(customerId).get().addOnSuccessListener(userDoc -> {
+                    if (!userDoc.exists()) return;
+                    String name = userDoc.getString("name");
+                    String userAddr = userDoc.getString("address");
+                    if (name != null && tvCustomerName != null) {
+                        tvCustomerName.setText(name);
+                    }
+                    // Fall back to the customer's saved profile address if the order has none
+                    if ((deliveryAddress == null || deliveryAddress.isEmpty())
+                            && userAddr != null && tvCustomerAddress != null) {
+                        tvCustomerAddress.setText(userAddr);
+                    }
+                });
+            }
+        });
     }
 
     private void openCamera() {

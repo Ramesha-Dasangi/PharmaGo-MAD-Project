@@ -209,14 +209,14 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
             boolean include;
             switch (currentTab) {
                 case "delivered":
-                    include = "delivered".equals(s);
+                    include = "delivered".equals(s) || "completed".equals(s);
                     break;
                 case "cancelled":
                     include = "cancelled".equals(s);
                     break;
                 case "active":
                     // Everything that is NOT delivered or cancel ed goes here
-                    include = !"delivered".equals(s) && !"cancelled".equals(s);
+                    include = !"delivered".equals(s) && !"completed".equals(s) && !"cancelled".equals(s);
                     break;
                 default: // "all"
                     include = true;
