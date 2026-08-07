@@ -16,6 +16,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.nibm.pharmagomadproject.R;
 import com.nibm.pharmagomadproject.customer.activities.auth.LoginActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RiderProfileActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
@@ -96,21 +99,32 @@ public class RiderProfileActivity extends AppCompatActivity {
 
                     if (tvProfileVehicle != null) tvProfileVehicle.setText(vehicleStr);
                     if (tvExpandVehicle != null) tvExpandVehicle.setText(vehicleStr);
+                }
+            });
 
-                    // Real rating from Firestore
-                    Double rating = doc.getDouble("rating");
-                    Long ratingCount = doc.getLong("ratingCount");
-                    if (tvProfileRating != null) {
-                        if (rating != null && rating > 0) {
-                            String ratingStr = String.format(java.util.Locale.getDefault(), "%.1f", rating);
-                            if (ratingCount != null && ratingCount > 0) {
-                                ratingStr += " (" + ratingCount + ")";
-                            }
-                            tvProfileRating.setText(ratingStr);
-                        } else {
-                            tvProfileRating.setText("No ratings");
-                        }
+            // Compute live avg rating from reviews collection
+            db.collection("reviews").whereEqualTo("riderId", uid).get().addOnSuccessListener(snap -> {
+                if (snap != null && !snap.isEmpty()) {
+                    double sum = 0;
+                    int count = 0;
+                    for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+                        Double r = d.getDouble("rating");
+                        if (r != null) { sum += r; count++; }
                     }
+                    if (count > 0) {
+                        double avg = sum / count;
+                        String ratingStr = String.format(java.util.Locale.getDefault(), "%.1f (%d)", avg, count);
+                        if (tvProfileRating != null) tvProfileRating.setText(ratingStr);
+                        // Update stored rating in Firestore
+                        java.util.Map<String, Object> upd = new java.util.HashMap<>();
+                        upd.put("rating", avg);
+                        upd.put("ratingCount", (long) count);
+                        db.collection("riders").document(uid).update(upd);
+                    } else {
+                        if (tvProfileRating != null) tvProfileRating.setText("No ratings");
+                    }
+                } else {
+                    if (tvProfileRating != null) tvProfileRating.setText("No ratings");
                 }
             });
         }
@@ -143,7 +157,7 @@ public class RiderProfileActivity extends AppCompatActivity {
                         for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                             Long deliveryFee = doc.getLong("deliveryFee");
                             long fee = deliveryFee != null ? deliveryFee : 100L;
-                            
+
                             Long completedAt = doc.getLong("completedAt");
                             if (completedAt == null) {
                                 completedAt = doc.getLong("createdAt");
@@ -204,7 +218,7 @@ public class RiderProfileActivity extends AppCompatActivity {
                 finish();
             });
         }
-        
+
         // Notifications switch
         android.widget.Switch switchOrderAlerts = findViewById(R.id.switchOrderAlerts);
         if (switchOrderAlerts != null) {
@@ -268,7 +282,10 @@ public class RiderProfileActivity extends AppCompatActivity {
         if (mAuth.getCurrentUser() == null) return;
         if (layoutReviewsList == null) return;
         String uid = mAuth.getCurrentUser().getUid();
-        db.collection("reviews").whereEqualTo("riderId", uid).orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        // NOTE: no .orderBy() here on purpose — whereEqualTo + orderBy on different
+        // fields needs a Firestore composite index. We sort client-side instead so
+        // this works immediately without any Firebase Console setup.
+        db.collection("reviews").whereEqualTo("riderId", uid)
                 .get().addOnSuccessListener(snap -> {
                     layoutReviewsList.removeAllViews();
                     if (snap == null || snap.isEmpty()) {
@@ -280,7 +297,17 @@ public class RiderProfileActivity extends AppCompatActivity {
                         layoutReviewsList.addView(tv);
                         return;
                     }
-                    for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+
+                    List<com.google.firebase.firestore.DocumentSnapshot> docs = new ArrayList<>(snap.getDocuments());
+                    docs.sort((a, b) -> {
+                        Long ta = a.getLong("createdAt");
+                        Long tb = b.getLong("createdAt");
+                        long va = ta != null ? ta : 0L;
+                        long vb = tb != null ? tb : 0L;
+                        return Long.compare(vb, va); // descending — newest first
+                    });
+
+                    for (com.google.firebase.firestore.DocumentSnapshot d : docs) {
                         String customerName = d.getString("customerName");
                         if (customerName == null || customerName.isEmpty()) customerName = "Customer";
                         String reviewOrderId = d.getString("orderId");
@@ -351,6 +378,7 @@ public class RiderProfileActivity extends AppCompatActivity {
                         }
                         layoutReviewsList.addView(row);
                     }
-                });
+                }).addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load reviews: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

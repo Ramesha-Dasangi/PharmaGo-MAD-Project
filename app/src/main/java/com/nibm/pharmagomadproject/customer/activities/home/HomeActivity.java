@@ -269,8 +269,11 @@ public class HomeActivity extends AppCompatActivity {
                                  intent.putExtra("pharmacy_distance", "0.5 km away");
                              }
 
-                             intent.putExtra("pharmacy_rating", "⭐ " + String.format("%.1f", pharmacy.getRating()));
-
+                            if (pharmacy.getRatingCount() > 0 && pharmacy.getRating() > 0) {
+                                intent.putExtra("pharmacy_rating", "⭐ " + String.format("%.1f", pharmacy.getRating()));
+                            } else {
+                                intent.putExtra("pharmacy_rating", "⭐ New");
+                            }
                              startActivity(intent);
 
                         }

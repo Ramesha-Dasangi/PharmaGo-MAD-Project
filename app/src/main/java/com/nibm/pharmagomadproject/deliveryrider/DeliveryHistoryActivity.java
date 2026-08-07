@@ -28,6 +28,7 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
     private RecyclerView rvHistory;
     private TextView tvEmpty, tvEarnedAmount, tvDeliveriesCompleted;
     private TextView tvOrdersThisWeek, tvOrdersThisMonth;
+    private TextView tvRatingValue;
     private RiderHistoryAdapter adapter;
     private final List<Map<String, String>> orderList = new ArrayList<>();
 
@@ -48,6 +49,7 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
         tvDeliveriesCompleted = findViewById(R.id.tvDeliveriesCompleted);
         tvOrdersThisWeek = findViewById(R.id.tvOrdersThisWeek);
         tvOrdersThisMonth = findViewById(R.id.tvOrdersThisMonth);
+        tvRatingValue = findViewById(R.id.tvRatingValue);
 
         adapter = new RiderHistoryAdapter(this, orderList);
         if (rvHistory != null) {
@@ -57,6 +59,7 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
 
         setupBottomNav();
         loadOrders();
+        loadRealRating();
     }
 
     private void loadOrders() {
@@ -171,6 +174,27 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to load history: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void loadRealRating() {
+        if (mAuth.getCurrentUser() == null) return;
+        String riderId = mAuth.getCurrentUser().getUid();
+        db.collection("reviews").whereEqualTo("riderId", riderId).get()
+                .addOnSuccessListener(snap -> {
+                    if (snap == null || snap.isEmpty()) {
+                        if (tvRatingValue != null) tvRatingValue.setText("—");
+                        return;
+                    }
+                    double sum = 0;
+                    int count = 0;
+                    for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+                        Double r = d.getDouble("rating");
+                        if (r != null) { sum += r; count++; }
+                    }
+                    if (count > 0 && tvRatingValue != null) {
+                        tvRatingValue.setText(String.format(java.util.Locale.getDefault(), "%.1f", sum / count));
+                    }
                 });
     }
 

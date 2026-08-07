@@ -207,18 +207,25 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                     }
 
-                    // Load reviews for this pharmacy
-                    loadPharmacyReviews(pharmacyDocId);
+                    // Load reviews for this pharmacy.
+                    // NOTE: reviews are written with pharmacyId = the owner's UID
+                    // (see AddMedicineActivity -> Cart -> Order -> ReviewActivity chain),
+                    // NOT the "pharmacies" collection's auto-generated document ID.
+                    // Passing pharmacyDocId here was the bug: it never matched any
+                    // review, so the list always looked empty.
+                    loadPharmacyReviews(uid);
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to load profile: " + e.getMessage(),
                                 Toast.LENGTH_SHORT).show());
     }
 
-    private void loadPharmacyReviews(String pId) {
-        if (pId == null || pId.isEmpty() || layoutPharmacyReviewsList == null) return;
-        db.collection("reviews").whereEqualTo("pharmacyId", pId)
-                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+    private void loadPharmacyReviews(String ownerUid) {
+        if (ownerUid == null || ownerUid.isEmpty() || layoutPharmacyReviewsList == null) return;
+        // NOTE: no .orderBy() here on purpose — whereEqualTo + orderBy on different
+        // fields needs a Firestore composite index. We sort client-side instead so
+        // this works immediately without any Firebase Console setup.
+        db.collection("reviews").whereEqualTo("pharmacyId", ownerUid)
                 .get().addOnSuccessListener(snap -> {
                     layoutPharmacyReviewsList.removeAllViews();
 
@@ -257,7 +264,18 @@ public class ProfileActivity extends AppCompatActivity {
                         layoutPharmacyReviewsList.addView(tv);
                         return;
                     }
-                    for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+
+                    java.util.List<com.google.firebase.firestore.DocumentSnapshot> docs =
+                            new java.util.ArrayList<>(snap.getDocuments());
+                    docs.sort((a, b) -> {
+                        Long ta = a.getLong("createdAt");
+                        Long tb = b.getLong("createdAt");
+                        long va = ta != null ? ta : 0L;
+                        long vb = tb != null ? tb : 0L;
+                        return Long.compare(vb, va); // descending — newest first
+                    });
+
+                    for (com.google.firebase.firestore.DocumentSnapshot d : docs) {
                         String customerName = d.getString("customerName");
                         if (customerName == null || customerName.isEmpty()) customerName = "Customer";
                         String reviewOrderId = d.getString("orderId");
@@ -328,6 +346,7 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                         layoutPharmacyReviewsList.addView(row);
                     }
-                });
+                }).addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load reviews: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
