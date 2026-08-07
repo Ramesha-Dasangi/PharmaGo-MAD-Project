@@ -72,14 +72,13 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
         String rating   = getIntent().getStringExtra(EXTRA_PHARMACY_RATING);
         String hours    = getIntent().getStringExtra(EXTRA_PHARMACY_HOURS);
 
-        if (distance == null) distance = "0.5 km away";
-        if (rating == null)   rating = "⭐ 4.5";
+        if (distance == null) distance = "—";
         if (hours == null)    hours = "8:00 AM - 10:00 PM";
 
         ((TextView) findViewById(R.id.tvPharmacyName)).setText(pharmacyName);
         ((TextView) findViewById(R.id.tvPharmacyFullName)).setText(pharmacyName);
         ((TextView) findViewById(R.id.tvDistance)).setText(distance);
-        ((TextView) findViewById(R.id.tvRating)).setText(rating);
+        ((TextView) findViewById(R.id.tvRating)).setText("⭐ —");
         ((TextView) findViewById(R.id.tvHours)).setText(hours);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
@@ -94,45 +93,64 @@ public class PharmacyDetailsActivity extends AppCompatActivity {
 
         // Load real pharmacy details from Firestore to replace placeholders
         if (pharmacyId != null && !pharmacyId.isEmpty()) {
-            db.collection("pharmacies").document(pharmacyId).get()
-                    .addOnSuccessListener(doc -> {
-                        if (doc.exists()) {
-                            String name = doc.getString("name");
-                            String addr = doc.getString("address");
-                            String phone = doc.getString("phone");
-                            Double ratingVal = doc.getDouble("rating");
-                            
-                            if (name != null) {
-                                pharmacyName = name;
-                                ((TextView) findViewById(R.id.tvPharmacyName)).setText(name);
-                                ((TextView) findViewById(R.id.tvPharmacyFullName)).setText(name);
-                            }
-                            if (addr != null) {
-                                ((TextView) findViewById(R.id.tvAddress)).setText(addr);
-                            }
-                            if (phone != null) {
-                                TextView tvPh = findViewById(R.id.tvPhone);
-                                if (tvPh != null) {
-                                    tvPh.setText(phone);
-                                    tvPh.setOnClickListener(v -> {
-                                        try {
-                                            Intent dial = new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + phone.trim()));
-                                            startActivity(dial);
-                                        } catch (Exception ignored) {}
-                                    });
-                                }
-                            }
-                            if (ratingVal != null) {
-                                Long countVal = doc.getLong("ratingCount");
-                                String countStr = (countVal != null && countVal > 0) ? " (" + countVal + " reviews)" : "";
-                                ((TextView) findViewById(R.id.tvRating)).setText("⭐ " + String.format("%.1f", ratingVal) + countStr);
-                            }
+            loadPharmacyRatingById(pharmacyId);
+        } else if (ownerId != null && !ownerId.isEmpty()) {
+            // Fallback: resolve pharmacy document via ownerId
+            db.collection("pharmacies").whereEqualTo("ownerId", ownerId).limit(1).get()
+                    .addOnSuccessListener(snap -> {
+                        if (snap != null && !snap.isEmpty()) {
+                            loadPharmacyRatingById(snap.getDocuments().get(0).getId());
                         }
                     });
         }
 
         loadMedicines();
         buildFilterChips();
+    }
+
+    private void loadPharmacyRatingById(String docId) {
+        db.collection("pharmacies").document(docId).get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) return;
+                    String name = doc.getString("name");
+                    String addr = doc.getString("address");
+                    String phone = doc.getString("phone");
+                    Double ratingVal = doc.getDouble("rating");
+
+                    if (name != null) {
+                        pharmacyName = name;
+                        TextView tvN = findViewById(R.id.tvPharmacyName);
+                        TextView tvF = findViewById(R.id.tvPharmacyFullName);
+                        if (tvN != null) tvN.setText(name);
+                        if (tvF != null) tvF.setText(name);
+                    }
+                    if (addr != null) {
+                        TextView tvAddr = findViewById(R.id.tvAddress);
+                        if (tvAddr != null) tvAddr.setText(addr);
+                    }
+                    if (phone != null) {
+                        TextView tvPh = findViewById(R.id.tvPhone);
+                        if (tvPh != null) {
+                            tvPh.setText(phone);
+                            tvPh.setOnClickListener(v -> {
+                                try {
+                                    startActivity(new Intent(Intent.ACTION_DIAL,
+                                            android.net.Uri.parse("tel:" + phone.trim())));
+                                } catch (Exception ignored) {}
+                            });
+                        }
+                    }
+                    TextView tvR = findViewById(R.id.tvRating);
+                    if (tvR != null) {
+                        if (ratingVal != null && ratingVal > 0) {
+                            Long countVal = doc.getLong("ratingCount");
+                            String countStr = (countVal != null && countVal > 0) ? " (" + countVal + " reviews)" : "";
+                            tvR.setText("⭐ " + String.format(java.util.Locale.getDefault(), "%.1f", ratingVal) + countStr);
+                        } else {
+                            tvR.setText("⭐ —");
+                        }
+                    }
+                });
     }
 
     private void loadMedicines() {
