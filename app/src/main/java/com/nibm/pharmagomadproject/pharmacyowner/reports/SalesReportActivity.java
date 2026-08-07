@@ -49,7 +49,7 @@ public class SalesReportActivity extends AppCompatActivity {
     private TextView txtTotalRevenue, txtOrderCount, txtBestSeller, txtChartTitle;
     private BottomNavigationView bottomNavigation;
 
-    // ──────────── Firebase ────────────
+    // ──────────── Firebase
     private FirebaseFirestore db;
     private String ownerId = "";
 
