@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.nibm.pharmagomadproject.R;
+import com.nibm.pharmagomadproject.customer.activities.home.HomeActivity;
 import com.nibm.pharmagomadproject.customer.activities.order.OrderTrackingActivity;
 import com.nibm.pharmagomadproject.customer.db.SupabaseStorageHelper;
 
@@ -253,11 +254,25 @@ public class PrescriptionUploadActivity extends AppCompatActivity {
                 .set(order)
                 .addOnSuccessListener(aVoid -> {
                     com.nibm.pharmagomadproject.customer.activities.order.CartActivity.clearCart();
-                    Intent intent = new Intent(PrescriptionUploadActivity.this, OrderTrackingActivity.class);
-                    intent.putExtra("orderId", orderId);
-                    intent.putExtra("is_prescription_order", true);  // hint to show awaiting banner
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
+
+                    // Rebuild the back stack as Home -> OrderTracking, instead of just
+                    // pushing OrderTracking on top of the existing stack. The old
+                    // behaviour left PaymentActivity underneath in the back stack;
+                    // since the cart was just cleared, pressing back from
+                    // OrderTracking landed on a stale PaymentActivity whose
+                    // "Place order" button re-enabled itself (empty-cart Rx check
+                    // passed) and could create a broken duplicate order.
+                    // Going through Home guarantees a clean screen on back-press.
+                    Intent homeIntent = new Intent(PrescriptionUploadActivity.this, HomeActivity.class);
+
+                    Intent trackingIntent = new Intent(PrescriptionUploadActivity.this, OrderTrackingActivity.class);
+                    trackingIntent.putExtra("orderId", orderId);
+                    trackingIntent.putExtra("is_prescription_order", true);  // hint to show awaiting banner
+
+                    androidx.core.app.TaskStackBuilder.create(PrescriptionUploadActivity.this)
+                            .addNextIntent(homeIntent)
+                            .addNextIntent(trackingIntent)
+                            .startActivities();
                     finish();
                 })
                 .addOnFailureListener(e -> {

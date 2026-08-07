@@ -451,6 +451,30 @@ public class PaymentActivity extends AppCompatActivity {
                         db.collection("notifications").add(notif);
                     }
 
+                    // ── Notify every pharmacy involved in this order ──
+                    // (uses the schema pharmacyowner.NotificationsActivity queries:
+                    // ownerId / title / description / time / type / read / timestamp)
+                    Object pharmIdsObj = order.get("pharmacyIds");
+                    if (pharmIdsObj instanceof List) {
+                        java.text.SimpleDateFormat timeFmt = new java.text.SimpleDateFormat(
+                                "dd MMM yyyy hh:mm a", java.util.Locale.getDefault());
+                        String timeStr = timeFmt.format(new java.util.Date());
+                        long now = System.currentTimeMillis();
+
+                        for (Object pid : (List<?>) pharmIdsObj) {
+                            if (pid == null || pid.toString().isEmpty()) continue;
+                            Map<String, Object> ownerNotif = new HashMap<>();
+                            ownerNotif.put("title",       "New Order Received 🛒");
+                            ownerNotif.put("description", "You have a new order (" + orderId + "). Tap to review it.");
+                            ownerNotif.put("time",        timeStr);
+                            ownerNotif.put("type",        "new_order");
+                            ownerNotif.put("read",        false);
+                            ownerNotif.put("ownerId",     pid.toString());
+                            ownerNotif.put("timestamp",   now);
+                            db.collection("notifications").add(ownerNotif);
+                        }
+                    }
+
                     Toast.makeText(this, "✅ Order placed successfully!", Toast.LENGTH_SHORT).show();
 
                     Intent intent = new Intent(this, OrderTrackingActivity.class);
