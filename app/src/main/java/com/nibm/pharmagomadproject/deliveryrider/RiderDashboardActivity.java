@@ -135,6 +135,13 @@ public class RiderDashboardActivity extends AppCompatActivity {
             int activeCount = 0;
             int deliveredCount = 0;
 
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            cal.set(java.util.Calendar.MINUTE, 0);
+            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
+            long startOfDay = cal.getTimeInMillis();
+
             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                 String status = doc.getString("status");
                 String riderId = doc.getString("riderId");
@@ -147,9 +154,15 @@ public class RiderDashboardActivity extends AppCompatActivity {
                     activeCount++;
                 }
 
-                // Count delivered orders for this rider
+                // Count delivered orders for this rider (only today's deliveries)
                 if (isMyOrder && status.equalsIgnoreCase("delivered")) {
-                    deliveredCount++;
+                    Long completedAt = doc.getLong("completedAt");
+                    if (completedAt == null) {
+                        completedAt = doc.getLong("createdAt");
+                    }
+                    if (completedAt != null && completedAt >= startOfDay) {
+                        deliveredCount++;
+                    }
                 }
 
                 // Show a new assignment card (orders assigned to this rider but not yet picked up)

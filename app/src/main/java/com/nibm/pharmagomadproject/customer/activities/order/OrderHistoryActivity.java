@@ -355,7 +355,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
                                                 notif.put("referenceId", order.getOrderId());
                                                 notif.put("isRead", false);
                                                 notif.put("createdAt", System.currentTimeMillis());
-                                                db.collection("notifications").add(notif);
+                                                com.nibm.pharmagomadproject.customer.CustomerNotificationHelper.sendNotification(uid, notif);
                                             }
                                         })
                                         .addOnFailureListener(e ->

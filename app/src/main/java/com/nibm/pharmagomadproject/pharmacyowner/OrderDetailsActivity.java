@@ -277,7 +277,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
                                 notif.put("referenceId", currentOrderId);
                                 notif.put("isRead", false);
                                 notif.put("createdAt", System.currentTimeMillis());
-                                db.collection("notifications").add(notif);
+                                com.nibm.pharmagomadproject.customer.CustomerNotificationHelper.sendNotification(customerId, notif);
                             }
                             String msg = isPrescriptionOrder ? "Order approved — awaiting payment!" : "Order approved!";
                             Toast.makeText(OrderDetailsActivity.this, msg, Toast.LENGTH_SHORT).show();
@@ -351,7 +351,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
                             refundNotif.put("referenceId", currentOrderId);
                             refundNotif.put("isRead", false);
                             refundNotif.put("createdAt", System.currentTimeMillis());
-                            db.collection("notifications").add(refundNotif);
+                            com.nibm.pharmagomadproject.customer.CustomerNotificationHelper.sendNotification(customerId, refundNotif);
                         }
 
                         Toast.makeText(this, "Order status updated.", Toast.LENGTH_SHORT).show();
@@ -510,9 +510,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
         notif.put("referenceId", currentOrderId);
         notif.put("isRead",      false);
         notif.put("createdAt",   System.currentTimeMillis());
-        db.collection("notifications").add(notif)
-                .addOnFailureListener(e ->
-                        Log.e(TAG, "Failed to send customer notification: " + e.getMessage()));
+        com.nibm.pharmagomadproject.customer.CustomerNotificationHelper.sendNotification(customerId, notif);
     }
 
     //  Camera / Gallery
