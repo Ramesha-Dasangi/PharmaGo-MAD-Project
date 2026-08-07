@@ -62,9 +62,7 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
 
                     });
 
-    //==========================
     // Camera
-    //==========================
 
     private final ActivityResultLauncher<Intent> cameraLauncher =
             registerForActivityResult(
@@ -151,9 +149,7 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
 
     }
 
-    //==================================================
     // Select Camera or Gallery
-    //==================================================
 
     private void showImagePickerDialog() {
 
@@ -195,9 +191,7 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
 
     }
 
-    //==================================================
     // Gallery / Files
-    //==================================================
 
     private void openGallery() {
 
@@ -211,9 +205,7 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
 
     }
 
-    //==================================================
     // Camera
-    //==================================================
 
     private void openCamera() {
 
@@ -235,9 +227,7 @@ public class VerifyPrescriptionActivity extends AppCompatActivity {
 
     }
 
-    //==================================================
     // Permission Result
-    //==================================================
 
     @Override
     public void onRequestPermissionsResult(

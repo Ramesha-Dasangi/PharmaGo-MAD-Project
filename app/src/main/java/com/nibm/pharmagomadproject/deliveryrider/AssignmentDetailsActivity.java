@@ -82,48 +82,33 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
         com.google.android.material.button.MaterialButton btnCancelAssignment = findViewById(R.id.btnCancelAssignment);
         if (btnCancelAssignment != null && orderId != null) {
             btnCancelAssignment.setOnClickListener(v ->
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                        .setTitle("Cancel Assignment?")
-                        .setMessage("Order ID: " + orderId + "\n\nAre you sure you want to cancel?")
-                        .setPositiveButton("Yes, cancel", (dialog, which) -> {
-                            String riderId = FirebaseAuth.getInstance().getCurrentUser() != null
-                                    ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                            .setTitle("Cancel Assignment?")
+                            .setMessage("Order ID: " + orderId + "\n\nAre you sure you want to cancel?")
+                            .setPositiveButton("Yes, cancel", (dialog, which) -> {
+                                String riderId = FirebaseAuth.getInstance().getCurrentUser() != null
+                                        ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-                            db.collection("orders").document(orderId)
-                                    .update("status", "cancelled")
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(this, "Cancelled: " + orderId, Toast.LENGTH_LONG).show();
+                                db.collection("orders").document(orderId)
+                                        .update("status", "cancelled")
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(this, "Cancelled: " + orderId, Toast.LENGTH_LONG).show();
 
-                                        if (riderId != null) {
-                                            db.collection("riders").document(riderId)
-                                                    .update("activeOrderId", FieldValue.delete());
-                                        }
+                                            if (riderId != null) {
+                                                db.collection("riders").document(riderId)
+                                                        .update("activeOrderId", FieldValue.delete());
+                                            }
 
-                                        finish();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(this, "FAILED for " + orderId + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                    });
-                        })
-                        .setNegativeButton("Keep assignment", null)
-                        .show()
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(this, "FAILED for " + orderId + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        });
+                            })
+                            .setNegativeButton("Keep assignment", null)
+                            .show()
             );
         }
-
-        View navHome = findViewById(R.id.navHome);
-        if (navHome != null) navHome.setOnClickListener(v -> {
-            Intent i = new Intent(this, RiderDashboardActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(i);
-        });
-        View navMap = findViewById(R.id.navMap);
-        if (navMap != null) navMap.setOnClickListener(v -> startActivity(new Intent(this, LiveMapActivity.class)));
-
-        View navHistory = findViewById(R.id.navHistory);
-        if (navHistory != null) navHistory.setOnClickListener(v -> startActivity(new Intent(this, DeliveryHistoryActivity.class)));
-
-        View navProfile = findViewById(R.id.navProfile);
-        if (navProfile != null) navProfile.setOnClickListener(v -> startActivity(new Intent(this, RiderProfileActivity.class)));
 
         if (orderId != null && !orderId.isEmpty()) {
             fetchOrderDetails(orderId);
@@ -134,13 +119,13 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
 
     private void fetchOrderDetails(String oId) {
         tvOrderTitle.setText("Order #" + oId.substring(0, Math.min(6, oId.length())).toUpperCase());
-        
+
         db.collection("orders").document(oId).get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 String customerId = doc.getString("customerId");
                 String address = doc.getString("deliveryAddress");
                 if (address == null) address = doc.getString("address");
-                
+
                 if (address != null) tvCustomerAddress.setText(address);
 
                 if (customerId != null) {
@@ -162,50 +147,64 @@ public class AssignmentDetailsActivity extends AppCompatActivity {
                     for (Map<String, Object> item : items) {
                         String pId = (String) item.get("pharmacyId");
                         if (pId == null) pId = "unknown";
-                        
+
                         String medicineName = item.get("medicineName") != null ? item.get("medicineName").toString() : "Medicine";
                         String qty = item.get("quantity") != null ? item.get("quantity").toString() : "1";
                         String itemStr = medicineName + " x" + qty;
-                        
+
                         if (!pharmacyItemsMap.containsKey(pId)) {
                             pharmacyItemsMap.put(pId, new StringBuilder(itemStr));
                         } else {
                             pharmacyItemsMap.get(pId).append("\n").append(itemStr);
                         }
                     }
-                    
+
                     stopsContainer.removeAllViews();
                     int stopNum = 1;
-                    
-                    String pId1 = (String) item1.get("pharmacyId");
-                    if (pId1 != null && !pId1.trim().isEmpty()) {
-                        db.collection("users").document(pId1).get().addOnSuccessListener(pDoc -> {
-                            if (pDoc.exists()) {
-                                if (pDoc.getString("name") != null) tvStop1Name.setText(pDoc.getString("name"));
-                                if (tvStop1Address != null) tvStop1Address.setText("Address: " + (pDoc.getString("address") != null ? pDoc.getString("address") : "N/A"));
-                                if (tvStop1Phone != null) tvStop1Phone.setText("Phone: " + (pDoc.getString("phone") != null ? pDoc.getString("phone") : "N/A"));
-                            }
-                        });
-                        
-                        String pId2 = (String) item2.get("pharmacyId");
-                        if (pId2 != null && !pId2.trim().isEmpty()) {
-                            db.collection("users").document(pId2).get().addOnSuccessListener(pDoc -> {
+
+                    for (Map.Entry<String, StringBuilder> entry : pharmacyItemsMap.entrySet()) {
+                        String pId = entry.getKey();
+                        String itemsListStr = entry.getValue().toString();
+
+                        View stopView = LayoutInflater.from(this).inflate(R.layout.item_assignment_stop, stopsContainer, false);
+                        TextView tvStopNum = stopView.findViewById(R.id.tvStopNum);
+                        TextView tvStopName = stopView.findViewById(R.id.tvStopName);
+                        TextView tvStopItems = stopView.findViewById(R.id.tvStopItems);
+                        TextView tvStopAddress = stopView.findViewById(R.id.tvStopAddress);
+                        TextView tvStopPhone = stopView.findViewById(R.id.tvStopPhone);
+                        ImageView btnExpandStop = stopView.findViewById(R.id.btnExpandStop);
+                        View layoutStopDetails = stopView.findViewById(R.id.layoutStopDetails);
+
+                        if (tvStopNum != null) tvStopNum.setText(String.valueOf(stopNum));
+                        if (tvStopItems != null) tvStopItems.setText(itemsListStr);
+
+                        if (btnExpandStop != null && layoutStopDetails != null) {
+                            btnExpandStop.setOnClickListener(v -> {
+                                boolean isVisible = layoutStopDetails.getVisibility() == View.VISIBLE;
+                                layoutStopDetails.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+                            });
+                        }
+
+                        if (!"unknown".equals(pId)) {
+                            db.collection("users").document(pId).get().addOnSuccessListener(pDoc -> {
                                 if (pDoc.exists()) {
-                                    if (pDoc.getString("name") != null) tvStop2Name.setText(pDoc.getString("name"));
-                                    if (tvStop2Address != null) tvStop2Address.setText("Address: " + (pDoc.getString("address") != null ? pDoc.getString("address") : "N/A"));
-                                    if (tvStop2Phone != null) tvStop2Phone.setText("Phone: " + (pDoc.getString("phone") != null ? pDoc.getString("phone") : "N/A"));
+                                    String name = pDoc.getString("name");
+                                    String pAddress = pDoc.getString("address");
+                                    String phone = pDoc.getString("phone");
+
+                                    if (tvStopName != null && name != null) tvStopName.setText(name);
+                                    if (tvStopAddress != null) tvStopAddress.setText("Address: " + (pAddress != null ? pAddress : "N/A"));
+                                    if (tvStopPhone != null) tvStopPhone.setText("Phone: " + (phone != null ? phone : "N/A"));
                                 }
                             });
                         } else {
-                            tvStopName.setText("Unknown Pharmacy");
-                            tvStopAddress.setText("Address: N/A");
-                            tvStopPhone.setText("Phone: N/A");
+                            if (tvStopName != null) tvStopName.setText("Pharmacy");
                         }
-                        
+
                         stopsContainer.addView(stopView);
                         stopNum++;
                     }
-                    
+
                     TextView tvStopsCount = findViewById(R.id.tvStopsCount);
                     if (tvStopsCount != null) {
                         tvStopsCount.setText(pharmacyItemsMap.size() + " stops");

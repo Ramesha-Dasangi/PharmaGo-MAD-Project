@@ -96,7 +96,7 @@ public class LowStockAdapter
 
 
         holder.txtReorderLevel.setText(
-                "Low Stock Limit : 10"
+                "Low Stock Limit : " + item.getMaxStock()
         );
 
 

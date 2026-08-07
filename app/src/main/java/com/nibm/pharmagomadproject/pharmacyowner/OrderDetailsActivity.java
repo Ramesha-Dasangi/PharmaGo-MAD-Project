@@ -37,21 +37,21 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private static final String TAG = "OrderDetailsActivity";
     private static final int CAMERA_PERMISSION_CODE = 100;
 
-    // ──────────────── Views ────────────────
+    // Views
     private TextView txtOrderId, txtDate, txtCustomer, txtPhone,
                      txtAddress, txtTotal, txtItems, txtStatus;
     private ImageView imgPrescription;
     private TextView txtFileName;
     private Button btnUploadPrescription, btnReject, btnApprove;
 
-    // ──────────────── Firebase ────────────────
+    // Firebase
     private FirebaseFirestore db;
     private String currentOrderId;
     private String customerId;
     private String currentStatus = "";
     private boolean isPrescriptionOrder = false;
 
-    // ──────────────── Camera / Gallery ────────────────
+    // Camera / Gallery
     private final ActivityResultLauncher<Intent> galleryLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
@@ -102,7 +102,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // ── Intent Extras ──
+        // Intent Extras
         currentOrderId = getIntent().getStringExtra("orderId");
         customerId     = getIntent().getStringExtra("customerId");
         String customer = getIntent().getStringExtra("customerName");
@@ -114,10 +114,10 @@ public class OrderDetailsActivity extends AppCompatActivity {
         if (customer  != null) txtCustomer.setText(customer);
         if (amount    != null) txtTotal.setText("Total : " + amount);
 
-        // ── Back ──
+        // Back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // ── Load customer details ──
+        // Load customer details
         if (customerId != null && !customerId.isEmpty()) {
             db.collection("users").document(customerId).get()
                     .addOnSuccessListener(doc -> {
@@ -133,7 +133,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             txtAddress.setText("—");
         }
 
-        // ── Load full order from Firestore ──
+        // Load full order from Firestore
         if (currentOrderId != null) {
             db.collection("orders").document(currentOrderId).get()
                     .addOnSuccessListener(doc -> {
@@ -205,9 +205,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
         });
     }
 
-    // ═══════════════════════════════════════════════════
     //  REJECT / CANCEL
-    // ═══════════════════════════════════════════════════
+
     private void handleRejectAction() {
         if (currentOrderId == null) return;
 
@@ -241,9 +240,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 });
     }
 
-    // ═══════════════════════════════════════════════════
     //  Atomic stock deduction via Firestore Transaction
-    // ═══════════════════════════════════════════════════
+
     private void deductStockAndComplete(String toastMsg, String notifTitle, String notifBody) {
         db.collection("orders").document(currentOrderId).get()
                 .addOnSuccessListener(orderDoc -> {
@@ -335,9 +333,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 });
     }
 
-    // ═══════════════════════════════════════════════════
     //  Finalize order status without stock deduction
-    // ═══════════════════════════════════════════════════
+
     private void finalizeOrderStatus(String toastMsg, String notifTitle, String notifBody) {
         db.collection("orders").document(currentOrderId)
                 .update("status", "completed",
@@ -355,9 +352,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 });
     }
 
-    // ═══════════════════════════════════════════════════
     //  Post-completion low-stock alerts for deducted medicines
-    // ═══════════════════════════════════════════════════
+
     private void checkAndNotifyLowStock(Map<String, Long> deductions) {
         for (String medId : deductions.keySet()) {
             db.collection("medicines").document(medId).get()
@@ -375,9 +371,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
         }
     }
 
-    // ═══════════════════════════════════════════════════
     //  Send customer push notification
-    // ═══════════════════════════════════════════════════
+
     private void sendCustomerNotification(String title, String body, String type) {
         if (customerId == null || customerId.isEmpty()) return;
 
@@ -394,9 +389,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
                         Log.e(TAG, "Failed to send customer notification: " + e.getMessage()));
     }
 
-    // ═══════════════════════════════════════════════════
     //  Camera / Gallery
-    // ═══════════════════════════════════════════════════
+
     private void showImagePickerDialog() {
         String[] options = {"Take Photo", "Choose from Gallery / Files"};
         new AlertDialog.Builder(this)
@@ -448,9 +442,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
         }
     }
 
-    // ═══════════════════════════════════════════════════
     //  UI Helpers
-    // ═══════════════════════════════════════════════════
+
     private void refreshActionButtons(String status) {
         if (status == null) return;
         switch (status.toLowerCase()) {

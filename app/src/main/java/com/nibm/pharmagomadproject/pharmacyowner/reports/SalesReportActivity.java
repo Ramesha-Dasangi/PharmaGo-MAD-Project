@@ -253,10 +253,10 @@ public class SalesReportActivity extends AppCompatActivity {
                     default: medal = rank + ". "; break;
                 }
                 sb.append(medal)
-                  .append(entry.getKey())
-                  .append("  —  ")
-                  .append(entry.getValue())
-                  .append(" units");
+                        .append(entry.getKey())
+                        .append("  —  ")
+                        .append(entry.getValue())
+                        .append(" units");
                 if (rank < sortedEntries.size() && rank < 5) sb.append("\n");
                 rank++;
             }

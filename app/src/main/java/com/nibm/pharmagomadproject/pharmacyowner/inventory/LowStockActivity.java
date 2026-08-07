@@ -111,7 +111,7 @@ public class LowStockActivity extends AppCompatActivity {
                         }
 
                         Long stock = document.getLong("stock");
-                        if (stock != null && stock <= 20) {   // threshold = 20
+                        if (stock != null && stock <= 10) {   // threshold = 10
                             InventoryModel model = new InventoryModel();
                             model.setMedicineId(document.getId());
                             model.setMedicineName(document.getString("medicineName"));
@@ -123,7 +123,7 @@ public class LowStockActivity extends AppCompatActivity {
                                 model.setPrice(price);
                             }
 
-                            model.setMaxStock(20);   // threshold = 20
+                            model.setMaxStock(10);   // threshold = 10
                             lowStockList.add(model);
                         }
                     }
