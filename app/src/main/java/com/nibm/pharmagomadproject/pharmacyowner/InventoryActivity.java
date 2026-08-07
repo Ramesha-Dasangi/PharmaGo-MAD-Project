@@ -456,9 +456,7 @@ public class InventoryActivity extends AppCompatActivity {
         adapter.updateList(filteredList);
     }
 
-    // ===========================
     // SEARCH
-    // ===========================
 
     private void searchMedicine(String keyword){
         if (keyword.isEmpty()) {

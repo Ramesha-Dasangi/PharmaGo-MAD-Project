@@ -54,6 +54,23 @@
         app:layout_constraintTop_toTopOf="@id/tvRiderName"
         app:layout_constraintBottom_toBottomOf="@id/tvRiderName" />
 
+    <TextView
+        android:id="@+id/txtRiderNotifBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="18dp"
+        android:minHeight="18dp"
+        android:background="@drawable/bg_notif_dot"
+        android:gravity="center"
+        android:paddingHorizontal="4dp"
+        android:text="1"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/btnNotifications"
+        app:layout_constraintTop_toTopOf="@id/btnNotifications" />
+
     <!-- Active Orders Card -->
     <LinearLayout
         android:id="@+id/cardActiveOrders"
@@ -70,13 +87,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/cardDeliveredOrders"
         app:layout_constraintTop_toBottomOf="@id/tvRiderName">
-        
+
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/ic_menu_sort_by_size"
             app:tint="@color/primary_orange" />
-            
+
         <TextView
             android:id="@+id/tvActiveOrdersCount"
             android:layout_width="wrap_content"
@@ -86,7 +103,7 @@
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:layout_marginTop="8dp" />
-            
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -111,13 +128,13 @@
         app:layout_constraintStart_toEndOf="@id/cardActiveOrders"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvRiderName">
-        
+
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/checkbox_on_background"
             app:tint="@color/green_accept" />
-            
+
         <TextView
             android:id="@+id/tvDeliveredCount"
             android:layout_width="wrap_content"
@@ -127,7 +144,7 @@
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:layout_marginTop="8dp" />
-            
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -286,7 +303,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-        
+
         <LinearLayout android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
             <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_myplaces" app:tint="@color/primary_orange"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textSize="12sp" android:textColor="@color/primary_orange"/>

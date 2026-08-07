@@ -212,6 +212,14 @@
                         android:textColor="#333333"
                         android:lineSpacingExtra="4dp"/>
 
+                    <!-- Top Sellers List -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerTopSellers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:layout_marginTop="4dp"/>
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

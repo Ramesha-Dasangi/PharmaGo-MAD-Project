@@ -58,6 +58,7 @@ public class SalesReportActivity extends AppCompatActivity {
     private int    cachedOrderCount = 0;
     private String cachedBestSeller = "—";
     private String cachedPeriodLabel = "Today";
+    private String currentPeriod = "today";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,9 +93,9 @@ public class SalesReportActivity extends AppCompatActivity {
         highlightButton(btnToday);
         loadReportData("today");
 
-        btnToday.setOnClickListener(v -> { highlightButton(btnToday); loadReportData("today"); });
-        btnWeek .setOnClickListener(v -> { highlightButton(btnWeek);  loadReportData("week");  });
-        btnMonth.setOnClickListener(v -> { highlightButton(btnMonth); loadReportData("month"); });
+        btnToday.setOnClickListener(v -> { highlightButton(btnToday); currentPeriod = "today"; loadReportData("today"); });
+        btnWeek .setOnClickListener(v -> { highlightButton(btnWeek);  currentPeriod = "week";  loadReportData("week");  });
+        btnMonth.setOnClickListener(v -> { highlightButton(btnMonth); currentPeriod = "month"; loadReportData("month"); });
         btnExport.setOnClickListener(v -> exportPDF());
 
         bottomNavigation.setSelectedItemId(R.id.nav_reports);
@@ -122,8 +123,8 @@ public class SalesReportActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Load report data for current active period (default to today)
-        loadReportData("today");
+        // Reload report data for whichever period is currently selected
+        loadReportData(currentPeriod);
     }
 
     // ═══════════════════════════════════════════════════
@@ -208,28 +209,49 @@ public class SalesReportActivity extends AppCompatActivity {
             }
 
             orderCount++;
-            double total = 0;
-            Object totalObj = doc.get("total");
-            if (totalObj instanceof Number) {
-                total = ((Number) totalObj).doubleValue();
-            }
-            totalRevenue += total;
 
-            String label = getBucketLabel(completedAt, period);
-            buckets.merge(label, total, Double::sum);
-
-            // Top-selling medicine
+            // ── Only count revenue / items that actually belong to THIS pharmacy ──
+            // (a single order can span multiple pharmacies, so the order-level
+            // "total" field is NOT this pharmacy's revenue — it can include
+            // other pharmacies' items too. Sum only this owner's line items.)
+            double myShare = 0;
             List<Map<String, Object>> items =
                     (List<Map<String, Object>>) doc.get("items");
             if (items != null) {
                 for (Map<String, Object> item : items) {
-                    String medName = item.get("medicineName") != null
-                            ? item.get("medicineName").toString() : "Unknown";
+                    String itemPharmacyId = item.get("pharmacyId") != null
+                            ? item.get("pharmacyId").toString() : null;
+                    if (!ownerId.equals(itemPharmacyId)) {
+                        continue; // not my item — skip for revenue & top-seller
+                    }
+
+                    Object priceObj = item.get("price");
+                    double price = priceObj instanceof Number
+                            ? ((Number) priceObj).doubleValue() : 0;
                     Object qtyObj = item.get("quantity");
                     int qty = qtyObj != null ? ((Number) qtyObj).intValue() : 1;
+
+                    myShare += price * qty;
+
+                    String medName = item.get("medicineName") != null
+                            ? item.get("medicineName").toString() : "Unknown";
                     medicineCountMap.merge(medName, qty, Integer::sum);
                 }
+            } else {
+                // Fallback: no items array — only trust order total when the
+                // order itself is explicitly tagged as this pharmacy's own order.
+                if (ownerId.equals(topPharmacyId)) {
+                    Object totalObj = doc.get("total");
+                    if (totalObj instanceof Number) {
+                        myShare = ((Number) totalObj).doubleValue();
+                    }
+                }
             }
+
+            totalRevenue += myShare;
+
+            String label = getBucketLabel(completedAt, period);
+            buckets.merge(label, myShare, Double::sum);
         }
 
         // ── Best seller ranked list ──
@@ -253,10 +275,10 @@ public class SalesReportActivity extends AppCompatActivity {
                     default: medal = rank + ". "; break;
                 }
                 sb.append(medal)
-                  .append(entry.getKey())
-                  .append("  —  ")
-                  .append(entry.getValue())
-                  .append(" units");
+                        .append(entry.getKey())
+                        .append("  —  ")
+                        .append(entry.getValue())
+                        .append(" units");
                 if (rank < sortedEntries.size() && rank < 5) sb.append("\n");
                 rank++;
             }
@@ -456,17 +478,49 @@ public class SalesReportActivity extends AppCompatActivity {
 
         pdfDoc.finishPage(page);
 
+        String fileName = "SalesReport_" + cachedPeriodLabel + "_" + today.replace("/", "-") + ".pdf";
+
         try {
-            File file = new File(
-                    getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-                    "SalesReport_" + cachedPeriodLabel + "_" + today.replace("/", "-") + ".pdf");
-            FileOutputStream out = new FileOutputStream(file);
-            pdfDoc.writeTo(out);
-            out.close();
-            pdfDoc.close();
-            Toast.makeText(this,
-                    "PDF Saved:\n" + file.getAbsolutePath(),
-                    Toast.LENGTH_LONG).show();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                // ── Android 10+: save into the public Downloads collection via MediaStore
+                // so it actually shows up in Downloads / the file manager ──
+                android.content.ContentValues values = new android.content.ContentValues();
+                values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+                values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                android.net.Uri uri = getContentResolver().insert(
+                        android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+
+                if (uri == null) throw new java.io.IOException("Could not create file in Downloads");
+
+                try (java.io.OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    pdfDoc.writeTo(out);
+                }
+                pdfDoc.close();
+
+                Toast.makeText(this, "PDF saved to Downloads:\n" + fileName, Toast.LENGTH_LONG).show();
+
+                // Offer to open it immediately
+                Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+                viewIntent.setDataAndType(uri, "application/pdf");
+                viewIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                try {
+                    startActivity(viewIntent);
+                } catch (Exception ignore) {
+                    // No PDF viewer installed — the file is still safely in Downloads
+                }
+            } else {
+                // ── Pre-Android 10 fallback: legacy public Downloads directory ──
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDir.exists()) downloadsDir.mkdirs();
+                File file = new File(downloadsDir, fileName);
+                FileOutputStream out = new FileOutputStream(file);
+                pdfDoc.writeTo(out);
+                out.close();
+                pdfDoc.close();
+                Toast.makeText(this, "PDF saved:\n" + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            }
         } catch (Exception e) {
             pdfDoc.close();
             Toast.makeText(this, "Failed to export PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();

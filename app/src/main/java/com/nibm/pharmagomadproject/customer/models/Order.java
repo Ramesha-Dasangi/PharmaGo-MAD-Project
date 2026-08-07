@@ -73,7 +73,8 @@ public class Order {
             case "processing":                return "Processing";
             case "picked_up":                 return "Picked up";
             case "out_for_delivery":          return "Out for delivery";
-            case "delivered":                 return "Delivered";
+            case "delivered":
+            case "completed":                 return "Delivered";
             case "cancelled":                 return "Cancelled";
             case "rejected":                  return "Rejected";
             default:                          return status;

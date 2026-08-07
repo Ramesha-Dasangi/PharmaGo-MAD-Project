@@ -81,7 +81,7 @@ public class RiderHistoryAdapter extends RecyclerView.Adapter<RiderHistoryAdapte
                     break;
             }
         }
-        
+
         String earnings = order.get("earnings");
         if (earnings != null) {
             holder.tvEarnings.setVisibility(View.VISIBLE);

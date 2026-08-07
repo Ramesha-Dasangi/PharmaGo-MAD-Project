@@ -226,8 +226,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     String rPhone = doc.getString("riderPhone");
                     String rId = doc.getString("riderId");
                     boolean hasRider = (rName != null && !rName.trim().isEmpty())
-                                    || (rPhone != null && !rPhone.trim().isEmpty())
-                                    || (rId != null && !rId.trim().isEmpty());
+                            || (rPhone != null && !rPhone.trim().isEmpty())
+                            || (rId != null && !rId.trim().isEmpty());
 
                     View cardRider = findViewById(R.id.cardRider);
                     if (cardRider != null) {
@@ -340,7 +340,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     }
 
                     String status = doc.getString("status");
-                    
+
                     // Collect step timestamps
                     java.util.Map<String, String> timeMap = new java.util.HashMap<>();
                     timeMap.put("created", createdTimeStr);
@@ -352,7 +352,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     updateStatusUI(status, timeMap, pharmMap, confirmedPharmacies, rejectedPharmacies);
 
                     // Show report & review buttons ONLY when delivered
-                    boolean isDelivered = "delivered".equalsIgnoreCase(status);
+                    boolean isDelivered = "delivered".equalsIgnoreCase(status) || "completed".equalsIgnoreCase(status);
                     if (btnReview != null) btnReview.setVisibility(isDelivered ? View.VISIBLE : View.GONE);
                     if (btnReport != null) btnReport.setVisibility(isDelivered ? View.VISIBLE : View.GONE);
                 } catch (Exception e) {
@@ -481,6 +481,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     setStepsProgress(4);
                     break;
                 case "delivered":
+                case "completed":
                     if (tvStatus != null) tvStatus.setText("Delivered ✓");
                     if (tvStep2Sub != null) tvStep2Sub.setText(!pharmBreakdown.isEmpty() ? pharmBreakdown : "Confirmed" + tConfirmed);
                     if (tvStep3Sub != null) tvStep3Sub.setText("Picked up" + tPickedUp);

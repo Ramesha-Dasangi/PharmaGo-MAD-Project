@@ -69,7 +69,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
                 || "assigned".equals(status) || "picked_up".equals(status) || "out_for_delivery".equals(status);
         boolean isPendingPay = "approved_pending_payment".equals(status);
         boolean isAwaitingApproval = "awaiting_approval".equals(status);
-        boolean isDelivered = "delivered".equals(status);
+        boolean isDelivered = "delivered".equals(status) || "completed".equals(status);
         boolean isCancelled = "cancelled".equals(status);
 
         if (h.btnTrack != null) {
@@ -122,6 +122,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         int fgRes;
         switch (status.toLowerCase()) {
             case "delivered":
+            case "completed":
                 bgRes = com.nibm.pharmagomadproject.R.drawable.bg_tag_green;
                 fgRes = com.nibm.pharmagomadproject.R.color.tag_green_text;
                 break;

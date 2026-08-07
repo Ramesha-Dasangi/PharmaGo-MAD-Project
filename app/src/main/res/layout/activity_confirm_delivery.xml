@@ -72,7 +72,7 @@
             android:id="@+id/tvCustomerName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Buddhini Perera"
+            android:text="Loading..."
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -85,7 +85,7 @@
             android:id="@+id/tvCustomerAddress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No. 15, Galle Road, Colombo 3"
+            android:text=""
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             android:layout_marginTop="4dp"
@@ -120,21 +120,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvProofLabel">
-        
+
         <ImageView
             android:id="@+id/ivPhotoResult"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:visibility="gone" />
-        
+
         <ImageView
             android:id="@+id/iconCamera"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@android:drawable/ic_menu_camera"
             app:tint="@color/green_accept" />
-            
+
         <TextView
             android:id="@+id/tvTakePhoto"
             android:layout_width="wrap_content"
